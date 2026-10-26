@@ -1,0 +1,32 @@
+{
+  "name": "lorebase-reinloop-innovation-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An innovation hub of LLM agents generating IT product ideas under company policies kept in Lorebase",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "lorebase:up": "bash scripts/lorebase-up.sh up",
+    "lorebase:down": "bash scripts/lorebase-up.sh down",
+    "lorebase:seed": "node scripts/lorebase-seed.ts",
+    "dev": "node server/src/main.ts",
+    "sim:mock": "node server/src/main.ts --mock",
+    "rule": "node scripts/change-rule.ts",
+    "scenario": "node scripts/apply-scenario.ts",
+    "test": "node --test \"server/src/**/*.test.ts\" \"services/mnemo/src/**/*.test.ts\"",
+    "game": "node scripts/run-game.ts",
+    "game:mock": "node scripts/run-game.ts --mock",
+    "herald:up": "bash scripts/herald-up.sh up",
+    "herald:down": "bash scripts/herald-up.sh down",
+    "game:server": "node server/src/game-main.ts",
+    "mnemo": "node services/mnemo/src/main.ts",
+    "reinloop:pin": "bash scripts/reinloop-pin.sh",
+    "world:reset": "node scripts/world-reset.ts"
+  },
+  "dependencies": {
+    "reinloop": "file:vendor/reinloop-512adcbe.tgz",
+    "ws": "^8.22.0"
+  }
+}
