@@ -71,8 +71,15 @@ export interface Idea {
   history: IdeaEvent[];
   /** Signal codes the authors brought in (consumed from what they carried). */
   signals: string[];
+  /** Web pages its authors cite (title and http/https URL). */
+  sources: IdeaSource[];
   /** The committee's last word on it. */
   decision: { decision: CommitteeDecision; summary: string; at: At; votes: CommitteeVote[] } | null;
+}
+
+export interface IdeaSource {
+  title: string;
+  url: string;
 }
 
 export interface IdeasConfig {
@@ -92,6 +99,9 @@ export interface IdeasConfig {
   perceiveMax: number;
   /** Signals an author may bring into one idea. */
   signalsMax: number;
+  /** Web sources one idea keeps, and the length of their titles. */
+  sourcesMax: number;
+  sourceTitleMaxChars: number;
   /** A write refused with 429 or 5xx is retried up to `retries` times (backoff from `retryBaseMs`, Retry-After honoured). */
   retries: number;
   retryBaseMs: number;
@@ -107,7 +117,7 @@ export interface IdeaEvents {
   changed(idea: Idea, action: IdeaAction, by: string): void;
 }
 
-export type IdeaInput = Partial<Record<'title' | IdeaField, unknown>> & { tags?: unknown };
+export type IdeaInput = Partial<Record<'title' | IdeaField, unknown>> & { tags?: unknown; sources?: unknown };
 
 const ORDER: Record<IdeaStage, number> = { signal: 0, insight: 1, concept: 2, proposal: 3, pitch: 4, approved: 5, killed: 6 };
 const clean = (v: unknown, max: number) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f]+/g, ' ').trim().slice(0, max) : '');
@@ -176,12 +186,35 @@ export function tagsFrom(v: unknown, max: number, maxChars: number): string[] {
   return [...new Set(out)].slice(0, max);
 }
 
+/**
+ * Web sources from a tool argument: objects `{title, url}` or bare URL strings; only http/https URLs are kept,
+ * without duplicates. Pure.
+ */
+export function sourcesFrom(v: unknown, max: number, titleMax: number): IdeaSource[] {
+  const list = Array.isArray(v) ? v : v === undefined || v === null ? [] : [v];
+  const out: IdeaSource[] = [];
+  for (const x of list) {
+    const raw = typeof x === 'string' ? { url: x } : x && typeof x === 'object' ? (x as Record<string, unknown>) : {};
+    let url: URL;
+    try {
+      url = new URL(String(raw.url ?? '').trim());
+    } catch {
+      continue;
+    }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') continue;
+    const href = url.toString();
+    if (out.some((s) => s.url === href)) continue;
+    out.push({ title: clean(raw.title, titleMax) || url.hostname, url: href });
+  }
+  return out.slice(0, max);
+}
+
 /** The Lorebase row of an idea (kind `Idea`), full state. */
 export function ideaRow(i: Idea, session: string): Record<string, unknown> {
   return {
     code: i.code, title: i.title, problem: i.problem, users: i.users, solution: i.solution, differentiation: i.differentiation, feasibility: i.feasibility,
     risks: i.risks, tags: i.tags, stage: i.stage, champion: i.champion ?? '', authors: i.authors, scores: i.scores ?? {}, branch: i.branch,
-    proposal_id: i.proposalId ?? '', quarter: i.quarter, signals: i.signals, history: i.history, decision: i.decision ?? {}, session,
+    proposal_id: i.proposalId ?? '', quarter: i.quarter, signals: i.signals, sources: i.sources, history: i.history, decision: i.decision ?? {}, session,
     day: i.history[0]?.at.day ?? 0,
   };
 }
@@ -209,7 +242,7 @@ export function ideaFromRecord(r: Pick<RecordItem, 'key' | 'values'>): Idea {
     champion: v.champion ? String(v.champion) : null, authors: json<string[]>(v.authors, []),
     scores: SCORE_KEYS.every((k) => typeof scores[k] === 'number') ? (scores as Scores) : null, reviews: [], branch: String(v.branch ?? ''),
     proposalId: v.proposal_id ? String(v.proposal_id) : null, quarter: String(v.quarter ?? ''), history: json<IdeaEvent[]>(v.history, []),
-    signals: json<string[]>(v.signals, []), decision: decision && 'decision' in decision ? (decision as Idea['decision']) : null,
+    signals: json<string[]>(v.signals, []), sources: json<IdeaSource[]>(v.sources, []), decision: decision && 'decision' in decision ? (decision as Idea['decision']) : null,
   };
 }
 
@@ -336,7 +369,8 @@ export class IdeaBook {
     const fields = Object.fromEntries(IDEA_FIELDS.map((k) => [k, k === 'problem' ? problem : clean(input[k], this.cfg.textMaxChars)])) as Record<IdeaField, string>;
     const idea: Idea = {
       code, title, ...fields, tags: tagsFrom(input.tags, this.cfg.tagsMax, this.cfg.tagMaxChars), stage: stageFromFields(fields), champion: author, authors: [author],
-      scores: null, reviews: [], branch: `${this.cfg.branchPrefix}${code}`, proposalId: null, quarter: ctx.quarter, history: [], signals: ctx.signals.slice(0, this.cfg.signalsMax), decision: null,
+      scores: null, reviews: [], branch: `${this.cfg.branchPrefix}${code}`, proposalId: null, quarter: ctx.quarter, history: [], signals: ctx.signals.slice(0, this.cfg.signalsMax),
+      sources: sourcesFrom(input.sources, this.cfg.sourcesMax, this.cfg.sourceTitleMaxChars), decision: null,
     };
     this.note(idea, ctx.at, author, 'created');
     try {
@@ -372,6 +406,11 @@ export class IdeaBook {
     if (signals.length) {
       i.signals = [...i.signals, ...signals].slice(0, this.cfg.signalsMax * 2);
       changed.push('signals');
+    }
+    const sources = sourcesFrom(input.sources, this.cfg.sourcesMax, this.cfg.sourceTitleMaxChars).filter((x) => !i.sources.some((s) => s.url === x.url));
+    if (sources.length) {
+      i.sources = [...i.sources, ...sources].slice(0, this.cfg.sourcesMax);
+      changed.push('sources');
     }
     if (!changed.length) return 'nothing_changed';
     if (!i.authors.includes(by)) i.authors.push(by);
@@ -528,6 +567,7 @@ export function exportMarkdown(ideas: Idea[], l: ExportLabel, weights: Scores, c
       lines.push(`- ${l('scores')}: ${SCORE_KEYS.map((k) => `${l(`score.${k}`)} ${i.scores![k]}`).join(', ')}${w === null ? '' : `; ${l('weighted')} ${w}`} (${l('reviews', { n: i.reviews.length })})`);
     }
     for (const r of i.reviews) lines.push(`  - ${r.by}: ${r.comment || '-'}`);
+    if (i.sources?.length) lines.push(`- ${l('sources')}: ${i.sources.map((s) => `[${s.title.replace(/[[\]]/g, '')}](${s.url})`).join(', ')}`);
     if (i.decision) lines.push(`- ${l('decision')}: ${l(`decisions.${i.decision.decision}`)}${i.decision.summary ? ` - ${i.decision.summary}` : ''}`);
     lines.push('');
     return lines.join('\n');

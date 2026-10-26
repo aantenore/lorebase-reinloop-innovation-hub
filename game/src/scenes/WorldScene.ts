@@ -7,6 +7,7 @@ import { toScreen } from '../render/iso';
 import { WorldView } from '../render/worldView';
 import { store, type Offer } from '../state/store';
 import { bus } from '../ui/bus';
+import { hostOf } from '../ui/dom';
 import { getPref, setPref } from '../ui/prefs';
 import { itemIcon } from '../ui/itemIcons';
 import { bagText } from '../ui/inventory';
@@ -116,6 +117,12 @@ export class WorldScene extends Phaser.Scene {
       const key = `${agentId}#consult`;
       const dy = this.labels.hasBubble(agentId) ? -80 : -46;
       this.labels.bubble(key, this.anchorFor(agentId), `💭 ${t('consult.bubble', { q: query })}`, { kind: 'consult', ms: config.minds.consultBubbleMs, dy });
+    }));
+    u.push(store.on('research', ({ agentId, tool, query, url }) => {
+      if (!this.views.has(agentId)) return;
+      const text = tool === 'web_fetch' ? t('research.bubbleFetch', { host: url ? hostOf(url) : '?' }) : t('research.bubbleSearch', { q: query ?? '' });
+      const dy = this.labels.hasBubble(agentId) ? -80 : -46;
+      this.labels.bubble(`${agentId}#research`, this.anchorFor(agentId), text, { kind: 'research', ms: config.minds.researchBubbleMs, dy });
     }));
     u.push(store.on('craft', ({ by, outputs, at }) => {
       const anchor = this.anchorForRef(by, at);

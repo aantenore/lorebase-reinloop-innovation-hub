@@ -6,7 +6,7 @@ import { session } from '../net/session';
 import { drawPortrait } from '../render/portrait';
 import { store } from '../state/store';
 import { bus } from './bus';
-import { fmtClock, h, uiRoot } from './dom';
+import { fmtClock, h, uiRoot, webLink } from './dom';
 import { panels } from './panels';
 
 const PANEL = 'ideas';
@@ -14,7 +14,16 @@ const SCORE_KEYS: (keyof IdeaScores)[] = ['impact', 'feasibility', 'novelty', 'f
 
 const stageLabel = (s: string) => t(`ideas.stage.${s}` as I18nKey);
 const when = (at: GameTime) => `${t('hud.day', { n: at.day })} ${fmtClock(at.minute)}`;
-const personName = (ref: string) => store.resolve(ref)?.name ?? store.people.get(ref)?.name ?? store.groups.get(ref)?.name ?? ref;
+/** People in an idea (champion, authors, reviewers, history) are already NAMES: shown as they are. */
+const personName = (name: string) => name;
+/** Entity (or person) carrying that name, if any. */
+function byName(name: string) {
+  for (const e of store.entities.values()) if (e.name === name) return e;
+  for (const p of store.people.values()) if (p.name === name) return p;
+  return undefined;
+}
+/** Committee votes carry the member's entity id: shown as the entity's name (raw id as fallback). */
+const memberName = (id: string) => store.personName(id);
 
 /** Mean of the value scores (risk counts inverted). */
 function overall(s: IdeaScores | null): number | null {
@@ -24,7 +33,7 @@ function overall(s: IdeaScores | null): number | null {
 
 /** Small pixel avatar of a person (falls back to initials when unknown). */
 function avatar(ref: string | null, cls = 'idea-ava'): HTMLElement {
-  const e = ref ? (store.resolve(ref) ?? store.people.get(ref)) : undefined;
+  const e = ref ? byName(ref) : undefined;
   if (!e) return h('span', { class: `${cls} idea-ava-none` }, ref ? personName(ref).slice(0, 2) : '?');
   const c = h('canvas', { class: cls, width: 56, height: 60, title: e.name }) as HTMLCanvasElement;
   drawPortrait(c, { name: e.name, role: e.role, kind: 'kind' in e ? e.kind : 'agent', age: e.age });
@@ -167,6 +176,13 @@ export function mountIdeaBoard(): void {
 
   const field = (label: I18nKey, text: string) => h('div', { class: 'idea-field' }, h('div', { class: 'section-title' }, t(label)), h('div', { class: text ? '' : 'muted' }, text || t('ideas.tbd')));
 
+  /** Web sources as safe external links (http/https only); hidden when none. */
+  const sourcesBlock = (i: Idea) => {
+    const links = (i.sources ?? []).map((s) => webLink(s)).filter((a): a is HTMLAnchorElement => !!a);
+    if (!links.length) return [];
+    return [h('div', { class: 'idea-field' }, h('div', { class: 'section-title' }, `${t('ideas.sources')} (${links.length})`), h('ul', { class: 'idea-sources' }, ...links.map((a) => h('li', {}, a))))];
+  };
+
   const renderDrawer = () => {
     const i = selected ? store.ideas.get(selected) : undefined;
     drawer.classList.toggle('hidden', !i);
@@ -185,6 +201,7 @@ export function mountIdeaBoard(): void {
       field('ideas.differentiation', i.differentiation),
       field('ideas.feasibility', i.feasibility),
       field('ideas.risks', i.risks),
+      ...sourcesBlock(i),
       h('div', { class: 'section-title' }, t('ideas.scores')),
       i.scores ? radar(i.scores) : h('div', { class: 'muted' }, t('ideas.noScores')),
       h('div', { class: 'section-title' }, `${t('ideas.reviews')} (${i.reviews.length})`),
@@ -261,7 +278,7 @@ function mountCommitteeBanner(): void {
       h('div', { class: 'committee-title' }, idea?.title ?? c.ideaCode),
       h('div', { class: 'committee-sum' }, c.summary),
       board && c.votes?.length
-        ? h('div', { class: 'committee-votes' }, ...c.votes.map((v) => h('div', { class: `committee-vote vote-${v.vote}` }, h('b', {}, personName(v.member)), ` ${t(`committee.vote.${v.vote}` as I18nKey)} · `, h('span', { class: 'muted' }, v.reason))))
+        ? h('div', { class: 'committee-votes' }, ...c.votes.map((v) => h('div', { class: `committee-vote vote-${v.vote}` }, h('b', {}, memberName(v.member)), ` ${t(`committee.vote.${v.vote}` as I18nKey)} · `, h('span', { class: 'muted' }, v.reason))))
         : null,
     );
     host.append(banner);

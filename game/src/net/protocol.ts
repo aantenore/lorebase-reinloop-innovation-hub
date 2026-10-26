@@ -359,8 +359,9 @@ export interface Idea {
   risks: string;
   tags: string[];
   stage: IdeaStage;
-  /** Entity id of the champion. */
+  /** Name of the champion (people in an idea are NAMES, not entity ids). */
   champion: string | null;
+  /** Author names. */
   authors: string[];
   scores: IdeaScores | null;
   reviews: IdeaReview[];
@@ -368,12 +369,15 @@ export interface Idea {
   proposalId: string | null;
   quarter: Quarter;
   history: IdeaHistoryEntry[];
+  /** Web sources attached to the idea. */
+  sources?: WebSource[];
 }
 
 export type IdeaAction = 'created' | 'updated' | 'reviewed' | 'submitted' | 'approved' | 'killed' | 'stage';
 export type CommitteeDecision = 'approve' | 'kill' | 'defer';
 
 export interface CommitteeVote {
+  /** Entity id of the voting member. */
   member: string;
   vote: CommitteeDecision;
   reason: string;
@@ -504,6 +508,19 @@ export interface OfferMsg {
 /** Batched tile updates (`tile` stays valid for single updates). */
 export interface TilesMsg { type: 'tiles'; items: { x: number; y: number; food: number; wood: number; shelter: ShelterLevel }[] }
 
+export interface WebSource { title: string; url: string }
+/** An agent searched the web (`query`) or fetched a page (`url`); `snippets` only for privileged connections. */
+export interface ResearchMsg {
+  type: 'research';
+  agentId: string;
+  tool: 'web_search' | 'web_fetch';
+  query?: string;
+  url?: string;
+  results: WebSource[];
+  snippets?: string[];
+  cached?: boolean;
+}
+
 export interface IdeaMsg { type: 'idea'; idea: Idea; action: IdeaAction }
 export interface CommitteeMsg { type: 'committee'; groupId: string; ideaCode: string; decision: CommitteeDecision; votes?: CommitteeVote[]; summary: string }
 export interface CompanyMsg { type: 'company'; quarter: Quarter; slotsLeft: number; themes: string[]; freeze: boolean }
@@ -530,6 +547,7 @@ export type ServerMsg =
   | LorebaseMsg
   | InsightMsg
   | ConsultMsg
+  | ResearchMsg
   | CraftMsg
   | TradeMsg
   | DiscoveryMsg
@@ -634,6 +652,7 @@ export interface AgentMind {
   plan?: { steps: PlanStep[]; current: number; reason: string } | null;
   thoughts?: { at: GameTime; text: string }[];
   consults?: { at: GameTime; tool: string; query: string }[];
+  research?: { at: GameTime; tool: string; query?: string; url?: string; results: WebSource[] }[];
   groupId?: string | null;
 }
 

@@ -1,10 +1,11 @@
 import { roleLabel, t, type I18nKey } from '../i18n';
-import type { Group, PlanStep } from '../net/protocol';
+import type { AgentMind, Group, PlanStep } from '../net/protocol';
+import { session } from '../net/session';
 import { drawPortrait } from '../render/portrait';
 import { careerLevel } from '../state/career';
 import { store, type EntityState, type Plan } from '../state/store';
 import { bus } from './bus';
-import { fmtClock, h, throttle, uiRoot } from './dom';
+import { fmtClock, h, hostOf, throttle, uiRoot, webLink } from './dom';
 import { bagText, inventoryChips, toolRows } from './inventory';
 import { familyColor } from '../render/palette';
 import { ageLabel, esteemBar, societyNav } from './society';
@@ -52,8 +53,9 @@ export function mountInspector(): void {
   // `dyn` is rebuilt on every refresh; the consult and memory blocks persist so their animations survive
   const dyn = h('div', { class: 'insp-dyn' });
   const consults = h('div', { class: 'consults' });
+  const research = h('div', { class: 'research-list' });
   const memory = new MemoryView();
-  const body = h('div', { class: 'scroll' }, dyn, consults, memory.el);
+  const body = h('div', { class: 'scroll' }, dyn, consults, research, memory.el);
   const el = h('div', { class: 'px panel inspector hidden' }, h('button', { class: 'btn x-btn', onclick: () => store.select(null) }, 'X'), body);
   uiRoot().append(el);
   panels.register({
@@ -163,17 +165,52 @@ export function mountInspector(): void {
     );
   };
 
+  const renderResearch = () => {
+    const id = store.selectedId;
+    const e = id ? store.entities.get(id) : undefined;
+    research.classList.toggle('hidden', !e || e.kind !== 'agent');
+    if (!e || e.kind !== 'agent') return;
+    const list = [...(store.research.get(e.id) ?? [])].reverse();
+    research.replaceChildren(
+      h('div', { class: 'section-title' }, t('insp.research')),
+      h('div', { class: 'note' }, list.length ? t('insp.researchNote') : t('insp.noResearch')),
+      ...list.slice(0, 5).map((r) => {
+        const links = r.results.slice(0, 3).map((s) => webLink(s)).filter((a): a is HTMLAnchorElement => !!a);
+        const what = r.tool === 'web_fetch' ? `${t('insp.researchFetch')}: ${r.url ? hostOf(r.url) : ''}` : `${t('insp.researchSearch')}: ${r.query ?? ''}`;
+        return h('div', { class: 'research' }, h('span', { class: 'r-q' }, `🔎 ${what} `), h('span', { class: 'muted c-when' }, fmtClock(r.minute)), links.length ? h('div', { class: 'r-links' }, ...links) : null);
+      }),
+    );
+  };
+  const loadResearch = async (id: string) => {
+    try {
+      const res = await session.transport?.getJson<AgentMind>(`/agents/${encodeURIComponent(id)}/mind`);
+      if (res?.research?.length) store.mergeResearch(id, res.research);
+    } catch {
+      /* live events still fill the list */
+    }
+  };
+
   const schedule = throttle(() => panels.isOpen('inspector') && render(), 300);
   store.on('select', ({ id }) => {
     panels.set('inspector', !!id, false);
     memory.setAgent(id);
     renderConsults();
-    if (id) render();
+    renderResearch();
+    if (id) {
+      render();
+      void loadResearch(id);
+    }
   });
   store.on('consult', ({ agentId }) => {
     if (agentId !== store.selectedId) return;
     freshConsult = Date.now();
     renderConsults();
+  });
+  store.on('research', ({ agentId }) => {
+    if (agentId === store.selectedId) renderResearch();
+  });
+  store.on('research_loaded', ({ agentId }) => {
+    if (agentId === store.selectedId) renderResearch();
   });
   store.on('any', schedule);
 }

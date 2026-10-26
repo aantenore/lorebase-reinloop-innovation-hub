@@ -59,6 +59,7 @@ export class GodLedger {
   private seq = 1;
   private thoughts = new Map<string, { at: GameTime; text: string }[]>();
   private consults = new Map<string, { at: GameTime; tool: string; query: string }[]>();
+  private research = new Map<string, NonNullable<AgentMind['research']>>();
   private streams = new Map<string, string>();
   private runs = 0;
   private decisions = 0;
@@ -131,6 +132,9 @@ export class GodLedger {
         break;
       case 'consult':
         this.keep(this.consults, msg.agentId, { at, tool: msg.tool, query: msg.query });
+        break;
+      case 'research':
+        this.keep(this.research, msg.agentId, { at, tool: msg.tool, query: msg.query, url: msg.url, results: msg.results });
         break;
       case 'thinking': {
         if (!msg.on) break;
@@ -215,6 +219,7 @@ export class GodLedger {
       plan: a.steps.length ? { steps: a.steps, current: a.current, reason: '' } : null,
       thoughts: this.thoughts.get(id) ?? [],
       consults: this.consults.get(id) ?? [],
+      research: this.research.get(id) ?? [],
       groupId: a.groupId,
     };
   }

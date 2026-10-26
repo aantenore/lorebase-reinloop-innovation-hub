@@ -12,6 +12,38 @@ one while the hub runs and the people learn of it from Lorebase's change feed. T
 Derived from [lorebase-reinloop-civilization](https://github.com/aantenore/lorebase-reinloop-civilization),
 which holds the history of the engine (real-time world, minds, groups, society, economy, god mode).
 
+Latest live run (budget-capped, real models, web research on): [docs/run-report.md](docs/run-report.md),
+evidence in [docs/evidence/run1/](docs/evidence/run1/).
+
+## Screenshots
+
+![Campus](docs/screenshots/campus.png)
+*Il campus in tempo reale / The office campus in real time*
+
+![Idea board](docs/screenshots/idea-board.png)
+*La bacheca delle idee per fase / The idea board by stage*
+
+![Idea detail](docs/screenshots/idea-detail.png)
+*Un'idea approvata con valutazioni, decisione del comitato e fonti web / An approved idea with reviews, the committee's decision and web sources*
+
+![Web research](docs/screenshots/research.png)
+*Le ricerche web di una persona nell'ispettore, con i link ai risultati / A person's web research in the inspector, with links to the results*
+
+![Board mode](docs/screenshots/board-mode.png)
+*Modalità Board: conversazioni e menti / Board mode: conversations and minds*
+
+![Playbook](docs/screenshots/playbook.png)
+*Il playbook dei ruoli, proposto e revisionato dai pari / Role playbooks, proposed and peer-reviewed*
+
+![Signals](docs/screenshots/signals.png)
+*Segnali, metodi di lavoro e breakthrough / Signals, work methods and breakthroughs*
+
+![People](docs/screenshots/people.png)
+*Persone e carriere / People and careers*
+
+![Memory](docs/screenshots/memory.png)
+*La memoria privata di una persona / A person's private memory*
+
 ## Concept
 
 - **Nothing coordinates the agents.** Each person runs its own loop: perceptions in, plans out. The world
@@ -26,6 +58,11 @@ which holds the history of the engine (real-time world, minds, groups, society, 
   No approval happens outside the committee.
 - **All numbers are policies** (Lorebase `Rule` records, category in `company`, `ideas`, `strategy`, ...)
   or config (`config/*.json`). Nothing gameplay-related is hardcoded.
+- **Online research.** Every mind has reinloop's `web_search` and `web_fetch` (`server/src/rt/research.ts`);
+  the prompt only states the faculty ("Puoi cercare sul web"). Daily searches per person and for the whole hub
+  and the excluded domains are policies; results are cached server-side (a cached answer costs no quota);
+  every call is a `research` event. Web content is untrusted: it is only text returned to the model, never an
+  input to a write. Pages people use can be cited on an idea (`sources: [{title, url}]`).
 
 ### From the civilization to the hub
 
@@ -103,10 +140,10 @@ npm run game:mock          # same, offline mock provider (no model calls)
 (cd game && npm install && npm run dev)   # the isometric client on http://localhost:5184
 ```
 
-`.env` may hold `ANTHROPIC_API_KEY`. Useful environment: `GAME_TIME_SCALE` (game time multiplier),
+`.env` may hold `ANTHROPIC_API_KEY` and `TAVILY_API_KEY` (web research; without it research is off). Useful environment: `GAME_TIME_SCALE` (game time multiplier),
 `GAME_BUDGET_USD` (model spend cap of a run; default `budget.maxUsd` = 2 in `config/game.json`; at the cap
 every mind pauses), `SIM_MODEL_OVERRIDE=haiku` (every agent on one tier), `SIM_ROSTER_FILE` (another roster),
-`GAME_CROWD` (number of interns), `--seconds N` (stop after N seconds). Other variables as in the engine
+`GAME_CROWD` (number of interns), `GAME_PROFILE` (cost profile, `config/profiles/<name>.json`), `--seconds N` (stop after N seconds). Other variables as in the engine
 (`SIM_API_TOKEN`, `HERALD_URL`, `MNEMO_URL`, ...).
 
 `npm run world:reset -- --dry-run` shows what a reset would do: policies back to the seed, breakthroughs
@@ -134,6 +171,25 @@ chaired by Livia, with Matteo and Dario; it only decides on ideas, its members p
 joins it by themselves) and the **Squadra Esplorazione** (orchestrator: Enea, Sara, Bruno). Three interns
 share one mind (crowd "Stagisti").
 
+### Research, prompt caching, cost profiles
+
+- **Web research.** `research` in `config/game.json`: `provider` (`tavily` | `anthropic-native` | `off`),
+  `maxResults`, `maxResultsCap`, `maxChars` (per snippet), `maxFetchChars`, `cacheTtlMs` / `cacheMax` (server-side
+  cache), `anthropicTier` (the model of `anthropic-native`), `policies` (the keys of the quota and domain
+  policies), `eventSnippetChars`, `recentMax`, `logMax`. Offline (`game:mock`) research is off.
+- **Prompt caching.** On Anthropic models reinloop caches the prompt prefix (tool catalog, instructions, then the
+  latest message). Every call puts what does not change between decisions first: tools, then the person's
+  instructions (identity, role, faculties, horizon); the perception of the moment is the message, last. Config
+  `promptCache` (`enabled`, `ttl`, `groupTtl`: `5m` or `1h`). `/api/observatory/summary` reports
+  `reinloop.cache` (`readTokens`, `writeTokens`, `hitRatio` = read share of all input tokens, `savedUsd` against
+  the same calls uncached, also `byModel` and `byTier`) and the research counters in `reinloop`
+  (`webSearches`, `webFetches`, `webCached`, `webRefused`, `webErrors`).
+- **Cost profiles.** `GAME_PROFILE=<name>` applies `config/profiles/<name>.json` over the config files (`game`
+  into `config/game.json`, `sim` into `config/sim.json`, `rosterTiers` by name, `"*"` for the rest). `economy`:
+  every mind on haiku except Livia (venture lead, committee chair) on sonnet; committee voters and group
+  proposers on haiku, no interns, replan cooldowns x2 (sonnet x3), one Lorebase consultation per haiku decision,
+  replies capped at 500 tokens.
+
 ## Policies
 
 Seeded from `lorebase/rules.seed.yaml` (Kind `Rule`). The ones about ideas and the company:
@@ -149,6 +205,9 @@ Seeded from `lorebase/rules.seed.yaml` (Kind `Rule`). The ones about ideas and t
 | `fame_idea_proposed`, `fame_idea_approved`, `fame_review_given` | 0.5, 5, 0.5 | impact of each deed |
 | `promotion_senior_fame`, `promotion_principal_fame`, `promotion_fellow_fame` | 2, 6, 12 | career steps |
 | `risk_appetite` | 6 | read by people; not enforced by the world |
+| `ricerche_web_per_persona_al_giorno` | 6 | web searches and page reads one person may do per game day (a cached answer is free) |
+| `ricerche_web_totali_al_giorno` | 40 | the same for the whole hub |
+| `domini_esclusi` | text | domains named in the text are dropped from results and never fetched |
 | `tema_agenti_ai`, `tema_developer_experience`, `tema_sicurezza` | text | strategic themes (category `strategy`, in `company.themes`) |
 | `orario_di_lavoro`, `regole_riunioni`, `giorni_remoti`, `zona_relax`, `codice_valutazione` | text | conduct policies people read and may report |
 | `winter_every_ticks`, `winter_length_ticks`, `season_turn_minutes` | 16, 2, 45 | the year (four quarters) and its freeze |
@@ -182,7 +241,7 @@ kept (see the civilization README); the hub changes and adds:
 - `time`: adds `quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4'` and `freeze: boolean` (`season` kept).
 - `hello`: adds `company: {name, quarter, slotsLeft, themes: string[], freeze}` and `ideas: Idea[]`.
 - `group`: adds `committee: boolean` and `jointPlans: boolean`.
-- `Idea = {code, title, problem, users, solution, differentiation, feasibility, risks, tags: string[], stage, champion: string | null, authors: string[], scores: {impact, feasibility, novelty, fit, risk} | null, reviews: [{by, scores, comment, at: {day, minute}}], branch, proposalId: string | null, quarter, history: [{at: {day, minute}, by, action, note}], signals: string[], decision: {decision, summary, at, votes} | null}`.
+- `Idea = {code, title, problem, users, solution, differentiation, feasibility, risks, tags: string[], stage, champion: string | null, authors: string[], scores: {impact, feasibility, novelty, fit, risk} | null, reviews: [{by, scores, comment, at: {day, minute}}], branch, proposalId: string | null, quarter, history: [{at: {day, minute}, by, action, note}], signals: string[], sources: [{title, url}], decision: {decision, summary, at, votes} | null}`.
   `stage` in `signal | insight | concept | proposal | pitch | approved | killed`. People (champion, authors,
   reviewers, history `by`) are **names**. `scores` is the mean of the reviews (0-10, one decimal).
 - `idea {idea, action}`: `action` in `created | updated | reviewed | submitted | approved | killed | stage`.
@@ -191,12 +250,16 @@ kept (see the civilization README); the hub changes and adds:
   `votes: []`), the summary to everyone.
 - `company {name, quarter, slotsLeft, themes, freeze}`: at every quarter turn, after each committee decision and when policies change.
 - `world_event` kinds add `idea` and `company` (promotions, quarterly reviews).
+- `research {agentId, tool: 'web_search' | 'web_fetch', query?, url?, results: [{title, url}], cached, snippets?}`:
+  a person searched the web or read a page; `snippets` only to privileged connections. `GET /api/agents/:id/mind`
+  adds `research` (the person's latest, same fields without snippets).
 
 REST:
 
 - `GET /api/ideas?stage=&tag=&author=` → `Idea[]` (author matches authors and champion, by name).
 - `GET /api/ideas/:code` → `Idea` (404 when unknown).
 - `GET /api/ideas/export.md` → the portfolio in markdown (approved, pipeline by stage, killed), `text/markdown`.
+- `GET /api/research` → `{provider, stats, items: [{at, agentId, name, tool, query?, url?, results, cached}]}` (the run's searches, no snippets).
 - `GET /api/company` → `{name, quarter, slotsLeft, themes, freeze, stats: {proposed, submitted, approved, killed}, slotsPerQuarter, committee}`.
 
 ## Exporting the ideas
@@ -210,12 +273,29 @@ Approved ideas are also Lorebase records on `main` (Kind `Idea`, with their `Rev
 portfolio survives restarts and is searchable by agents through Herald. Ideas still in the pipeline and
 killed ones stay on their `idea/` branches and are reloaded at start.
 
+## Evidence
+
+Live run 1 (2026-10-26, 30 real minutes, $2.33, economy profile, Tavily research), report in
+[docs/run-report.md](docs/run-report.md):
+
+- [summary.json](docs/evidence/run1/summary.json): `/api/observatory/summary` at the end (cost, cache, decisions, failures, web counters)
+- [portfolio.md](docs/evidence/run1/portfolio.md): `/api/ideas/export.md` at the end (also [docs/portfolio-run1.md](docs/portfolio-run1.md))
+- [committee.md](docs/evidence/run1/committee.md): every committee decision with votes and reasons
+- [conversations.md](docs/evidence/run1/conversations.md): curated thoughts, reviews and exchanges, including how search results were used
+- [research.md](docs/evidence/run1/research.md): every search and page read, with the top result titles and links
+- [lorebase-log.md](docs/evidence/run1/lorebase-log.md): `main` revision log, `idea/` branches and their Proposals
+- [run-progress.log](docs/run-progress.log) and the screenshots above (all live except the idea board, from an
+  offline run with more ideas)
+
 ## Known limits
 
 - The committee is the seeded group named in `ideas.committee.groupName`; if it dissolves, submitted ideas wait.
 - Ideas are written to Lorebase in the background (retried on 429 and 5xx); an idea created while Keeper is
   down is kept in memory for the run only.
-- The mock heuristics for movement still read a few engine role names; offline, idea work comes from the
-  individual minds (committee members and people outside groups), squad members follow joint plans.
+- Offline, movement follows `mock.habits` (which company roles explore, gather, build or look after colleagues);
+  idea work comes from the individual minds (committee members and people outside groups), squad members follow
+  joint plans.
+- Research quotas are counted in memory per game day: a restart starts the count again. `anthropic-native`
+  searches run a small model call whose tokens are not booked in the run's cost.
 - Herald pins agents to `main`: they read approved ideas there and see open ones through their perception and
   `leggi_idea`.

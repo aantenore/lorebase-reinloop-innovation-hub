@@ -260,6 +260,8 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 /* ---------- map labels: consult bubble, flying goods, floating icons ---------- */
 .bubble.consult { background: #e9e0ff; color: #3a2a6a; border-color: #4a3a7a; font-size: 17px; box-shadow: 0 0 0 2px rgba(201,180,255,0.35), 0 3px 0 rgba(0,0,0,0.25); }
 .bubble.consult::after { border-top-color: #4a3a7a; }
+.bubble.research { background: #dff1ff; color: #123a5a; border-color: #2a5f8a; font-size: 17px; box-shadow: 0 0 0 2px rgba(120,190,240,0.35), 0 3px 0 rgba(0,0,0,0.25); }
+.bubble.research::after { border-top-color: #2a5f8a; }
 .float-ico { width: 14px; height: 14px; vertical-align: -2px; filter: drop-shadow(1px 1px 0 var(--ink)); }
 .traveler { position: absolute; transform: translate(-50%, -100%); pointer-events: none; display: flex; gap: 2px; align-items: center; font-family: var(--pixel); font-size: 8px; color: var(--paper); text-shadow: 1px 1px 0 var(--ink); }
 .traveler .float-ico { width: 16px; height: 16px; }
@@ -375,6 +377,14 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .recipe .r-arrow { color: var(--gold); }
 .recipe .r-name { color: var(--paper); text-align: right; }
 .recipe .r-meta { grid-column: 1 / -1; font-size: 15px; }
+
+/* ---------- inspector: web research / idea sources ---------- */
+.research-list { margin-top: 4px; }
+.research { font-size: 18px; padding: 1px 4px; border-left: 3px solid #2a5f8a; margin: 2px 0; background: rgba(90,160,220,0.08); }
+.research .r-q { color: var(--paper); }
+.research .r-links { display: flex; flex-direction: column; padding-left: 8px; }
+.web-link { color: #8cc8f5; overflow-wrap: anywhere; }
+.idea-sources { margin: 0; padding-left: 18px; }
 
 /* ---------- inspector: consults ---------- */
 .consults { margin-top: 4px; }
@@ -588,6 +598,8 @@ path.soc-op:hover { opacity: 1; stroke-width: 5; }
 .co-slots.empty { color: var(--red); }
 .co-freeze { background: #2c3c5a; color: #cfe2ff; animation: flash 0.6s steps(2) 3; }
 .co-themes { display: flex; gap: 4px; flex-wrap: wrap; }
+/* the themes would cover the top of an open panel: hide them while one is open */
+#ui:has(.panel:not(.hidden):not(.inspector)) .co-themes { display: none; }
 .co-theme { font-size: 16px; line-height: 15px; padding: 2px 6px; background: rgba(23,17,26,0.78); border: 2px solid var(--line); color: var(--paper); }
 .clock .season.quarter-Q1 { background: #7aa8d8; color: var(--ink); }
 .clock .season.quarter-Q2 { background: #86cc63; color: var(--ink); }

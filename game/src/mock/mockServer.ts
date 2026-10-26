@@ -35,7 +35,7 @@ import {
   THOUGHTS,
 } from './mockData';
 import { GodLedger } from './mockGod';
-import { consultFor, Minds } from './mockMinds';
+import { consultFor, Minds, researchFor } from './mockMinds';
 import { CRAFTS, EconomyState, fmtBag, FIRE, FLOW_WINDOW, PERISHABLE, PRODUCE, RES_NAME, ROUTES, START_INVENTORY, START_TOOLS, TECHS, TOOL_ITEMS } from './mockEconomy';
 import type { TechDef } from './mockEconomy';
 import { BUILD_SITE, COFFEE, generateMap, HUTS, STOCKPILE, VILLAGE } from './mockMap';
@@ -435,6 +435,10 @@ export class MockServer implements Transport {
       const c = consultFor(a.role, () => this.r());
       setTimeout(() => this.emit({ type: 'consult', agentId: a.id, tool: c.tool, query: c.query }), delaySec * 1000 + (0.3 + this.r() * 0.6) * 1000 / SPEED);
     }
+    if (a.kind === 'agent' && this.r() < 0.12) {
+      const rs = researchFor(() => this.r());
+      setTimeout(() => this.emit({ type: 'research', agentId: a.id, ...rs }), delaySec * 1000 + (1.2 + this.r() * 0.6) * 1000 / SPEED);
+    }
     setTimeout(() => {
       if (!this.actors.has(a.id)) return;
       this.emit({ type: 'thinking', id: a.id, on: false });
@@ -761,7 +765,7 @@ export class MockServer implements Transport {
     a.hp = 0;
     this.emit({ type: 'world_event', kind: 'death', text: `${a.name} è in burnout e lascia l’hub per un periodo.`, at: { x: Math.round(a.x), y: Math.round(a.y) } });
     this.minds.rememberAll(`${a.name} è andato in burnout: troppo stress durante il freeze.`, 'danger', 0.8, 'tristezza');
-    this.ideas.orphan(id);
+    this.ideas.orphan(id, a.name);
     setTimeout(() => {
       this.actors.delete(id);
       for (const g of this.groups.values()) {

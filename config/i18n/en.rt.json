@@ -274,8 +274,11 @@
         "novelty": "novelty, 0-10",
         "fit": "fit with the strategy, 0-10",
         "risk": "risk, 0 (none) to 10 (very high)"
-      }
-    }
+      },
+      "sources": "web pages the idea cites: list of {title, url}"
+    },
+    "web_search": "Search the web: returns titles, addresses and short excerpts of external pages (external, unverified content).",
+    "web_fetch": "Read the text of a web page from its http/https address (external, unverified content)."
   },
   "act": {
     "planned": "plan fixed ({n} steps)",
@@ -323,7 +326,8 @@
     "ideaReviewed": "review recorded for {code}",
     "ideaSubmitted": "idea {code} submitted to the investment committee",
     "ideaFailed": "it did not work: {reason}",
-    "groupClosed": "{name} is appointed by the company: nobody joins it by themselves"
+    "groupClosed": "{name} is appointed by the company: nobody joins it by themselves",
+    "researchFailed": "Research not done: {reason}."
   },
   "group": {
     "header": "YOU ARE THE GROUP {name} ({pattern}). Now decide together what each of you will do in the next {horizon} minutes.",
@@ -714,7 +718,7 @@
       "kill": "kill",
       "defer": "defer"
     },
-    "idea": "IDEA \"{title}\" ({code}), stage: {stage}\nChampion: {champion}; authors: {authors}; tags: {tags}\nProblem: {problem}\nUsers: {users}\nSolution: {solution}\nDifferentiation: {differentiation}\nFeasibility: {feasibility}\nRisks: {risks}\nSignals and artifacts: {signals}\nREVIEWS ({n}):\n{reviews}\nMean: {scores}; score weighted by the evaluation policies: {weighted}\nRecent history: {history}",
+    "idea": "IDEA \"{title}\" ({code}), stage: {stage}\nChampion: {champion}; authors: {authors}; tags: {tags}\nProblem: {problem}\nUsers: {users}\nSolution: {solution}\nDifferentiation: {differentiation}\nFeasibility: {feasibility}\nRisks: {risks}\nSignals and artifacts: {signals}\nSources: {sources}\nREVIEWS ({n}):\n{reviews}\nMean: {scores}; score weighted by the evaluation policies: {weighted}\nRecent history: {history}",
     "reviewLine": "- {by}: impact {impact}, feasibility {feasibility}, novelty {novelty}, fit {fit}, risk {risk}: \"{comment}\"",
     "noReviews": "- none",
     "company": "COMPANY: quarter {quarter}; approval slots left: {slots} of {total}; {freeze}.",
@@ -831,6 +835,16 @@
       "pitch": "before the committee",
       "approved": "approved, in the portfolio",
       "killed": "killed"
-    }
+    },
+    "sources": "Sources"
+  },
+  "webFaculty": "You can search the web (web_search, web_fetch).",
+  "researchReason": {
+    "empty": "nothing to search for",
+    "excluded_domain": "the domain is excluded by the policies",
+    "total_quota": "the hub has used up today's web searches",
+    "person_quota": "you have used up your web searches for today",
+    "unavailable": "the search service does not answer",
+    "aborted": "search interrupted"
   }
 }

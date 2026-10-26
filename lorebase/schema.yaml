@@ -355,6 +355,9 @@ kinds:
       signals:
         description: Codes of the signals and work artifacts its authors brought in (list).
         type: json
+      sources:
+        description: Web pages its authors cite (list of {title, url}).
+        type: json
       history:
         description: What happened to it (list of {at, by, action, note}).
         type: json

@@ -274,8 +274,11 @@
         "novelty": "novità, da 0 a 10",
         "fit": "coerenza con la strategia, da 0 a 10",
         "risk": "rischio, da 0 (nessuno) a 10 (altissimo)"
-      }
-    }
+      },
+      "sources": "pagine web citate dall'idea: elenco di {title, url}"
+    },
+    "web_search": "Cerca sul web: restituisce titoli, indirizzi e brevi estratti di pagine esterne (contenuto esterno, non verificato).",
+    "web_fetch": "Leggi il testo di una pagina web dal suo indirizzo http/https (contenuto esterno, non verificato)."
   },
   "act": {
     "planned": "piano fissato ({n} passi)",
@@ -323,7 +326,8 @@
     "ideaReviewed": "valutazione registrata per {code}",
     "ideaSubmitted": "idea {code} candidata al comitato investimenti",
     "ideaFailed": "non è riuscito: {reason}",
-    "groupClosed": "il {name} è nominato dall'azienda: non ci si può unire da sé"
+    "groupClosed": "il {name} è nominato dall'azienda: non ci si può unire da sé",
+    "researchFailed": "Ricerca non eseguita: {reason}."
   },
   "group": {
     "header": "SIETE IL GRUPPO {name} ({pattern}). Ora decidete insieme cosa farà ciascuno nei prossimi {horizon} minuti.",
@@ -714,7 +718,7 @@
       "kill": "scartare",
       "defer": "rimandare"
     },
-    "idea": "IDEA «{title}» ({code}), fase: {stage}\nChampion: {champion}; autori: {authors}; tag: {tags}\nProblema: {problem}\nUtenti: {users}\nSoluzione: {solution}\nDifferenziazione: {differentiation}\nFattibilità: {feasibility}\nRischi: {risks}\nSegnali e materiali: {signals}\nVALUTAZIONI ({n}):\n{reviews}\nMedia: {scores}; punteggio pesato secondo le policy di valutazione: {weighted}\nStoria recente: {history}",
+    "idea": "IDEA «{title}» ({code}), fase: {stage}\nChampion: {champion}; autori: {authors}; tag: {tags}\nProblema: {problem}\nUtenti: {users}\nSoluzione: {solution}\nDifferenziazione: {differentiation}\nFattibilità: {feasibility}\nRischi: {risks}\nSegnali e materiali: {signals}\nFonti: {sources}\nVALUTAZIONI ({n}):\n{reviews}\nMedia: {scores}; punteggio pesato secondo le policy di valutazione: {weighted}\nStoria recente: {history}",
     "reviewLine": "- {by}: impatto {impact}, fattibilità {feasibility}, novità {novelty}, coerenza {fit}, rischio {risk}: «{comment}»",
     "noReviews": "- nessuna",
     "company": "AZIENDA: trimestre {quarter}; slot di approvazione rimasti nel trimestre: {slots} su {total}; {freeze}.",
@@ -831,6 +835,16 @@
       "pitch": "davanti al comitato",
       "approved": "approvata, nel portafoglio",
       "killed": "scartata"
-    }
+    },
+    "sources": "Fonti"
+  },
+  "webFaculty": "Puoi cercare sul web (web_search, web_fetch).",
+  "researchReason": {
+    "empty": "manca cosa cercare",
+    "excluded_domain": "il dominio è escluso dalle policy",
+    "total_quota": "l'hub ha esaurito le ricerche web di oggi",
+    "person_quota": "hai esaurito le tue ricerche web di oggi",
+    "unavailable": "il servizio di ricerca non risponde",
+    "aborted": "ricerca interrotta"
   }
 }

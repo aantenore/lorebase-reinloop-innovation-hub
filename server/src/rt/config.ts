@@ -4,10 +4,12 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ModelParams } from 'reinloop';
 import { ROOT } from '../config.ts';
+import { deepMerge, loadProfile } from '../profile.ts';
 import type { Tier } from '../world/types.ts';
 import type { CompanyConfig } from './company.ts';
 import type { EconomyConfig } from './economy-book.ts';
 import type { IdeasConfig } from './ideas.ts';
+import type { ResearchConfig } from './research.ts';
 import type { MapConfig, MovementConfig } from './world.ts';
 
 export type GroupPattern = 'orchestrator' | 'council' | 'router' | 'chain' | 'mentor' | 'assembly' | 'crowd';
@@ -181,6 +183,8 @@ export interface GameConfig {
     ideaChance: number; reviewChance: number; enrichChance: number; ideaSeeds: number;
     /** Committee stand-in: approve from this weighted score, kill below that one, else defer. */
     committeeApproveAt: number; committeeKillBelow: number;
+    /** Which company roles explore, gather, build or look after colleagues in offline plans. */
+    habits: import('./mock.ts').MockHabits;
   };
   brain: BrainConfig;
   insights: InsightConfig;
@@ -203,11 +207,27 @@ export interface GameConfig {
   ideas: IdeasConfig & { attachCategories: string[] };
   /** Quarters, slots, themes, careers. */
   company: CompanyConfig;
+  /**
+   * Provider prompt caching (reinloop `params.cache` / `params.cacheTtl`): the stable prefix (tools, instructions)
+   * is cached and the volatile perception comes last. `groupTtl` applies to group members' runs (default `ttl`).
+   */
+  promptCache: { enabled: boolean; ttl: CacheTtl; groupTtl?: CacheTtl };
+  /** Web research (reinloop web tools): backend, limits, cache; quotas and excluded domains are policies. */
+  research: ResearchConfig;
+}
+
+export type CacheTtl = '5m' | '1h';
+
+/** Model params that turn prompt caching on or off for one call (`group`: a group member's run). */
+export function cacheParams(cfg: Pick<GameConfig, 'promptCache'>, group = false): Pick<ModelParams, 'cache' | 'cacheTtl'> {
+  const c = cfg.promptCache;
+  if (!c?.enabled) return { cache: false };
+  return { cache: true, cacheTtl: (group ? c.groupTtl : undefined) ?? c.ttl };
 }
 
 export function loadGameConfig(env: NodeJS.ProcessEnv = process.env): GameConfig {
   const path = resolve(ROOT, env.GAME_CONFIG ?? 'config/game.json');
-  const cfg = JSON.parse(readFileSync(path, 'utf8')) as GameConfig;
+  const cfg = deepMerge(JSON.parse(readFileSync(path, 'utf8')) as GameConfig, loadProfile(env).game ?? {});
   const n = Number(env.GAME_CROWD);
   if (env.GAME_CROWD !== undefined && Number.isInteger(n) && n >= 0) cfg.crowd.count = n;
   if (env.GAME_GROUPS === '0') cfg.groups.seeded = [];

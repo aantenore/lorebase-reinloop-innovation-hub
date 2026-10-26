@@ -91,6 +91,9 @@ export const config = {
     /** Lorebase consult bubble lifetime (ms) and how many consults the inspector keeps per agent. */
     consultBubbleMs: 4200,
     consultsKept: 12,
+    /** Web research bubble lifetime (ms) and how many research entries are kept per agent. */
+    researchBubbleMs: 4200,
+    researchKept: 10,
     /** Discovery banner lifetime (ms). */
     discoveryBannerMs: 6500,
   },

@@ -12,8 +12,19 @@ import type { RtEntity, RtWorld } from './world.ts';
 const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 
 /** Mock knobs from config (`mock`). */
+/** Habits of the offline stand-in, each held by a set of company roles (config `mock.habits`). */
+export type MockHabit = 'explore' | 'gather' | 'build' | 'care';
+export type MockHabits = Partial<Record<MockHabit, string[]>>;
+
+/** Whether `role` has a mock habit. Pure. */
+export function hasHabit(habits: MockHabits | undefined, role: string, habit: MockHabit): boolean {
+  return !!habits?.[habit]?.includes(role);
+}
+
 export interface MockKnobs {
   wanderRadius: number;
+  /** Which company roles explore, gather, build or look after colleagues offline. */
+  habits?: MockHabits;
   experimentChance?: number;
   /** Hunger at which a mock person eats what it carries (well before the critical level). */
   eatAtHunger?: number;
@@ -45,7 +56,8 @@ export function needsOf(w: RtWorld, role: string): Set<string> {
  * follow, use a remedy when hurt, gather what recipes use, and (explorers, or by chance) combine
  * carried items. A stand-in for a model, nothing more.
  */
-export function mockEconomy(t: Translate, w: RtWorld, e: RtEntity, experimentChance: number, offerChance = 0): PlanStep[] {
+export function mockEconomy(t: Translate, w: RtWorld, e: RtEntity, experimentChance: number, offerChance = 0, habits?: MockHabits): PlanStep[] {
+  const is = (h: MockHabit) => hasHabit(habits, e.role, h);
   const c = w.catalog;
   if (!c.resources.size) return [];
   const rng = createRng(hash(`eco:${e.id}:${Math.floor(w.clock)}`));
@@ -98,15 +110,15 @@ export function mockEconomy(t: Translate, w: RtWorld, e: RtEntity, experimentCha
   }
   // Explore and experiment: far resources, then a combination of two carried items.
   const carried = Object.keys(e.inventory).filter(has);
-  if ((e.role === 'explorer' || rng.next() < experimentChance / 4) && carried.length >= 2 && rng.next() < experimentChance) {
+  if ((is('explore') || rng.next() < experimentChance / 4) && carried.length >= 2 && rng.next() < experimentChance) {
     const a = rng.pick(carried);
     const b = rng.pick(carried.filter((x) => x !== a));
     steps.push({ action: 'experiment', args: { items: [a, b] }, label: L('experiment') });
     return steps;
   }
-  const wanted = new Set<string>(e.role === 'explorer' ? [...c.resources.values()].filter((r) => r.minDistance > 0).map((r) => r.code) : []);
+  const wanted = new Set<string>(is('explore') ? [...c.resources.values()].filter((r) => r.minDistance > 0).map((r) => r.code) : []);
   for (const k of mine) wanted.add(k);
-  if (e.role === 'gatherer' || e.role === 'elder') for (const b of near) for (const k of needsOf(w, b.role)) wanted.add(k);
+  if (is('gather') || is('care')) for (const b of near) for (const k of needsOf(w, b.role)) wanted.add(k);
   // The wild (rule wild_distance) hurts the unsheltered: only the healthy go there.
   const fit = e.hp >= e.maxHp * 0.8;
   const raw = [...wanted].map((k) => c.resources.get(k)).filter((r) => r && r.source === 'biome' && (e.inventory[r.code] ?? 0) < 4 && (fit || r.minDistance <= w.r('wild_distance')));
@@ -133,6 +145,7 @@ export function mockEconomy(t: Translate, w: RtWorld, e: RtEntity, experimentCha
 /** Plans `count` steps for one person by simulating its position and inventory forward. */
 export function mockSteps(t: Translate, w: RtWorld, e: RtEntity, count: { min: number; max: number }, knobs: MockKnobs): MockPlan {
   const { wanderRadius, experimentChance = 0 } = knobs;
+  const is = (h: MockHabit) => hasHabit(knobs.habits, e.role, h);
   const rng = createRng(hash(`${e.id}:${Math.floor(w.clock)}`));
   const steps: PlanStep[] = [];
   let pos: Point = tileOf(e);
@@ -176,7 +189,7 @@ export function mockSteps(t: Translate, w: RtWorld, e: RtEntity, count: { min: n
     if (back) go(back);
   }
 
-  const eco = e.hunger < w.r('critical_hunger') - 1 ? mockEconomy(t, w, e, experimentChance, knobs.offerChance ?? 0) : [];
+  const eco = e.hunger < w.r('critical_hunger') - 1 ? mockEconomy(t, w, e, experimentChance, knobs.offerChance ?? 0, knobs.habits) : [];
   for (const s of eco) push(s);
   if (eco.length) {
     reason = t('rt.mock.reason.work');
@@ -203,7 +216,7 @@ export function mockSteps(t: Translate, w: RtWorld, e: RtEntity, count: { min: n
       eat();
       continue;
     }
-    if (food < 2 || (e.role === 'gatherer' && food < 6)) {
+    if (food < 2 || (is('gather') && food < 6)) {
       const f = nearest((x) => x.food >= 1);
       if (f) {
         why('food');
@@ -214,7 +227,7 @@ export function mockSteps(t: Translate, w: RtWorld, e: RtEntity, count: { min: n
         continue;
       }
     }
-    const caring = (e.role === 'healer' || e.role === 'elder') && food >= 2 && w.r('sharing_allowed') >= 1;
+    const caring = is('care') && food >= 2 && w.r('sharing_allowed') >= 1;
     const needy = caring ? w.living().find((b) => b.id !== e.id && b.hunger >= crit && b.inventory.food < 1) : undefined;
     if (needy && rng.next() < 0.6) {
       why('care');
@@ -225,7 +238,7 @@ export function mockSteps(t: Translate, w: RtWorld, e: RtEntity, count: { min: n
       pos = tileOf(needy);
       continue;
     }
-    if (e.role === 'builder' || (w.season() === 'autumn' && e.tier !== 'haiku')) {
+    if (is('build') || (w.season() === 'autumn' && e.tier !== 'haiku')) {
       if (wood >= cost) {
         why('build');
         push({ action: 'build', args: {}, label: L('build') });
@@ -241,10 +254,10 @@ export function mockSteps(t: Translate, w: RtWorld, e: RtEntity, count: { min: n
         continue;
       }
     }
-    if (e.role === 'explorer' || rng.next() < 0.25) {
+    if (is('explore') || rng.next() < 0.25) {
       const tx = pos.x + Math.round((rng.next() * 2 - 1) * wanderRadius);
       const ty = pos.y + Math.round((rng.next() * 2 - 1) * wanderRadius);
-      if (w.walkable(tx, ty) && (safe({ x: tx, y: ty }) || e.role === 'explorer')) {
+      if (w.walkable(tx, ty) && (safe({ x: tx, y: ty }) || is('explore'))) {
         why('explore');
         go({ x: tx, y: ty });
         push({ action: 'wait', args: { minutes: 2 }, label: L('wait') });

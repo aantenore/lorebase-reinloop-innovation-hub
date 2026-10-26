@@ -3,12 +3,12 @@ import { test } from 'node:test';
 import type { LorebaseClient } from '../lorebase/client.ts';
 import { careerFor, Company } from './company.ts';
 import {
-  aggregate, exportMarkdown, filterIdeas, type IdeasConfig, IdeaBook, ideaFromRecord, ideaRow, type Scores, scoresFrom, stageFromFields, weightedScore,
+  aggregate, exportMarkdown, filterIdeas, type IdeasConfig, IdeaBook, ideaFromRecord, ideaRow, type Scores, scoresFrom, sourcesFrom, stageFromFields, weightedScore,
 } from './ideas.ts';
 
 const cfg: IdeasConfig = {
   enabled: true, kind: 'Idea', reviewKind: 'Review', writeOperation: 'import_records', branchPrefix: 'idea/', titleMaxChars: 90, textMaxChars: 500, tagsMax: 6,
-  tagMaxChars: 30, historyMax: 30, commentMaxChars: 280, perceiveMax: 6, signalsMax: 3, retries: 0, retryBaseMs: 1, committee: { groupName: 'Comitato', maxPerSession: 3 },
+  tagMaxChars: 30, historyMax: 30, commentMaxChars: 280, perceiveMax: 6, signalsMax: 3, sourcesMax: 2, sourceTitleMaxChars: 20, retries: 0, retryBaseMs: 1, committee: { groupName: 'Comitato', maxPerSession: 3 },
 };
 
 /** A Keeper stand-in that records the calls. */
@@ -104,4 +104,11 @@ test('company: quarters turn with stats, slots, careers never go down', () => {
   assert.equal(careerFor(c.cfg.careers, 0, 'principal', r as never), 'principal');
   assert.equal(c.startCareer('agent'), 'senior');
   assert.deepEqual(c.themes([{ key: 'tema', value: 1, text: 'AI', category: 'strategy', unit: '' }, { key: 'x', value: 1, text: 'no', category: 'ideas', unit: '' }]), ['AI']);
+});
+
+test('ideas: sources keep http/https URLs only, without duplicates, titled by hostname when untitled', () => {
+  const out = sourcesFrom(['https://a.example.org/x', { title: 'B', url: 'http://b.example.org' }, 'javascript:alert(1)', 'https://a.example.org/x', 'https://c.example.org'], 5, 20);
+  assert.deepEqual(out, [{ title: 'a.example.org', url: 'https://a.example.org/x' }, { title: 'B', url: 'http://b.example.org/' }, { title: 'c.example.org', url: 'https://c.example.org/' }]);
+  assert.equal(sourcesFrom('ftp://x.org', 5, 20).length, 0);
+  assert.equal(sourcesFrom(undefined, 5, 20).length, 0);
 });

@@ -439,6 +439,21 @@ rules:
     unit: "rischio 0-10"
     category: ideas
     text: "Il comitato investimenti accetta idee con rischio medio fino a questo valore; oltre servono ragioni eccezionali."
+  - code: ricerche_web_per_persona_al_giorno
+    value: 6
+    unit: "ricerche"
+    category: ideas
+    text: "Ricerche e letture sul web che una persona può fare in un giorno."
+  - code: ricerche_web_totali_al_giorno
+    value: 40
+    unit: "ricerche"
+    category: ideas
+    text: "Ricerche e letture sul web che l'intero hub può fare in un giorno."
+  - code: domini_esclusi
+    value: 1
+    unit: "elenco"
+    category: ideas
+    text: "Domini da cui non si prendono risultati di ricerca né pagine: pinterest.com, quora.com."
   - code: tema_agenti_ai
     value: 1
     unit: "tema"

@@ -122,6 +122,16 @@ const SEEDS: Seed[] = [
   },
 ];
 
+/** Web sources attached to some seed ideas. */
+const SOURCES: Record<string, { title: string; url: string }[]> = {
+  'IDEA-001': [
+    { title: 'OWASP Top 10 for LLM Applications', url: 'https://owasp.org/www-project-top-10-for-large-language-model-applications/' },
+    { title: 'Model Context Protocol', url: 'https://modelcontextprotocol.io/' },
+  ],
+  'IDEA-002': [{ title: '', url: 'https://json-schema.org/understanding-json-schema' }],
+  'IDEA-004': [{ title: 'Anthropic API pricing', url: 'https://www.anthropic.com/pricing' }],
+};
+
 /** Signals that turn into new ideas while the hub works. */
 const SPARKS: { title: string; problem: string; tags: string[] }[] = [
   { title: 'Rilevatore di flaky test con causa probabile', problem: 'I test instabili fanno perdere ore e minano la fiducia nella CI.', tags: ['qa', 'devtools'] },
@@ -179,17 +189,25 @@ export class IdeaPipeline {
     for (const s of SEEDS) {
       const idea: Idea = {
         ...s,
+        champion: this.nm(s.champion),
+        authors: s.authors.map((a) => this.nm(a)),
+        sources: SOURCES[s.code],
         scores: s.stage === 'signal' ? null : s.scores,
         reviews: [],
         branch: `idea/${slug(s.title)}`,
         proposalId: ['proposal', 'pitch', 'approved', 'killed'].includes(s.stage) ? `ip-${s.code.slice(-3)}` : null,
         quarter: q,
-        history: [{ at, by: s.champion, action: 'created', note: 'Segnale registrato.' }],
+        history: [{ at, by: this.nm(s.champion), action: 'created', note: 'Segnale registrato.' }],
       };
       if (['pitch', 'approved', 'killed'].includes(s.stage)) idea.reviews = this.makeReviews(idea, 2);
-      if (s.stage === 'approved' || s.stage === 'killed') idea.history.push({ at, by: 'g-board', action: s.stage, note: s.stage === 'approved' ? 'Approvata dal comitato investimenti.' : 'Scartata dal comitato: differenziazione debole.' });
+      if (s.stage === 'approved' || s.stage === 'killed') idea.history.push({ at, by: this.nm('g-board'), action: s.stage, note: s.stage === 'approved' ? 'Approvata dal comitato investimenti.' : 'Scartata dal comitato: differenziazione debole.' });
       this.ideas.set(idea.code, idea);
     }
+  }
+
+  /** Idea people are names: entity (or group) id -> display name. */
+  private nm(id: string): string {
+    return this.h.agents().find((a) => a.id === id)?.name ?? this.h.group(id)?.name ?? id;
   }
 
   // ------------------------------------------------------------ queries
@@ -208,7 +226,7 @@ export class IdeaPipeline {
   }
 
   championedBy(id: string): string | undefined {
-    for (const i of this.ideas.values()) if (i.champion === id && i.stage !== 'killed') return `«${i.title}»`;
+    for (const i of this.ideas.values()) if (i.champion === this.nm(id) && i.stage !== 'killed') return `«${i.title}»`;
     return undefined;
   }
 
@@ -237,8 +255,8 @@ export class IdeaPipeline {
     const at = this.h.now();
     const idea: Idea = {
       code, title: sp.title, problem: sp.problem, users: '', solution: '', differentiation: '', feasibility: '', risks: '', tags: sp.tags,
-      stage: 'signal', champion: by, authors: [by], scores: null, reviews: [], branch: `idea/${slug(sp.title)}`, proposalId: null,
-      quarter: this.h.quarter(), history: [{ at, by, action: 'created', note: 'Nuovo segnale raccolto.' }],
+      stage: 'signal', champion: this.nm(by), authors: [this.nm(by)], scores: null, reviews: [], branch: `idea/${slug(sp.title)}`, proposalId: null,
+      quarter: this.h.quarter(), history: [{ at, by: this.nm(by), action: 'created', note: 'Nuovo segnale raccolto.' }],
     };
     this.ideas.set(code, idea);
     this.emitIdea(idea, 'created');
@@ -258,13 +276,13 @@ export class IdeaPipeline {
   }
 
   /** Someone left: their ideas get a new champion. */
-  orphan(id: string): void {
+  orphan(id: string, name: string): void {
     for (const i of this.ideas.values()) {
-      if (i.champion !== id || i.stage === 'killed') continue;
-      const heir = this.randomAgent((a) => a.id !== id && i.authors.includes(a.id)) ?? this.randomAgent((a) => a.id !== id);
+      if (i.champion !== name || i.stage === 'killed') continue;
+      const heir = this.randomAgent((a) => a.id !== id && i.authors.includes(a.name)) ?? this.randomAgent((a) => a.id !== id);
       if (!heir) continue;
-      i.champion = heir.id;
-      i.history.push({ at: this.h.now(), by: heir.id, action: 'champion', note: `${heir.name} prende in carico l’idea.` });
+      i.champion = heir.name;
+      i.history.push({ at: this.h.now(), by: heir.name, action: 'champion', note: `${heir.name} prende in carico l’idea.` });
       this.emitIdea(i, 'updated');
     }
   }
@@ -288,8 +306,8 @@ export class IdeaPipeline {
     if (!next) return;
     const prev = i.stage;
     i.stage = next;
-    const helper = this.randomAgent((a) => !i.authors.includes(a.id));
-    if (helper && i.authors.length < 3 && this.h.r() < 0.5) i.authors.push(helper.id);
+    const helper = this.randomAgent((a) => !i.authors.includes(a.name));
+    if (helper && i.authors.length < 3 && this.h.r() < 0.5) i.authors.push(helper.name);
     if (next === 'insight') {
       i.users ||= 'Team tecnici di aziende medio-grandi.';
       i.scores = this.selfScore(i);
@@ -346,12 +364,12 @@ export class IdeaPipeline {
       this.h.emit({ type: 'committee', groupId: 'g-board', ideaCode: i.code, decision, votes, summary });
       if (decision === 'defer') {
         this.deferred.add(i.code);
-        i.history.push({ at, by: 'g-board', action: 'deferred', note: summary });
+        i.history.push({ at, by: this.nm('g-board'), action: 'deferred', note: summary });
         this.emitIdea(i, 'updated');
         return;
       }
       i.stage = decision === 'approve' ? 'approved' : 'killed';
-      i.history.push({ at, by: 'g-board', action: i.stage, note: `${summary} Voti: ${votes.map((v) => `${name(v.member)} ${v.vote}`).join(', ')}.` });
+      i.history.push({ at, by: this.nm('g-board'), action: i.stage, note: `${summary} Voti: ${votes.map((v) => `${name(v.member)} ${v.vote}`).join(', ')}.` });
       if (decision === 'approve') this.slotsLeft = Math.max(0, this.slotsLeft - 1);
       this.emitIdea(i, decision === 'approve' ? 'approved' : 'killed');
       if (decision === 'approve') this.emitCompany();
@@ -368,7 +386,7 @@ export class IdeaPipeline {
     const out: Idea['reviews'] = [];
     const s = i.scores ?? this.selfScore(i);
     for (let k = 0; k < n; k++) {
-      const by = this.randomAgent((a) => a.id !== i.champion && (a.role === 'critic' || a.role === 'strategist' || this.h.r() < 0.4))?.id ?? 'a-sergio';
+      const by = this.randomAgent((a) => a.name !== i.champion && (a.role === 'critic' || a.role === 'strategist' || this.h.r() < 0.4))?.name ?? 'Sergio';
       const j = () => (this.h.r() - 0.5) * 0.9;
       out.push({
         by,
@@ -380,7 +398,7 @@ export class IdeaPipeline {
     return out;
   }
 
-  private randomAgent(pred: (a: { id: string; role: string }) => boolean = () => true) {
+  private randomAgent(pred: (a: { id: string; name: string; role: string }) => boolean = () => true) {
     const list = this.h.agents().filter(pred);
     return list[Math.floor(this.h.r() * list.length)];
   }

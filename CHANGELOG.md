@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- reinloop pinned at 96601b2 (`vendor/reinloop-96601b26.tgz`): prompt caching, hosted tools, web tools.
+- Web research for every mind (`web_search`, `web_fetch`, provider in `research.provider`: tavily,
+  anthropic-native or off): daily quotas and excluded domains are policies (`ricerche_web_per_persona_al_giorno`,
+  `ricerche_web_totali_al_giorno`, `domini_esclusi`), server-side cache, `research` events, `GET /api/research`.
+- Ideas cite web sources (`Idea.sources`, Lorebase `Idea.sources`; `proponi_idea` / `arricchisci_idea` accept them).
+- Prompt caching (`promptCache`) with cache reads, writes, hit ratio and savings in `/api/observatory/summary`.
+- Cost profiles (`GAME_PROFILE`), `economy`: haiku minds, Livia on sonnet as committee chair.
+- Offline movement habits by company role (`mock.habits`) instead of engine role names.
+- Game client: idea sources as links, research bubbles and inspector section, idea people as names and
+  committee votes by entity id.
+
 ## 0.1.0 - 2026-10-24
 
 First release. Requires Lorebase 0.2.3 or later (checkout next to this one) and pins reinloop 0.2.0

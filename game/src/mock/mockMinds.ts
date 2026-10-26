@@ -435,6 +435,19 @@ const CONSULT: Record<string, string[]> = {
   lorebase_list_records: ['ricette scoperte', 'regole della categoria portfolio', 'intuizioni accettate'],
 };
 
+const RESEARCH: { query: string; results: { title: string; url: string }[] }[] = [
+  { query: 'mercato agent security 2026', results: [{ title: 'OWASP Top 10 for LLM Applications', url: 'https://owasp.org/www-project-top-10-for-large-language-model-applications/' }, { title: 'Model Context Protocol', url: 'https://modelcontextprotocol.io/' }] },
+  { query: 'costi LLM per feature FinOps', results: [{ title: 'Anthropic API pricing', url: 'https://www.anthropic.com/pricing' }, { title: 'FinOps Foundation', url: 'https://www.finops.org/' }] },
+  { query: 'schema registry diff semantico', results: [{ title: 'Understanding JSON Schema', url: 'https://json-schema.org/understanding-json-schema' }] },
+];
+
+/** A plausible web search, or a page fetch, for an agent that starts thinking. */
+export function researchFor(r: () => number): { tool: 'web_search' | 'web_fetch'; query?: string; url?: string; results: { title: string; url: string }[] } {
+  const pick = RESEARCH[Math.floor(r() * RESEARCH.length)];
+  if (r() < 0.35) return { tool: 'web_fetch', url: pick.results[0].url, results: pick.results.slice(0, 1) };
+  return { tool: 'web_search', query: pick.query, results: pick.results };
+}
+
 /** A plausible Lorebase lookup for an agent that starts thinking. */
 export function consultFor(role: string, r: () => number): { tool: string; query: string } {
   const tools = Object.keys(CONSULT);

@@ -22,14 +22,14 @@ import {
 } from 'reinloop';
 import type { Translate } from '../i18n.ts';
 import type { GameConfig, GroupPattern } from './config.ts';
-import { AGENT_PATTERNS } from './config.ts';
+import { AGENT_PATTERNS, cacheParams } from './config.ts';
 import { type DecideHost, decisionTier, decisionTimeoutMs, type Failure, faculties, ideaTools, limitsOf, modelRef, normalizeSteps, planSchema } from './decide.ts';
 import type { CommitteeDecision, CommitteeVote } from './ideas.ts';
 import type { Tier } from '../world/types.ts';
-import { flatSteps, mockGroupPlan, mockSteps } from './mock.ts';
+import { flatSteps, hasHabit, mockGroupPlan, mockSteps } from './mock.ts';
 import type { PlanStep } from './plan.ts';
 import { inboxBlock, look, memberLine, timeLine } from './prompt.ts';
-import { NestedUsage } from './observatory.ts';
+import { NestedUsage, type TokenUsage } from './observatory.ts';
 import { weightedWinner } from './society.ts';
 import { tally } from './vote.ts';
 import type { RtEntity } from './world.ts';
@@ -315,7 +315,7 @@ export class GroupManager {
   private instructionsOf(m: RtEntity, g: Group, withFaculties: boolean): string {
     const role = this.host.roleOf(m.role);
     const vars = { name: m.name, personality: m.personality || '-', roleTitle: role?.title ?? m.role, role: m.role, group: g.name };
-    return [this.t('rt.memberInstructions', vars), withFaculties ? this.t('rt.group.faculties') : ''].filter(Boolean).join('\n');
+    return [this.t('rt.memberInstructions', vars), withFaculties ? this.t('rt.group.faculties') : '', withFaculties && this.host.research ? this.t('rt.webFaculty') : ''].filter(Boolean).join('\n');
   }
 
   /** The model tier a member uses in a capacity: its own when deciding, else `groups.memberTier` (when set). */
@@ -375,7 +375,7 @@ export class GroupManager {
       name,
       description: opts.description,
       model: modelRef(this.host, model, this.mockWithConsult(g, m, opts.json === true, opts.mock), this.cfg.mock.thinkDelayMs),
-      params: opts.json ? { ...p.plan, maxTokens: counts.maxTokens } : { ...p.prose, maxTokens: this.cfg.groups.proseMaxOutputTokens },
+      params: { ...(opts.json ? p.plan : p.prose), ...cacheParams(this.cfg, true), maxTokens: opts.json ? counts.maxTokens : this.cfg.groups.proseMaxOutputTokens },
       ...(opts.output ? { output: opts.output } : {}),
       instructions: [this.instructionsOf(m, g, !bare), opts.extra, format].filter(Boolean).join('\n'),
       tools,
@@ -432,7 +432,7 @@ export class GroupManager {
         return { runner: team(`${g.id}-orchestrator`, 'orchestrator', { orchestrator: leader, workers: workers.length ? workers : [leader] }) };
       }
       case 'council': {
-        const elder = members.find((m) => m.role === 'elder') ?? lead!;
+        const elder = members.find((m) => m.stage === 'elder') ?? lead!;
         const others = members.filter((m) => m !== elder);
         const proposers = this.consulted(others.length ? others : members).map((m) => this.member(m, g, 'proposer', { deciding: m === elder, mock: () => ({ text: this.mockProse(m) }) }));
         const merge = this.member(elder, g, 'leader', { ...writer, deciding: true, mock: planCall });
@@ -449,8 +449,8 @@ export class GroupManager {
         }));
         const pick = () => {
           const hungry = members.some((m) => m.hunger >= this.host.world().r('critical_hunger'));
-          const want = hungry ? 'gatherer' : this.host.world().isNight() ? 'builder' : 'explorer';
-          return candidates.find((m) => m.role === want) ?? candidates[candidates.length - 1]!;
+          const want = hungry ? 'gather' : this.host.world().isNight() ? 'build' : 'explore';
+          return candidates.find((m) => hasHabit(this.cfg.mock.habits, m.role, want)) ?? candidates[candidates.length - 1]!;
         };
         const router = this.member(lead!, g, 'router', {
           structured: true,
@@ -463,7 +463,8 @@ export class GroupManager {
         return { runner: team(`${g.id}-router`, 'router', { router, routes }, { template: tpl('route') }) };
       }
       case 'chain': {
-        const ordered = [...members].sort((a, b) => Number(b.role === 'explorer') - Number(a.role === 'explorer'));
+        const explores = (m: RtEntity) => Number(hasHabit(this.cfg.mock.habits, m.role, 'explore'));
+        const ordered = [...members].sort((a, b) => explores(b) - explores(a));
         const doer = lead!;
         const before = this.consulted(ordered.filter((m) => m !== doer));
         const steps = before.map((m, i) => this.member(m, g, i === 0 ? 'proposer' : 'critic', {
@@ -479,7 +480,7 @@ export class GroupManager {
         return { runner: team(`${g.id}-chain`, 'chain', { steps: [...steps, last] }, { template: tpl('chain') }) };
       }
       case 'mentor': {
-        const mentor = members.find((m) => m.role === 'elder') ?? lead!;
+        const mentor = members.find((m) => m.stage === 'elder') ?? lead!;
         const apprentice = members.find((m) => m !== mentor) ?? mentor;
         const gen = this.member(apprentice, g, 'proposer', { ...writer, deciding: apprentice === mentor, mock: planCall });
         const judge = this.member(mentor, g, 'critic', { structured: true, deciding: true, output: VERDICT, mock: judgeMock });
@@ -502,7 +503,7 @@ export class GroupManager {
         const mind = agent({
           name: `${g.id}${SEP}leader`,
           model: modelRef(this.host, model, planCall, this.cfg.mock.thinkDelayMs),
-          params: { ...this.cfg.decisions.modelParams.plan, maxTokens: this.counts(members).maxTokens },
+          params: { ...this.cfg.decisions.modelParams.plan, ...cacheParams(this.cfg, true), maxTokens: this.counts(members).maxTokens },
           instructions: [t('rt.group.crowdHeader', { horizon: Math.round(this.counts(members).horizon) }), this.formatText(members)].join('\n'),
           tools: [this.planTool(this.counts(members).max)],
           budget: { maxTurns: this.cfg.groups.maxTurns },
@@ -681,7 +682,7 @@ export class GroupManager {
     const nested = new NestedUsage();
     let costUsd = 0;
     let calls = 0;
-    const book = (who: { id: string; name: string; model: string; tier: string }, res: { status: string; costUsd?: number; usage?: { inputTokens?: number; outputTokens?: number } }) => {
+    const book = (who: { id: string; name: string; model: string; tier: string }, res: { status: string; costUsd?: number; usage?: TokenUsage }) => {
       costUsd += res.costUsd ?? 0;
       this.host.ranModel(who, res);
     };

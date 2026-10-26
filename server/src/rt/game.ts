@@ -37,8 +37,11 @@ import { bagOf } from './plan.ts';
 import { type Family, type Opinion, Society, Testimonies } from './society.ts';
 import { RULE_KEYS } from '../world/engine.ts';
 import { type LawProposal, LawDesk, lawDraft } from './law-proposals.ts';
+import { ResearchDesk, type ResearchEvent, type ResearchSource } from './research.ts';
 
 type Msg = Record<string, unknown> & { type: string };
+/** One search or fetch as kept for the inspector and GET /api/research. */
+type ResearchLine = { at: { day: number; minute: number }; tool: string; query?: string; url?: string; results: ResearchSource[]; cached: boolean };
 
 interface PlayerConn {
   conn: Conn;
@@ -71,6 +74,10 @@ export class Game {
   /** Recent thoughts (plan reasons) and Lorebase consultations per agent, for god mode. */
   private readonly thoughts = new Map<string, Array<{ at: { day: number; minute: number }; text: string }>>();
   private readonly consults = new Map<string, Array<{ at: { day: number; minute: number }; tool: string; query: string }>>();
+  /** Web research per agent (inspector) and of the whole run (GET /api/research), titles and URLs only. */
+  private readonly researchBy = new Map<string, ResearchLine[]>();
+  private readonly researchAll: Array<ResearchLine & { agentId: string; name: string }> = [];
+  readonly research: ResearchDesk | undefined;
   readonly observatoryView: Observatory;
   private lastFlows: import('./economy.ts').FlowEdge[] = [];
   private lastFlowsMs = 0;
@@ -136,10 +143,21 @@ export class Game {
     this.mnemo = new Mnemo(game.memory);
     this.brain = new Brain(game.brain, this.t, this.mnemo, cfg.lorebase.branch);
     this.economy = new EconomyBook(this.client, cfg.lorebase.branch, game.economy);
+    // Offline (mock) runs never reach a search backend.
+    this.research = this.mock ? undefined : ResearchDesk.create(game.research, {
+      policy: (key) => {
+        const r = this.laws.find((x) => x.key === key);
+        return r ? { value: r.value, text: r.text } : undefined;
+      },
+      day: () => this.world.day,
+      researched: (who, ev) => this.onResearch(who, ev),
+    }, this.t, cfg.models);
     this.observatoryView = new Observatory({
       client: this.client, mnemo: this.mnemo, branch: cfg.lorebase.branch, revision: () => this.revision, usage: this.usage,
       agents: () => this.world.living().filter((e) => e.kind === 'agent').map((e) => ({ id: e.id, name: e.name, key: memoryKey(e.name) })),
-      stats: () => ({ ...this.stats, running: this.limiter.running, budgetMaxUsd: game.budget.maxUsd, budgetPaused: this.budgetPaused ? 1 : 0 }),
+      stats: () => ({
+        ...this.stats, running: this.limiter.running,
+        ...(this.research ? { webSearches: this.research.stats.searches, webFetches: this.research.stats.fetches, webCached: this.research.stats.cached, webRefused: this.research.stats.refused, webErrors: this.research.stats.errors } : {}), budgetMaxUsd: game.budget.maxUsd, budgetPaused: this.budgetPaused ? 1 : 0 }),
     }, game.observatory);
     this.world = this.newWorld();
     this.groups = this.newGroups();
@@ -245,6 +263,7 @@ export class Game {
       sim: this.cfg,
       mock: this.mock,
       brain: this.brain,
+      research: this.research,
       roleOf: (code) => this.roles.find((r) => r.key === code),
       roleTitle: (code) => this.roles.find((r) => r.key === code)?.title ?? code,
       groups: () => this.groupViews(),
@@ -1484,6 +1503,7 @@ export class Game {
     return t('rt.committee.idea', {
       code: i.code, title: i.title, stage: t(`rt.ideaStage.${i.stage}`), champion: i.champion ?? '-', authors: i.authors.join(', ') || '-', tags: i.tags.join(', ') || '-',
       ...Object.fromEntries(IDEA_FIELDS.map((k) => [k, i[k] || '-'])), signals: i.signals.map((c) => this.itemName(c)).join(', ') || '-',
+      sources: (i.sources ?? []).map((x) => `${x.title} (${x.url})`).join('; ') || '-',
       n: i.reviews.length, reviews, scores: i.scores ? SCORE_KEYS.map((k) => `${t(`rt.score.${k}`)} ${i.scores![k]}`).join(', ') : '-', weighted: weighted ?? '-',
       history: i.history.slice(-5).map((h) => `${h.by}: ${t(`rt.ideaAction.${h.action}`)}${h.note ? ` (${h.note})` : ''}`).join('; ') || '-',
     });
@@ -1919,6 +1939,33 @@ export class Game {
     return { day: this.world.day, minute: this.world.minute };
   }
 
+  /** A search or fetch done by a person: kept, logged, sent to clients (snippets only to privileged ones). */
+  private onResearch(who: { id: string; name: string }, ev: ResearchEvent): void {
+    const line: ResearchLine = { at: this.now(), tool: ev.tool, ...(ev.query ? { query: ev.query } : {}), ...(ev.url ? { url: ev.url } : {}), results: ev.results, cached: ev.cached };
+    const keep = this.game.research.recentMax;
+    const list = [...(this.researchBy.get(who.id) ?? []), line].slice(-keep);
+    this.researchBy.set(who.id, list);
+    this.researchAll.push({ ...line, agentId: who.id, name: who.name });
+    if (this.researchAll.length > this.game.research.logMax) this.researchAll.splice(0, this.researchAll.length - this.game.research.logMax);
+    console.log(`[research] ${who.name} ${ev.tool}: ${(ev.query ?? ev.url ?? '').slice(0, 120)} (${ev.results.length} results${ev.cached ? ', cached' : ''})`);
+    const open: Msg = { type: 'research', agentId: who.id, tool: ev.tool, ...(ev.query ? { query: ev.query } : {}), ...(ev.url ? { url: ev.url } : {}), results: ev.results, cached: ev.cached };
+    const full: Msg = { ...open, snippets: ev.snippets };
+    if (!this.cfg.apiToken) return this.broadcast(full);
+    for (const pc of this.conns.values()) pc.conn.send(pc.conn.authorized ? full : open);
+    for (const fn of this.listeners) {
+      try {
+        fn(full);
+      } catch {
+        // a broken listener never stops the world
+      }
+    }
+  }
+
+  /** GET /api/research: every search and fetch of the run, newest last (titles and URLs, no snippets). */
+  researchView() {
+    return { provider: this.research ? this.game.research.provider : 'off', stats: this.research?.stats ?? null, items: this.researchAll };
+  }
+
   private recent<T>(map: Map<string, T[]>, id: string, item: T): void {
     const list = map.get(id) ?? [];
     list.push(item);
@@ -1957,6 +2004,7 @@ export class Game {
       recentThoughts: this.thoughts.get(e.id) ?? [],
       shortTermMemory: [...e.memory],
       consults: this.consults.get(e.id) ?? [],
+      research: this.researchBy.get(e.id) ?? [],
       memoriesSummary: {
         count: mems.length, avgFidelity: Math.round(avg * 1000) / 1000, gists: mems.filter((m) => m.kind === 'gist').length,
         recent: mems.slice(0, this.game.god.recentMax).map(memoryDto),
@@ -2120,6 +2168,7 @@ export class Game {
     this.lawsSeen.delete(e.id);
     this.thoughts.delete(e.id);
     this.consults.delete(e.id);
+    this.researchBy.delete(e.id);
     if (e.kind !== 'agent' || !this.game.death.forgetMemories) return;
     const key = memoryKey(e.name);
     if (this.game.death.epitaph) {

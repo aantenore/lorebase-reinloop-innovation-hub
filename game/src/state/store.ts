@@ -1,6 +1,8 @@
 import { config } from '../config';
 import type {
   ConsultMsg,
+  ResearchMsg,
+  WebSource,
   CraftMsg,
   DecayMsg,
   DeliberationMsg,
@@ -86,6 +88,16 @@ export interface ConsultEntry {
   query: string;
 }
 
+export interface ResearchEntry {
+  at: number;
+  day: number;
+  minute: number;
+  tool: string;
+  query?: string;
+  url?: string;
+  results: WebSource[];
+}
+
 /** Last known economy (hello, REST or live discoveries). */
 export interface EconomyState {
   resources: Map<string, Resource>;
@@ -123,6 +135,8 @@ export interface StoreEvents {
   economy: EconomyState;
   insight: InsightMsg;
   consult: ConsultMsg & { entry: ConsultEntry };
+  research: ResearchMsg & { entry: ResearchEntry };
+  research_loaded: { agentId: string };
   craft: CraftMsg;
   trade: TradeMsg;
   discovery: DiscoveryMsg;
@@ -176,6 +190,8 @@ export class Store {
   /** Insights by code: accepted, pending, rejected and retired ones seen so far. */
   insights = new Map<string, Insight>();
   consults = new Map<string, ConsultEntry[]>();
+  /** Recent web research per agent (oldest first, bounded). */
+  research = new Map<string, ResearchEntry[]>();
   /** Private memories per agent: filled by REST on demand and kept current by `memory` events. */
   memories = new Map<string, Map<string, Memory>>();
   /** Society: everyone who ever lived, families, opinions (god only), skills, barter offers, agents' law proposals. */
@@ -288,6 +304,26 @@ export class Store {
     const e = this.entities.get(id);
     if (!e || !e.age) return undefined;
     return { id: e.id, name: e.name, role: e.role, tier: e.tier, effectiveTier: e.effectiveTier, age: e.age, esteem: e.esteem ?? 0, fame: e.fame ?? 0, rank: e.rank ?? 0, family: e.family ?? null, parents: e.parents ?? null, alive: e.alive };
+  }
+
+  private pushResearch(agentId: string, add: ResearchEntry[]): void {
+    const arr = [...(this.research.get(agentId) ?? []), ...add];
+    if (arr.length > config.minds.researchKept) arr.splice(0, arr.length - config.minds.researchKept);
+    this.research.set(agentId, arr);
+  }
+
+  /** Merge research fetched from AgentMind (older entries first) with the live ones, without duplicates. */
+  mergeResearch(agentId: string, remote: { at: GameTime; tool: string; query?: string; url?: string; results: WebSource[] }[]): void {
+    const cur = this.research.get(agentId) ?? [];
+    const key = (e: { tool: string; query?: string; url?: string }) => `${e.tool}|${e.query ?? ''}|${e.url ?? ''}`;
+    const seen = new Set(cur.map((e) => `${e.day}|${key(e)}`));
+    const add: ResearchEntry[] = remote
+      .filter((r) => !seen.has(`${r.at.day}|${key(r)}`))
+      .map((r) => ({ at: 0, day: r.at.day, minute: r.at.minute, tool: r.tool, query: r.query, url: r.url, results: r.results ?? [] }));
+    if (!add.length) return;
+    const all = [...cur, ...add].sort((a, b) => a.day - b.day || a.minute - b.minute);
+    this.research.set(agentId, all.slice(-config.minds.researchKept));
+    this.emit('research_loaded', { agentId });
   }
 
   /** Name of a person even after death. */
@@ -593,6 +629,12 @@ export class Store {
         arr.push(entry);
         if (arr.length > config.minds.consultsKept) arr.splice(0, arr.length - config.minds.consultsKept);
         this.emit('consult', { ...msg, entry });
+        break;
+      }
+      case 'research': {
+        const entry: ResearchEntry = { at: Date.now(), day: this.time.day, minute: this.time.minute, tool: msg.tool, query: msg.query, url: msg.url, results: msg.results ?? [] };
+        this.pushResearch(msg.agentId, [entry]);
+        this.emit('research', { ...msg, entry });
         break;
       }
       case 'craft':

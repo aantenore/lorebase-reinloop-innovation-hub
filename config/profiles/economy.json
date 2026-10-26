@@ -1,0 +1,56 @@
+{
+  "description": "Low-cost runs: every mind on haiku except the committee chair (Livia) on sonnet; committee voters and group proposers on haiku, no interns, shorter replies.",
+  "rosterTiers": {
+    "*": "haiku",
+    "Livia": "sonnet"
+  },
+  "game": {
+    "decisions": {
+      "tiers": {
+        "haiku": {
+          "maxSteps": 35,
+          "horizonFactor": 1,
+          "cooldownFactor": 2,
+          "maxTurns": 5,
+          "maxOutputTokens": 2500,
+          "maxConsults": 1
+        },
+        "sonnet": {
+          "maxSteps": 50,
+          "horizonFactor": 1.5,
+          "cooldownFactor": 3,
+          "maxTurns": 6,
+          "maxOutputTokens": 4000,
+          "maxConsults": 2
+        }
+      },
+      "modelParams": {
+        "reply": {
+          "retryMaxTokens": 800
+        },
+        "prose": {
+          "retryMaxTokens": 1200
+        }
+      }
+    },
+    "conversation": {
+      "replyMaxOutputTokens": 500
+    },
+    "groups": {
+      "memberTier": "haiku",
+      "maxProposers": 2,
+      "proseMaxOutputTokens": 1000
+    },
+    "crowd": {
+      "count": 0
+    },
+    "births": {
+      "childTier": "haiku"
+    },
+    "promptCache": {
+      "enabled": true,
+      "ttl": "5m",
+      "groupTtl": "5m"
+    }
+  }
+}

@@ -328,7 +328,25 @@
     "enrichChance": 0.6,
     "ideaSeeds": 12,
     "committeeApproveAt": 6,
-    "committeeKillBelow": 4.5
+    "committeeKillBelow": 4.5,
+    "habits": {
+      "explore": [
+        "ricercatore",
+        "ux_designer"
+      ],
+      "gather": [
+        "data_scientist",
+        "product_strategist"
+      ],
+      "build": [
+        "architetto",
+        "security"
+      ],
+      "care": [
+        "venture_lead",
+        "critico"
+      ]
+    }
   },
   "brain": {
     "mcpUrl": "http://127.0.0.1:8290/mcp",
@@ -616,7 +634,9 @@
     "committee": {
       "groupName": "Comitato Investimenti",
       "maxPerSession": 3
-    }
+    },
+    "sourcesMax": 8,
+    "sourceTitleMaxChars": 120
   },
   "company": {
     "name": "Hub Innovazione",
@@ -643,5 +663,28 @@
       "crowd": "junior",
       "player": "junior"
     }
+  },
+  "promptCache": {
+    "enabled": true,
+    "ttl": "5m",
+    "groupTtl": "5m"
+  },
+  "research": {
+    "provider": "tavily",
+    "maxResults": 5,
+    "maxResultsCap": 8,
+    "maxChars": 600,
+    "maxFetchChars": 6000,
+    "cacheTtlMs": 3600000,
+    "cacheMax": 500,
+    "anthropicTier": "haiku",
+    "policies": {
+      "perPerson": "ricerche_web_per_persona_al_giorno",
+      "total": "ricerche_web_totali_al_giorno",
+      "excludedDomains": "domini_esclusi"
+    },
+    "eventSnippetChars": 200,
+    "recentMax": 10,
+    "logMax": 1000
   }
 }

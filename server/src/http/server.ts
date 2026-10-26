@@ -44,6 +44,8 @@ export interface HttpHost {
   ideaView?(code: string): unknown | undefined;
   ideasExport?(): string;
   companyView?(): unknown;
+  /** Web research of the run (titles and URLs only). */
+  researchView?(): unknown;
 }
 
 const MIME: Record<string, string> = {
@@ -209,6 +211,7 @@ export function createHttpServer(sim: HttpHost): Server {
       }
       if (method === 'GET' && path === '/api/economy') return sim.economyView ? send(res, 200, sim.economyView()) : unsupported();
       if (method === 'GET' && path === '/api/company') return sim.companyView ? send(res, 200, sim.companyView()) : unsupported();
+      if (method === 'GET' && path === '/api/research') return sim.researchView ? send(res, 200, sim.researchView()) : unsupported();
       if (method === 'GET' && path === '/api/ideas') {
         if (!sim.ideaList) return unsupported();
         const q = url.searchParams;

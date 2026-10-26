@@ -8,8 +8,9 @@ import type { Translate } from '../i18n.ts';
 import type { Role, RuleChange } from '../lorebase/rules.ts';
 import type { Brain, ConsultEvent } from './brain.ts';
 import type { Tier } from '../world/types.ts';
-import { AGENT_PATTERNS, type GameConfig, type TierDecision } from './config.ts';
+import { AGENT_PATTERNS, cacheParams, type GameConfig, type TierDecision } from './config.ts';
 import { flatSteps, mockSteps, needsOf } from './mock.ts';
+import type { TokenUsage } from './observatory.ts';
 import { MODEL_ACTIONS, normalizeStep, type PlanStep } from './plan.ts';
 import {
   doingLine, type GroupView, groupLine, inboxBlock, look, memoryBlock, type PromptLimits, recalledBlock, rtInstructions, rtObservation, selfLine, timeLine,
@@ -45,7 +46,7 @@ export interface DecideHost {
   /** Sinks every model run reports to (run logs kept in mnemo). */
   runSinks(): Sink[];
   /** A model run ended (usage and cost per agent, for the Observatory). */
-  ranModel(who: { id: string; name: string; model: string; tier: string }, res: { status: string; usage?: { inputTokens?: number; outputTokens?: number }; costUsd?: number }): void;
+  ranModel(who: { id: string; name: string; model: string; tier: string }, res: { status: string; usage?: TokenUsage; costUsd?: number }): void;
   /** A person consulted Lorebase (shown to clients). */
   consulted(e: RtEntity, ev: ConsultEvent): void;
   /** The model's reasoning summary behind a decision (privileged clients only). */
@@ -69,6 +70,8 @@ export interface DecideHost {
   perceived: PerceivedSociety;
   /** Ideas: propose, enrich, review, submit to the committee, read one in full. */
   ideas: IdeaDesk;
+  /** Web research (web_search, web_fetch) under the company policies; undefined when off. */
+  research?: { tools(who: { id: string; name: string }): Tool[] };
 }
 
 /** What a person can do with ideas (tools); results are factual lines. */
@@ -116,6 +119,7 @@ export function faculties(host: DecideHost, e: RtEntity, maxConsults: number): T
   return [
     ...host.brain.lorebaseTools({ left: maxConsults, onConsult: (ev) => host.consulted(e, ev) }),
     ...host.brain.memoryTools(e.name, () => ({ day: host.world().day, minute: host.world().minute }), host.cfg.memory.ingest.remember ?? { importance: 0.5, emotion: 0 }),
+    ...(host.research?.tools(e) ?? []),
   ];
 }
 
@@ -211,6 +215,11 @@ export function ideaTools(host: Pick<DecideHost, 't' | 'ideas'>, e: RtEntity): T
     feasibility: field('feasibility'), risks: field('risks'),
     tags: { type: 'array', items: { type: 'string' }, description: t('rt.tools.idea.tags') },
     signals: { type: 'array', items: { type: 'string' }, description: t('rt.tools.idea.signals') },
+    sources: {
+      type: 'array',
+      items: { type: 'object', properties: { title: { type: 'string' }, url: { type: 'string' } }, required: ['url'] },
+      description: t('rt.tools.idea.sources'),
+    },
   };
   const score = (k: string) => ({ type: 'integer', minimum: 0, maximum: 10, description: t(`rt.tools.idea.score.${k}`) });
   const out = (o: ToolOutcome) => ({ content: o.text, isError: !o.ok });
@@ -463,8 +472,8 @@ export async function decide(host: DecideHost, e: RtEntity, why: string, stop?: 
   const runner = agent({
     name: e.id,
     model: modelRef(host, e.model, (req) => mockDecision(host, e, tc, req), cfg.mock.thinkDelayMs),
-    params: { ...cfg.decisions.modelParams.plan, maxTokens: tc.maxOutputTokens },
-    instructions: rtInstructions(t, e, host.roleOf(e.role), { horizon }),
+    params: { ...cfg.decisions.modelParams.plan, ...cacheParams(cfg), maxTokens: tc.maxOutputTokens },
+    instructions: rtInstructions(t, e, host.roleOf(e.role), { horizon }, !!host.research),
     tools: [commit, ...socialTools(host, e), ...faculties(host, e, tc.maxConsults)],
     budget: { maxTurns: tc.maxTurns, maxToolCalls: tc.maxConsults + tc.maxTurns * 4 },
     toolSettings: { concurrency: 1 },
@@ -519,8 +528,8 @@ export async function reply(host: DecideHost, e: RtEntity, speaker: RtEntity, on
   const runner = agent({
     name: e.id,
     model: modelRef(host, e.model, mockReply, cfg.mock.replyDelayMs),
-    params: { ...cfg.decisions.modelParams.reply, maxTokens: cfg.conversation.replyMaxOutputTokens },
-    instructions: `${rtInstructions(t, e, host.roleOf(e.role), { horizon: w.r('plan_horizon_minutes') * tc.horizonFactor })}\n${t('rt.replyInstructions')}`,
+    params: { ...cfg.decisions.modelParams.reply, ...cacheParams(cfg), maxTokens: cfg.conversation.replyMaxOutputTokens },
+    instructions: `${rtInstructions(t, e, host.roleOf(e.role), { horizon: w.r('plan_horizon_minutes') * tc.horizonFactor }, !!host.research)}\n${t('rt.replyInstructions')}`,
     tools: [rethinkTool, ...lorebase],
     // Consultations, plus rethink and one refused extra call, then the answer.
     budget: { maxTurns: cfg.conversation.replyMaxTurns, maxToolCalls: consults + 2 },
