@@ -12,10 +12,10 @@ test('profile: roster tiers by name, then "*"; an explicit model is dropped when
   assert.deepEqual(r, [{ name: 'Ilse', tier: 'sonnet' }, { name: 'Nia', tier: 'haiku' }, { name: 'Pell', tier: 'haiku', model: 'y' }]);
 });
 
-test('profile: economy keeps one sonnet, no opus, haiku group members and caching; unknown or unsafe names fail', () => {
+test('profile: economy puts every mind on haiku, no opus, haiku group members and caching; unknown or unsafe names fail', () => {
   const env = { GAME_PROFILE: 'economy' };
   const p = loadProfile(env);
-  assert.deepEqual(p.rosterTiers, { '*': 'haiku', Livia: 'sonnet' });
+  assert.deepEqual(p.rosterTiers, { '*': 'haiku' });
   const cfg = loadGameConfig(env);
   assert.equal(cfg.groups.memberTier, 'haiku');
   assert.equal(cfg.crowd.count, 0);

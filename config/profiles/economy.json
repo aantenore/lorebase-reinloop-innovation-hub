@@ -1,8 +1,7 @@
 {
-  "description": "Low-cost runs: every mind on haiku except the committee chair (Livia) on sonnet; committee voters and group proposers on haiku, no interns, shorter replies; game clock x3 for live runs, more turns and a web-call cap per decision.",
+  "description": "Low-cost runs: every mind on haiku, the committee chair (Livia) included; committee voters and group proposers on haiku, no interns, shorter replies; game clock x3 for live runs, more turns and a web-call cap per decision.",
   "rosterTiers": {
-    "*": "haiku",
-    "Livia": "sonnet"
+    "*": "haiku"
   },
   "game": {
     "decisions": {
