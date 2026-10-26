@@ -67,6 +67,32 @@ export interface DecideHost {
   voteWeight(id: string): number;
   /** Society in perception: what is said about a person, offers, hearsay (factual lines, no numbers). */
   perceived: PerceivedSociety;
+  /** Ideas: propose, enrich, review, submit to the committee, read one in full. */
+  ideas: IdeaDesk;
+}
+
+/** What a person can do with ideas (tools); results are factual lines. */
+export interface IdeaDesk {
+  propose(e: RtEntity, input: Record<string, unknown>): Promise<ToolOutcome>;
+  enrich(e: RtEntity, input: Record<string, unknown>): ToolOutcome;
+  review(e: RtEntity, input: Record<string, unknown>): ToolOutcome;
+  submit(e: RtEntity, code: string): Promise<ToolOutcome>;
+  read(e: RtEntity, code: string): string;
+  /** The ideas as the mock sees them (offline stand-in only). */
+  briefs(e: RtEntity): IdeaBrief[];
+}
+
+export interface IdeaBrief {
+  code: string;
+  title: string;
+  stage: string;
+  mine: boolean;
+  reviewedByMe: boolean;
+  reviews: number;
+  minReviewers: number;
+  missing: string[];
+  openByMe: number;
+  maxOpen: number;
 }
 
 export interface PerceivedSociety {
@@ -176,6 +202,38 @@ export function normalizeSteps(raw: unknown, textMax: number, max: number): Plan
   return raw.map((s) => normalizeStep(s, textMax)).filter((s): s is PlanStep => !!s).slice(0, max);
 }
 
+/** Tools on ideas (individual decisions and group members who propose or write plans). */
+export function ideaTools(host: Pick<DecideHost, 't' | 'ideas'>, e: RtEntity): Tool[] {
+  const t = host.t;
+  const field = (k: string) => ({ type: 'string', description: t(`rt.tools.idea.${k}`) });
+  const fields = {
+    title: field('title'), problem: field('problem'), users: field('users'), solution: field('solution'), differentiation: field('differentiation'),
+    feasibility: field('feasibility'), risks: field('risks'),
+    tags: { type: 'array', items: { type: 'string' }, description: t('rt.tools.idea.tags') },
+    signals: { type: 'array', items: { type: 'string' }, description: t('rt.tools.idea.signals') },
+  };
+  const score = (k: string) => ({ type: 'integer', minimum: 0, maximum: 10, description: t(`rt.tools.idea.score.${k}`) });
+  const out = (o: ToolOutcome) => ({ content: o.text, isError: !o.ok });
+  return [
+    tool<Record<string, unknown>>('proponi_idea', t('rt.tools.idea.propose'), {
+      type: 'object', properties: fields, required: ['title', 'problem'],
+    }, async (args) => out(await host.ideas.propose(e, args ?? {}))),
+    tool<Record<string, unknown>>('arricchisci_idea', t('rt.tools.idea.enrich'), {
+      type: 'object', properties: { code: { type: 'string', description: t('rt.tools.idea.code') }, ...fields }, required: ['code'],
+    }, (args) => out(host.ideas.enrich(e, args ?? {}))),
+    tool<Record<string, unknown>>('valuta_idea', t('rt.tools.idea.review'), {
+      type: 'object',
+      properties: {
+        code: { type: 'string', description: t('rt.tools.idea.code') }, impact: score('impact'), feasibility: score('feasibility'), novelty: score('novelty'), fit: score('fit'),
+        risk: score('risk'), comment: { type: 'string', description: t('rt.tools.idea.comment') },
+      },
+      required: ['code', 'impact', 'feasibility', 'novelty', 'fit', 'risk', 'comment'],
+    }, (args) => out(host.ideas.review(e, args ?? {}))),
+    tool<{ code: string }>('candida_al_comitato', t('rt.tools.idea.submit'), { code: `string: ${t('rt.tools.idea.code')}` }, async ({ code }) => out(await host.ideas.submit(e, String(code ?? '')))),
+    tool<{ code: string }>('leggi_idea', t('rt.tools.idea.read'), { code: `string: ${t('rt.tools.idea.code')}` }, ({ code }) => host.ideas.read(e, String(code ?? '')), { risk: 'read' }),
+  ];
+}
+
 function socialTools(host: DecideHost, e: RtEntity): Tool[] {
   const t = host.t;
   const max = host.cfg.decisions.textMaxChars;
@@ -235,11 +293,12 @@ function socialTools(host: DecideHost, e: RtEntity): Tool[] {
       return { content: out.text, isError: !out.ok };
     }),
     tool<{ key?: string; text: string; category: string; value?: number }>('proponi_legge', t('rt.tools.proposeLaw'), {
-      key: `string?: ${t('rt.tools.lawKey')}`, text: `string: ${t('rt.tools.lawText')}`, category: ['survival', 'economy', 'climate', 'society', 'time'], value: `number?: ${t('rt.tools.lawValue')}`,
+      key: `string?: ${t('rt.tools.lawKey')}`, text: `string: ${t('rt.tools.lawText')}`, category: host.sim.lorebase.ruleCategories, value: `number?: ${t('rt.tools.lawValue')}`,
     }, async (args) => {
       const out = await host.proposeLaw(e, args ?? {});
       return { content: out.text, isError: !out.ok };
     }),
+    ...ideaTools(host, e),
     tool('review_insights', t('rt.tools.reviewInsights'), {}, () => host.reviewInsights(e), { risk: 'read' }),
     tool<{ code: string; verdict: 'approve' | 'reject'; reason: string }>('judge_insight', t('rt.tools.judgeInsight'), {
       code: `string: ${t('rt.tools.insightCode')}`, verdict: ['approve', 'reject'], reason: `string: ${t('rt.tools.insightReason')}`,
@@ -310,6 +369,7 @@ function mockPlanTurn(host: DecideHost, e: RtEntity, tc: TierDecision): MockTurn
   if (e.kind === 'agent' && roll('law') < m.lawChance) {
     calls.push({ name: 'proponi_legge', args: { text: t('rt.mock.law', { name: e.name }), category: 'society' } });
   }
+  if (e.kind === 'agent') calls.push(...mockIdeaCalls(host, e, roll));
   // Shared consciousness: judge a peer's pending idea, or now and then share one.
   const pendingCode = /^- (\S+):/m.exec(host.reviewInsights(e))?.[1];
   const seed = [...`${e.id}${w.day}${w.minute}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 3);
@@ -321,6 +381,67 @@ function mockPlanTurn(host: DecideHost, e: RtEntity, tc: TierDecision): MockTurn
   const plan = mockSteps(t, w, e, { min: Math.min(host.cfg.mock.planSteps, tc.maxSteps), max: tc.maxSteps }, host.cfg.mock);
   calls.push({ name: 'commit_plan', args: { reason: plan.reason, steps: flatSteps(plan.steps) } });
   return { text: plan.reason, toolCalls: calls };
+}
+
+const hashOf = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 17);
+
+/** Offline scores of an idea: a quality from its code (2-8), a little different for each reviewer. */
+export function mockScores(code: string, reviewer: string): Record<'impact' | 'feasibility' | 'novelty' | 'fit' | 'risk', number> {
+  const q = (hashOf(code) % 7) + 2;
+  const j = (salt: string) => (hashOf(`${salt}${code}${reviewer}`) % 3) - 1;
+  const c = (n: number) => Math.max(0, Math.min(10, n));
+  return { impact: c(q + j('i')), feasibility: c(q + j('f')), novelty: c(q + j('n')), fit: c(q + j('t')), risk: c(10 - q + j('r')) };
+}
+
+/** Field each role fills first when it enriches an idea offline. */
+const MOCK_FIELD: Record<string, string> = {
+  architetto: 'feasibility', security: 'risks', critico: 'risks', ux_designer: 'users', venture_lead: 'differentiation', product_strategist: 'differentiation',
+  data_scientist: 'solution', ricercatore: 'solution',
+};
+
+/** Offline idea moves: submit a ready idea of mine, review one of others, enrich one, now and then propose one. */
+function mockIdeaCalls(host: DecideHost, e: RtEntity, roll: (salt: string) => number): Array<{ name: string; args: unknown }> {
+  const t = host.t;
+  const m = host.cfg.mock;
+  const calls: Array<{ name: string; args: unknown }> = [];
+  const briefs = host.ideas.briefs(e);
+  const seedOf = (title: string) => {
+    for (let k = 0; k < m.ideaSeeds; k++) if (title.startsWith(t(`rt.mock.ideas.${k}.title`))) return k;
+    return hashOf(title) % Math.max(1, m.ideaSeeds);
+  };
+  const ready = briefs.find((b) => b.mine && b.stage === 'proposal' && b.reviews >= b.minReviewers);
+  if (ready) calls.push({ name: 'candida_al_comitato', args: { code: ready.code } });
+  const toReview = briefs.find((b) => !b.mine && !b.reviewedByMe && ['concept', 'proposal', 'pitch'].includes(b.stage));
+  if (toReview && roll('review') < m.reviewChance) {
+    const s = mockScores(toReview.code, e.name);
+    calls.push({ name: 'valuta_idea', args: { code: toReview.code, ...s, comment: t(`rt.mock.review.${s.impact >= 6 ? 'good' : s.impact >= 4 ? 'mixed' : 'bad'}`) } });
+  }
+  const toEnrich = briefs.find((b) => b.missing.length && ['signal', 'insight', 'concept'].includes(b.stage));
+  if (toEnrich && roll('enrich') < m.enrichChance) {
+    const want = MOCK_FIELD[e.role];
+    const field = want && toEnrich.missing.includes(want) ? want : toEnrich.missing[0]!;
+    calls.push({ name: 'arricchisci_idea', args: { code: toEnrich.code, [field]: t(`rt.mock.ideas.${seedOf(toEnrich.title)}.${field}`) } });
+  }
+  const openByMe = briefs[0]?.openByMe ?? 0;
+  const maxOpen = briefs[0]?.maxOpen ?? 1;
+  if (openByMe < maxOpen && (briefs.length === 0 || roll('idea') < m.ideaChance)) {
+    const taken = new Set(briefs.map((b) => b.title));
+    const start = hashOf(`${e.id}${host.world().day}${host.world().minute}`) % Math.max(1, m.ideaSeeds);
+    for (let i = 0; i < m.ideaSeeds; i++) {
+      const k = (start + i) % m.ideaSeeds;
+      const seed = t(`rt.mock.ideas.${k}.title`);
+      // Seeds already used come back as new versions.
+      let title = seed;
+      for (let n = 2; taken.has(title); n++) title = t('rt.mock.ideaVersion', { title: seed, n });
+      const signals = Object.keys(e.inventory).filter((code) => (e.inventory[code] ?? 0) >= 1 && host.cfg.ideas.attachCategories.includes(host.world().catalog.resources.get(code)?.category ?? '')).slice(0, 2);
+      calls.push({ name: 'proponi_idea', args: {
+        title, problem: t(`rt.mock.ideas.${k}.problem`), users: t(`rt.mock.ideas.${k}.users`), solution: t(`rt.mock.ideas.${k}.solution`),
+        tags: t(`rt.mock.ideas.${k}.tags`).split(',').map((x) => x.trim()), ...(signals.length ? { signals } : {}),
+      } });
+      break;
+    }
+  }
+  return calls;
 }
 
 /** Asks one person what it will do next; a Failure says why no plan was committed. */

@@ -13,11 +13,13 @@
 import type { RtRuleKey } from './world.ts';
 import type { AgeStage, EntityTier, EntityKind } from './world.ts';
 
-export type DeedKind = 'gift' | 'recipe_supply' | 'insight_accepted' | 'discovery' | 'law_enacted' | 'law_respected' | 'law_breached';
+export type DeedKind = 'gift' | 'recipe_supply' | 'insight_accepted' | 'discovery' | 'law_enacted' | 'law_respected' | 'law_breached'
+  | 'idea_proposed' | 'idea_approved' | 'review_given';
 
 const DEED_RULE: Record<DeedKind, RtRuleKey> = {
   gift: 'fame_gift', recipe_supply: 'fame_recipe_supply', insight_accepted: 'fame_insight_accepted', discovery: 'fame_discovery', law_enacted: 'fame_law_enacted',
   law_respected: 'fame_law_respected', law_breached: 'fame_law_breached',
+  idea_proposed: 'fame_idea_proposed', idea_approved: 'fame_idea_approved', review_given: 'fame_review_given',
 };
 
 export interface Opinion {

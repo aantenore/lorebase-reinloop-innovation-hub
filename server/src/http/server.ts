@@ -39,9 +39,12 @@ export interface HttpHost {
   decideLawProposal?(id: string, verdict: 'approve' | 'reject', note: string): Promise<unknown>;
   /** Law keys the engine needs: they can be changed but not repealed. */
   engineKeys?(): readonly string[];
+  /** Ideas (filters stage, tag, author), one idea, the markdown portfolio, the company. */
+  ideaList?(f: { stage?: string; tag?: string; author?: string }): unknown[];
+  ideaView?(code: string): unknown | undefined;
+  ideasExport?(): string;
+  companyView?(): unknown;
 }
-
-const CATEGORIES = ['survival', 'economy', 'climate', 'society', 'time'];
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
@@ -68,6 +71,7 @@ export function createHttpServer(sim: HttpHost): Server {
   const guard = { port: cfg.http.port, corsOrigins: cfg.http.corsOrigins, apiToken: cfg.apiToken, allowedHosts: cfg.http.allowedHosts };
   const origins = allowedOrigins(guard);
   const readBody = (req: IncomingMessage) => readJson(req, cfg.http.maxBodyBytes);
+  const CATEGORIES = cfg.lorebase.ruleCategories;
 
   const cors = (req: IncomingMessage, res: ServerResponse) => {
     const origin = req.headers.origin;
@@ -204,6 +208,23 @@ export function createHttpServer(sim: HttpHost): Server {
         return typeof out === 'string' ? send(res, out === 'unknown' ? 404 : 502, { ok: false, error: out }) : send(res, 200, { ok: true, proposal: out });
       }
       if (method === 'GET' && path === '/api/economy') return sim.economyView ? send(res, 200, sim.economyView()) : unsupported();
+      if (method === 'GET' && path === '/api/company') return sim.companyView ? send(res, 200, sim.companyView()) : unsupported();
+      if (method === 'GET' && path === '/api/ideas') {
+        if (!sim.ideaList) return unsupported();
+        const q = url.searchParams;
+        return send(res, 200, sim.ideaList({ stage: q.get('stage') ?? undefined, tag: q.get('tag') ?? undefined, author: q.get('author') ?? undefined }));
+      }
+      if (method === 'GET' && path === '/api/ideas/export.md') {
+        if (!sim.ideasExport) return unsupported();
+        res.writeHead(200, { 'Content-Type': 'text/markdown; charset=utf-8' });
+        return void res.end(sim.ideasExport());
+      }
+      const ideaCode = method === 'GET' ? /^\/api\/ideas\/([^/]+)$/.exec(path) : null;
+      if (ideaCode) {
+        if (!sim.ideaView) return unsupported();
+        const idea = sim.ideaView(decodeURIComponent(ideaCode[1]!));
+        return idea ? send(res, 200, idea) : send(res, 404, { ok: false, error: 'no such idea' });
+      }
       const mem = method === 'GET' ? /^\/api\/agents\/([^/]+)\/memories$/.exec(path) : null;
       if (mem) {
         if (!sim.memories) return unsupported();

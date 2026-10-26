@@ -5,7 +5,9 @@ import { resolve } from 'node:path';
 import type { ModelParams } from 'reinloop';
 import { ROOT } from '../config.ts';
 import type { Tier } from '../world/types.ts';
+import type { CompanyConfig } from './company.ts';
 import type { EconomyConfig } from './economy-book.ts';
+import type { IdeasConfig } from './ideas.ts';
 import type { MapConfig, MovementConfig } from './world.ts';
 
 export type GroupPattern = 'orchestrator' | 'council' | 'router' | 'chain' | 'mentor' | 'assembly' | 'crowd';
@@ -112,7 +114,8 @@ export interface SocietyConfig {
   persist: { enabled: boolean; world: string; flushMs: number };
 }
 
-export type ReplanTrigger = 'planExhausted' | 'stepFailed' | 'spokenTo' | 'critical' | 'nightfall' | 'dawn' | 'seasonChange' | 'rulesChanged' | 'offer' | 'offerAnswered';
+export type ReplanTrigger = 'planExhausted' | 'stepFailed' | 'spokenTo' | 'critical' | 'nightfall' | 'dawn' | 'seasonChange' | 'rulesChanged' | 'offer' | 'offerAnswered'
+  | 'ideaNews' | 'quarter';
 
 /** Per-call model params taken from config. */
 export type CallParams = Pick<ModelParams, 'thinking' | 'effort' | 'retryMaxTokens'>;
@@ -166,11 +169,19 @@ export interface GameConfig {
     /** A group decides at most once per this many game minutes (its first decision excepted). */
     minGameMinutesBetweenDecisions: number;
     colors: string[];
-    seeded: Array<{ name: string; pattern: GroupPattern; members: string[]; leader: string | null }>;
+    /** `jointPlans: false`: the group only decides on submitted ideas (the committee); its members plan on their own. */
+    seeded: Array<{ name: string; pattern: GroupPattern; members: string[]; leader: string | null; jointPlans?: boolean }>;
   };
   crowd: { count: number; tier: Tier; groupName: string; names: string[]; roles: string[]; personality: string };
   chronicle: { enabled: boolean; kind: string; operation: string; flushMs: number; maxBatch: number; maxQueue: number; retryBaseMs: number; retryMaxMs: number };
-  mock: { thinkDelayMs: number; replyDelayMs: number; wanderRadius: number; planSteps: number; experimentChance: number; eatAtHunger: number; offerChance: number; askChance: number; judgeChance: number; lawChance: number };
+  mock: {
+    thinkDelayMs: number; replyDelayMs: number; wanderRadius: number; planSteps: number; experimentChance: number; eatAtHunger: number; offerChance: number; askChance: number;
+    judgeChance: number; lawChance: number;
+    /** Ideas: chances of proposing, reviewing and enriching per decision; how many seeds `rt.mock.ideas.<n>` exist. */
+    ideaChance: number; reviewChance: number; enrichChance: number; ideaSeeds: number;
+    /** Committee stand-in: approve from this weighted score, kill below that one, else defer. */
+    committeeApproveAt: number; committeeKillBelow: number;
+  };
   brain: BrainConfig;
   insights: InsightConfig;
   barter: BarterConfig;
@@ -188,6 +199,10 @@ export interface GameConfig {
   reflex: import('./reflex.ts').ReflexConfig;
   /** Spending cap: when the model cost of this run reaches `maxUsd` (0: none) every mind is paused. */
   budget: { maxUsd: number };
+  /** Ideas on Lorebase branches; `attachCategories`: categories of carried items an idea can take in (signals, artifacts). */
+  ideas: IdeasConfig & { attachCategories: string[] };
+  /** Quarters, slots, themes, careers. */
+  company: CompanyConfig;
 }
 
 export function loadGameConfig(env: NodeJS.ProcessEnv = process.env): GameConfig {

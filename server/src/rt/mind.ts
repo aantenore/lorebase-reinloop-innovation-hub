@@ -21,7 +21,11 @@ export type Perception =
   | { kind: 'groupChanged' }
   | { kind: 'groupFailed' }
   | { kind: 'offer'; from: RtEntity; ask?: boolean }
-  | { kind: 'offerAnswered'; with: RtEntity; status: string };
+  | { kind: 'offerAnswered'; with: RtEntity; status: string }
+  /** News about an idea one authored or reviewed (reviewed, approved, killed, deferred). */
+  | { kind: 'idea'; text: string }
+  /** A quarter ended (the company's quarterly review). */
+  | { kind: 'quarter'; text: string };
 
 /** Bounded concurrency for model calls. */
 export class Limiter {
@@ -61,6 +65,8 @@ export interface MindHost {
   /** The mind of this person's group, when the group decides jointly. */
   groupMind(e: RtEntity): GroupMind | undefined;
   decideGroup(g: Group, why: string): Promise<JointPlan | Failure>;
+  /** The committee decides on the ideas submitted to it (no-op for any other group). */
+  committee(g: Group): Promise<void>;
   commitJointPlan(g: Group, plan: JointPlan): void;
   /** The group could not decide: the member's own mind takes over. */
   groupFailed(member: RtEntity): void;
@@ -87,6 +93,8 @@ const TRIGGER: Record<Perception['kind'], ReplanTrigger | undefined> = {
   groupFailed: undefined,
   offer: 'offer',
   offerAnswered: 'offerAnswered',
+  idea: 'ideaNews',
+  quarter: 'quarter',
 };
 
 /** Mailbox with an awaitable "something arrived" signal. */
@@ -299,6 +307,15 @@ export class GroupMind {
 
   private async think(why: string, members: RtEntity[]): Promise<void> {
     this.lastThought = Date.now();
+    if (this.g.committee) {
+      try {
+        await this.host.limiter.run(() => this.host.committee(this.g));
+      } catch (err) {
+        failed(this.host, 'committee', this.g.name, err instanceof Error ? err.message : String(err));
+      }
+    }
+    // A body that only decides on ideas leaves the plans to its members.
+    if (!this.g.jointPlans || this.stopped) return;
     for (const m of members) this.host.thinking(m.id, true);
     try {
       const plan = await this.host.limiter.run(() => this.host.decideGroup(this.g, why));

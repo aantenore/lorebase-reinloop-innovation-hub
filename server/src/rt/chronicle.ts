@@ -4,7 +4,8 @@
 import { randomUUID } from 'node:crypto';
 import { type LorebaseClient, LorebaseError } from '../lorebase/client.ts';
 
-export type ChronicleEvent = 'birth' | 'death' | 'arrival' | 'departure' | 'group_formed' | 'group_dissolved' | 'laws_changed' | 'discovery' | 'family_founded' | 'law_proposed' | 'law_breach';
+export type ChronicleEvent = 'birth' | 'death' | 'arrival' | 'departure' | 'group_formed' | 'group_dissolved' | 'laws_changed' | 'discovery' | 'family_founded' | 'law_proposed' | 'law_breach'
+  | 'idea_proposed' | 'idea_submitted' | 'idea_approved' | 'idea_killed' | 'promotion' | 'quarter_review';
 
 export interface ChronicleEntry {
   event: ChronicleEvent;

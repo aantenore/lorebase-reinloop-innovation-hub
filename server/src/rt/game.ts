@@ -12,15 +12,20 @@ import { RuleWatcher } from '../lorebase/watcher.ts';
 import { cleanEntry, loadRosterFile, saveRosterFile, validateEntry, validateRoster } from '../roster.ts';
 import type { Rules } from '../world/types.ts';
 import { Brain } from './brain.ts';
-import { type Catalog, Flows, unlocksOf } from './economy.ts';
+import { type Catalog, Flows, inputMatches, unlocksOf } from './economy.ts';
+import { Company, careerFor, quarterLabel, type QuarterTurn } from './company.ts';
+import {
+  type CommitteeDecision, type CommitteeVote, exportMarkdown, type Idea, type IdeaAction, IdeaBook, type IdeaFilter, IDEA_FIELDS, isClosed, isOpen, SCORE_KEYS, type ScoreKey, type Scores,
+  scoresFrom, weightedScore,
+} from './ideas.ts';
 import { EconomyBook } from './economy-book.ts';
 import { type MemoryEvent, memoryKey, Mnemo } from './mnemo.ts';
 import { Observatory, UsageLedger } from './observatory.ts';
 import { Chronicle, type ChronicleEvent } from './chronicle.ts';
 import { type Insight, InsightBook } from './insights.ts';
 import { AGENT_PATTERNS, type GameConfig, type GroupPattern } from './config.ts';
-import { type DecideHost, decide, reply, type ToolOutcome } from './decide.ts';
-import { type Group, GroupManager, type JointPlan } from './groups.ts';
+import { type DecideHost, decide, type IdeaBrief, type IdeaDesk, reply, type ToolOutcome } from './decide.ts';
+import { type CommitteeMock, type Group, GroupManager, type JointPlan } from './groups.ts';
 import { AgentMind, GroupMind, Limiter, type MindHost, type Perception } from './mind.ts';
 import { type Plan, type PlanStep, tileOf } from './plan.ts';
 import { type GroupView, proclamation } from './prompt.ts';
@@ -113,6 +118,13 @@ export class Game {
   private readonly engineLawKeys = new Set<string>([...RT_RULE_KEYS, ...RULE_KEYS]);
   /** Set when the model cost reached budget.maxUsd: no mind runs any more. */
   private budgetPaused = false;
+  readonly ideas: IdeaBook;
+  readonly company: Company;
+  /** Career step of each person (never demoted). */
+  private readonly careers = new Map<string, string>();
+  /** Why each person left (entity_removed reason): burnout or left. */
+  private readonly leftFor = new Map<string, 'burnout' | 'left'>();
+  private committeeBusy = false;
 
   constructor(cfg: SimConfig, game: GameConfig) {
     this.cfg = cfg;
@@ -133,6 +145,8 @@ export class Game {
     this.groups = this.newGroups();
     this.chronicle = new Chronicle(this.client, cfg.lorebase.branch, game.chronicle);
     this.familyLog = new Chronicle(this.client, cfg.lorebase.branch, { ...game.chronicle, kind: game.society.families.kind, flushMs: game.society.families.flushMs }, this.chronicle.session);
+    this.company = new Company(game.company);
+    this.ideas = new IdeaBook(this.client, cfg.lorebase.branch, game.ideas, this.chronicle.session, { changed: (idea, action, by) => this.onIdea(idea, action, by) });
     this.society = new Society((k) => this.world.r(k), { maxOpinions: game.society.maxOpinions, hearsayKept: game.society.hearsay.maxKept, familyColors: game.society.families.colors });
     const tm = game.society.testimony;
     this.testimonies = new Testimonies({ windowMinutes: tm.windowMinutes, minWitnesses: tm.chronicleMinWitnesses, maxKept: tm.maxKept });
@@ -287,6 +301,7 @@ export class Game {
       judge: (e, who, score, reason) => this.judge(e, who, score, reason),
       proposeLaw: (e, input) => this.proposeLaw(e, input),
       voteWeight: (id) => this.society.voteWeight(id),
+      ideas: this.ideaDesk(),
       perceived: {
         about: (e, b) => this.repute(e, b),
         blocks: (e) => this.societyBlocks(e),
@@ -483,7 +498,7 @@ export class Game {
     const cfg = this.game.society.lawProposals;
     if (!this.game.society.enabled || e.kind !== 'agent') return { ok: false, text: t('rt.act.lawFailed', { reason: t('rt.insightReason.disabled') }) };
     if (this.society.esteemOf(e.id) < this.world.r('law_proposal_min_esteem')) return { ok: false, text: t('rt.act.lawNotEsteemed') };
-    const draft = lawDraft(input, cfg.textMaxChars, cfg.defaultValue);
+    const draft = lawDraft(input, cfg.textMaxChars, cfg.defaultValue, this.cfg.lorebase.ruleCategories);
     if ('error' in draft) return { ok: false, text: t('rt.act.lawFailed', { reason: t(`rt.reason.${draft.error}`) }) };
     const out = await this.laws_.propose({ id: e.id, name: e.name }, draft, this.laws);
     if (typeof out === 'string') return { ok: false, text: t('rt.act.lawFailed', { reason: this.t(`rt.reason.${out}`) === `rt.reason.${out}` ? out : t(`rt.reason.${out}`) }) };
@@ -538,6 +553,7 @@ export class Game {
     if (lines.length) out.push(t('rt.observation.offers', { offers: lines.join('\n') }));
     const heard = this.society.hearsayOf(e.id);
     if (heard.length) out.push(t('rt.observation.hearsay', { lines: heard.map((x) => t('rt.observation.hearsayLine', { from: x.from, about: this.society.people.get(x.about)?.name ?? x.about, text: x.text })).join('\n') }));
+    out.push(this.companyLine(e), this.ideasBlock(e));
     return out;
   }
 
@@ -562,6 +578,7 @@ export class Game {
     return {
       id: p.id, name: p.name, role: p.role, tier: p.tier, effectiveTier: this.effectiveTier(p.tier, e?.model ?? this.modelFor({ tier: p.tier })), age: { stage, days: Math.round(days * 10) / 10 }, esteem: this.society.esteemOf(p.id),
       fame: this.society.fameOf(p.id, clock), rank: this.society.ranks.get(p.id) ?? 0, family: p.family, parents: p.parents, alive: p.alive,
+      career: this.careers.get(p.id) ?? this.company.startCareer(p.kind),
     };
   }
 
@@ -575,7 +592,8 @@ export class Game {
     if (now - this.lastReputationMs >= this.game.society.broadcastMs) {
       this.lastReputationMs = now;
       this.society.recompute(w.clock);
-      const people = w.living().filter((e) => e.kind !== 'player').map((e) => ({ id: e.id, esteem: this.society.esteemOf(e.id), fame: this.society.fameOf(e.id, w.clock), rank: this.society.ranks.get(e.id) ?? 0 }));
+      this.promotions();
+      const people = w.living().filter((e) => e.kind !== 'player').map((e) => ({ id: e.id, esteem: this.society.esteemOf(e.id), fame: this.society.fameOf(e.id, w.clock), rank: this.society.ranks.get(e.id) ?? 0, career: this.careerOf(e) }));
       this.broadcast({ type: 'reputation', people });
     }
     if (now - this.lastLawPollMs >= this.game.society.lawProposals.pollMs) {
@@ -680,6 +698,10 @@ export class Game {
     }
     if (this.game.economy.enabled) await this.loadEconomy();
     await this.reconcile();
+    if (this.game.ideas.enabled) {
+      const out = await this.ideas.reconcile().catch((err) => (console.warn(`[ideas] reconcile skipped: ${err instanceof Error ? err.message : err}`), undefined));
+      if (out) console.log(`[ideas] ${out.portfolio} in the portfolio, ${out.pipeline} in the pipeline`);
+    }
     this.world.clock = this.world.epoch = this.values.dawn_minute ?? 0;
     this.mnemo.follow((ev) => this.onMemory(ev));
     this.roster = loadRosterFile(this.cfg, this.roles.map((r) => r.key));
@@ -758,7 +780,7 @@ export class Game {
       const members = s.members.map((n) => this.world.find(n)).filter((m): m is RtEntity => !!m && !m.groupId);
       if (members.length < this.game.groups.minMembers) continue;
       const leader = s.leader ? (members.find((m) => m.name === s.leader) ?? members[0]!) : null;
-      this.groups.create(s.name, s.pattern, members, leader);
+      this.groups.create(s.name, s.pattern, members, leader, { jointPlans: s.jointPlans, committee: s.name === this.game.ideas.committee.groupName });
     }
     // Every person starts its own mind; group members hand their thoughts to the group's mind.
     for (const e of this.world.living()) this.awaken(e);
@@ -810,6 +832,7 @@ export class Game {
       else console.warn(`[society] could not save the society of ${this.societyWorld} on shutdown (mnemo unavailable?)`);
     }
     this.watcher.stop();
+    await this.ideas.settle().catch(() => undefined);
     await this.brain.close();
     this.mnemo.stop();
     await this.chronicle.stop();
@@ -879,10 +902,13 @@ export class Game {
       if (!e.alive && e.diedAtMs !== undefined && now - e.diedAtMs > this.game.loop.deadLingerMs) {
         this.world.entities.delete(e.id);
         this.sent.delete(e.id);
-        this.broadcast({ type: 'entity_removed', id: e.id, reason: 'death' });
+        this.broadcast({ type: 'entity_removed', id: e.id, reason: this.leftFor.get(e.id) ?? 'left' });
+        this.leftFor.delete(e.id);
       }
     }
     this.flushTiles(now);
+    const turn = this.company.track(this.world.year(), this.world.quarter());
+    if (turn) this.onQuarter(turn);
     this.reflexes(now);
     this.tickSociety(now);
     this.checkBudget();
@@ -1015,6 +1041,7 @@ export class Game {
       case 'death': {
         const e = w.entities.get(ev.id);
         if (!e) break;
+        this.leftFor.set(e.id, ev.cause === 'starved' ? 'burnout' : 'left');
         const text = t('rt.events.death', { name: e.name, cause: t(`rt.events.cause_${ev.cause}`) });
         this.event('death', text, e);
         this.chron('death', text, [e.name]);
@@ -1055,7 +1082,7 @@ export class Game {
         this.flows.add(a.role, b.role, ev.resource, ev.amount);
         this.society.deed(a.id, 'gift', w.clock);
         // A supply: something a recipe of the receiver's (other) role consumes.
-        if (a.role !== b.role && [...this.catalog.recipes.values()].some((r) => r.role === b.role && (r.inputs[ev.resource] ?? 0) > 0)) this.society.deed(a.id, 'recipe_supply', w.clock);
+        if (a.role !== b.role && [...this.catalog.recipes.values()].some((r) => r.role === b.role && Object.keys(r.inputs).some((k) => inputMatches(this.catalog, k, ev.resource)))) this.society.deed(a.id, 'recipe_supply', w.clock);
         break;
       }
       case 'critical': {
@@ -1128,9 +1155,10 @@ export class Game {
       },
       groupMind: (e) => {
         const g = this.groups.of(e);
-        return g && this.groups.active(g) ? this.groupMinds.get(g.id) : undefined;
+        return g && g.jointPlans && this.groups.active(g) ? this.groupMinds.get(g.id) : undefined;
       },
       decideGroup: (g, why) => this.groups.decide(g, why),
+      committee: (g) => this.runCommittee(g),
       commitJointPlan: (g, plan) => {
         if (this.groups.groups.has(g.id)) this.applyJointPlan(g, plan);
       },
@@ -1195,6 +1223,9 @@ export class Game {
         return t(p.ask ? 'rt.why.ask' : 'rt.why.offer', { name: p.from.name });
       case 'offerAnswered':
         return t('rt.why.offerAnswered', { name: p.with.name, status: p.status });
+      case 'idea':
+      case 'quarter':
+        return p.text;
     }
   }
 
@@ -1275,6 +1306,8 @@ export class Game {
     const t = this.t;
     const g = this.groups.byName(name);
     if (!g || g.pattern === 'crowd') return { ok: false, text: t('rt.act.noSuchGroup', { name }) };
+    // The committee is appointed, not joined.
+    if (g.committee) return { ok: false, text: t('rt.act.groupClosed', { name: g.name }) };
     const err = this.groups.join(g, e);
     if (err) return { ok: false, text: t('rt.act.groupFull', { name: g.name }) };
     this.world.remember(e, t('rt.memory.joined', { group: g.name }));
@@ -1287,6 +1320,352 @@ export class Game {
     this.groups.leave(e);
     this.world.remember(e, this.t('rt.memory.left', { group: g.name }));
     return { ok: true, text: this.t('rt.act.left', { name: g.name }) };
+  }
+
+  // ---- ideas and the company ------------------------------------------------------
+
+  /** Policy weights of the evaluation (rules weight_*). */
+  private weights(): Scores {
+    const w = this.world;
+    return { impact: w.r('weight_impact'), feasibility: w.r('weight_feasibility'), novelty: w.r('weight_novelty'), fit: w.r('weight_fit'), risk: w.r('weight_risk') };
+  }
+
+  private slotsLeft(): number {
+    return this.company.slotsLeft(this.world.r('quarter_idea_slots'));
+  }
+
+  companyDto() {
+    return { name: this.game.company.name, quarter: quarterLabel(this.world.quarter()), slotsLeft: this.slotsLeft(), themes: this.company.themes(this.laws), freeze: this.world.isFreeze() };
+  }
+
+  private careerOf(e: Pick<RtEntity, 'id' | 'kind'>): string {
+    return this.careers.get(e.id) ?? this.company.startCareer(e.kind);
+  }
+
+  /** Careers follow fame (rules promotion_*), never down; a promotion is news and enters the Chronicle. */
+  private promotions(): void {
+    const w = this.world;
+    for (const e of w.living()) {
+      if (e.kind === 'player') continue;
+      const now = this.careerOf(e);
+      const next = careerFor(this.game.company.careers, this.society.fameOf(e.id, w.clock), now, (k) => w.r(k));
+      this.careers.set(e.id, next);
+      if (next === now) continue;
+      const text = this.t('rt.events.promotion', { name: e.name, career: this.t(`rt.career.${next}`) });
+      this.event('company', text, e);
+      this.chron('promotion', text, [e.name]);
+      this.live(e, 'idea', this.t('rt.memory.promoted', { career: this.t(`rt.career.${next}`) }));
+      this.broadcastEntity(e);
+    }
+  }
+
+  /** A quarter ended: the quarterly review (facts), news for everyone, the slots start again. */
+  private onQuarter(turn: QuarterTurn): void {
+    const t = this.t;
+    const s = turn.stats;
+    const text = t('rt.events.quarter', { ended: turn.ended, began: turn.began, proposed: s.proposed, submitted: s.submitted, approved: s.approved, killed: s.killed });
+    this.event('company', text);
+    this.chron('quarter_review', text, []);
+    this.broadcast({ type: 'company', ...this.companyDto() });
+    this.broadcast({ type: 'time', ...this.timeDto() });
+    this.perceiveAll({ kind: 'quarter', text: t('rt.why.quarter', { ended: turn.ended, began: turn.began }) });
+  }
+
+  /** What the company looks like to a person: quarter, slots left, freeze (facts). */
+  private companyLine(e: RtEntity): string {
+    const t = this.t;
+    return t('rt.observation.company', {
+      name: this.game.company.name, quarter: quarterLabel(this.world.quarter()), slots: this.slotsLeft(), total: this.world.r('quarter_idea_slots'),
+      freeze: t(this.world.isFreeze() ? 'rt.observation.freezeOn' : 'rt.observation.freezeOff'), career: t(`rt.career.${this.careerOf(e)}`),
+    });
+  }
+
+  /** The ideas a person knows of: open ones first (theirs first), then the latest decisions. */
+  private ideasBlock(e: RtEntity): string {
+    const t = this.t;
+    const max = this.game.ideas.perceiveMax;
+    const all = this.ideas.list();
+    const mine = (i: Idea) => i.champion === e.name || i.authors.includes(e.name);
+    const open = all.filter((i) => !isClosed(i)).sort((a, b) => Number(mine(b)) - Number(mine(a)) || (b.history.at(-1)?.at.day ?? 0) - (a.history.at(-1)?.at.day ?? 0));
+    const closed = all.filter(isClosed).sort((a, b) => (b.decision?.at.day ?? 0) * 1440 + (b.decision?.at.minute ?? 0) - (a.decision?.at.day ?? 0) * 1440 - (a.decision?.at.minute ?? 0));
+    const shown = [...open.slice(0, max), ...closed.slice(0, Math.max(1, Math.floor(max / 3)))];
+    if (!shown.length) return t('rt.observation.ideas', { lines: t('rt.observation.noIdeas') });
+    const lines = shown.map((i) => {
+      const missing = IDEA_FIELDS.filter((k) => !i[k]);
+      const reviewed = i.reviews.some((r) => r.by === e.name);
+      return t('rt.observation.ideaLine', {
+        code: i.code, title: i.title, stage: t(`rt.ideaStage.${i.stage}`), champion: i.champion ?? '-', authors: i.authors.join(', '),
+        reviews: i.reviews.length, mine: mine(i) ? t('rt.observation.ideaMine') : reviewed ? t('rt.observation.ideaReviewed') : '',
+        missing: isOpen(i) && missing.length ? t('rt.observation.ideaMissing', { fields: missing.map((k) => t(`rt.ideaField.${k}`)).join(', ') }) : '',
+      });
+    });
+    return t('rt.observation.ideas', { lines: lines.join('\n') });
+  }
+
+  private ideaReason(code: string): string {
+    const key = `rt.ideaReason.${code}`;
+    const text = this.t(key);
+    return text === key ? code : text;
+  }
+
+  /** Carried items an idea can take in (signals, artifacts): consumed, one of each. */
+  private takeSignals(e: RtEntity, raw: unknown): string[] {
+    const want = Array.isArray(raw) ? raw.map(String) : typeof raw === 'string' ? raw.split(',') : [];
+    const out: string[] = [];
+    for (const code of [...new Set(want.map((x) => x.trim().toLowerCase()))].slice(0, this.game.ideas.signalsMax)) {
+      const def = this.catalog.resources.get(code);
+      if (!def || !this.game.ideas.attachCategories.includes(def.category) || (e.inventory[code] ?? 0) < 1) continue;
+      e.inventory[code] = Math.max(0, (e.inventory[code] ?? 0) - 1);
+      out.push(code);
+    }
+    return out;
+  }
+
+  private ideaDesk(): IdeaDesk {
+    const t = this.t;
+    const fail = (reason: string) => ({ ok: false, text: t('rt.act.ideaFailed', { reason: this.ideaReason(reason) }) });
+    const aliases: Record<string, ScoreKey> = { impatto: 'impact', fattibilita: 'feasibility', 'fattibilità': 'feasibility', novita: 'novelty', 'novità': 'novelty', coerenza: 'fit', rischio: 'risk' };
+    return {
+      propose: async (e, input) => {
+        if (!this.game.ideas.enabled) return fail('disabled');
+        const signals = this.takeSignals(e, input.signals);
+        const out = await this.ideas.create(e.name, input, { at: this.now(), quarter: quarterLabel(this.world.quarter()), signals, maxOpen: this.world.r('max_open_ideas_per_person') });
+        if (typeof out === 'string') {
+          for (const c of signals) e.inventory[c] = (e.inventory[c] ?? 0) + 1;
+          return fail(out);
+        }
+        return { ok: true, text: t('rt.act.ideaProposed', { code: out.code, stage: t(`rt.ideaStage.${out.stage}`) }) };
+      },
+      enrich: (e, input) => {
+        const code = String(input.code ?? '');
+        const signals = this.takeSignals(e, input.signals);
+        const out = this.ideas.enrich(code, e.name, input, { at: this.now(), signals });
+        if (typeof out === 'string') {
+          for (const c of signals) e.inventory[c] = (e.inventory[c] ?? 0) + 1;
+          return fail(out);
+        }
+        return { ok: true, text: t('rt.act.ideaEnriched', { code: out.code, stage: t(`rt.ideaStage.${out.stage}`) }) };
+      },
+      review: (e, input) => {
+        const scores = scoresFrom(input, aliases);
+        if ('missing' in scores) return fail('missing_scores');
+        const comment = String(input.comment ?? input.commento ?? '');
+        const out = this.ideas.review(String(input.code ?? ''), e.name, scores, comment, this.now());
+        if (typeof out === 'string') return fail(out);
+        return { ok: true, text: t('rt.act.ideaReviewed', { code: out.code }) };
+      },
+      submit: async (e, code) => {
+        const out = await this.ideas.submit(code, e.name, { at: this.now(), clock: this.world.clock, minReviewers: this.world.r('min_idea_reviewers') });
+        if (typeof out === 'string') return fail(out);
+        return { ok: true, text: t('rt.act.ideaSubmitted', { code: out.code }) };
+      },
+      read: (_e, code) => {
+        const i = this.ideas.get(code);
+        return i ? this.ideaText(i) : this.ideaReason('unknown_idea');
+      },
+      briefs: (e) => {
+        const maxOpen = this.world.r('max_open_ideas_per_person');
+        const openByMe = this.ideas.openBy(e.name).length;
+        return this.ideas.list().map((i): IdeaBrief => ({
+          code: i.code, title: i.title, stage: i.stage, mine: i.champion === e.name || i.authors.includes(e.name), reviewedByMe: i.reviews.some((r) => r.by === e.name),
+          reviews: i.reviews.length, minReviewers: this.world.r('min_idea_reviewers'), missing: IDEA_FIELDS.filter((k) => !i[k]), openByMe, maxOpen,
+        }));
+      },
+    };
+  }
+
+  /** An idea in full, as people read it (tool leggi_idea and the committee's brief). */
+  private ideaText(i: Idea): string {
+    const t = this.t;
+    const reviews = i.reviews.map((r) => t('rt.committee.reviewLine', { by: r.by, ...r.scores, comment: r.comment || '-' })).join('\n') || t('rt.committee.noReviews');
+    const weighted = weightedScore(i.scores, this.weights());
+    return t('rt.committee.idea', {
+      code: i.code, title: i.title, stage: t(`rt.ideaStage.${i.stage}`), champion: i.champion ?? '-', authors: i.authors.join(', ') || '-', tags: i.tags.join(', ') || '-',
+      ...Object.fromEntries(IDEA_FIELDS.map((k) => [k, i[k] || '-'])), signals: i.signals.map((c) => this.itemName(c)).join(', ') || '-',
+      n: i.reviews.length, reviews, scores: i.scores ? SCORE_KEYS.map((k) => `${t(`rt.score.${k}`)} ${i.scores![k]}`).join(', ') : '-', weighted: weighted ?? '-',
+      history: i.history.slice(-5).map((h) => `${h.by}: ${t(`rt.ideaAction.${h.action}`)}${h.note ? ` (${h.note})` : ''}`).join('; ') || '-',
+    });
+  }
+
+  /** Something happened to an idea: clients, news, Chronicle, memories, the company's quarter and fame. */
+  private onIdea(idea: Idea, action: IdeaAction, by: string): void {
+    const t = this.t;
+    const w = this.world;
+    this.broadcast({ type: 'idea', idea, action });
+    const actor = this.byName(by);
+    const vars = { name: by, title: idea.title, code: idea.code, stage: t(`rt.ideaStage.${idea.stage}`) };
+    const text = t(`rt.events.idea.${action}`, vars);
+    this.event('idea', text, actor);
+    const authors = [...new Set([idea.champion, ...idea.authors].filter((x): x is string => !!x))];
+    const tell = (key: string) => {
+      for (const name of authors) {
+        if (name === by) continue;
+        const a = this.byName(name);
+        if (!a) continue;
+        const news = t(key, vars);
+        this.live(a, 'idea', news);
+        this.perceive(a, { kind: 'idea', text: news });
+      }
+    };
+    switch (action) {
+      case 'created':
+        this.company.stats.proposed++;
+        if (actor) this.society.deed(actor.id, 'idea_proposed', w.clock);
+        this.live(actor, 'idea', t('rt.memory.ideaProposed', vars));
+        this.chron('idea_proposed', text, [by]);
+        break;
+      case 'updated':
+        this.live(actor, 'idea', t('rt.memory.ideaEnriched', vars));
+        break;
+      case 'reviewed':
+        if (actor) this.society.deed(actor.id, 'review_given', w.clock);
+        this.live(actor, 'review', t('rt.memory.ideaReviewed', vars));
+        tell('rt.why.idea.reviewed');
+        break;
+      case 'submitted': {
+        this.company.stats.submitted++;
+        this.live(actor, 'idea', t('rt.memory.ideaSubmitted', vars));
+        this.chron('idea_submitted', text, [by]);
+        const g = this.committeeGroup();
+        if (g) this.groupMinds.get(g.id)?.perceive(t('rt.why.idea.pitch', vars), true);
+        break;
+      }
+      case 'approved':
+      case 'killed': {
+        if (action === 'approved') this.company.stats.approved++;
+        else this.company.stats.killed++;
+        this.chron(action === 'approved' ? 'idea_approved' : 'idea_killed', text, authors);
+        if (action === 'approved') for (const name of authors) {
+          const a = this.byName(name);
+          if (a) this.society.deed(a.id, 'idea_approved', w.clock);
+        }
+        const news = t(`rt.why.idea.${action}`, { ...vars, summary: idea.decision?.summary ?? '' });
+        for (const name of authors) {
+          const a = this.byName(name);
+          if (!a) continue;
+          this.live(a, 'committee', news);
+          this.perceive(a, { kind: 'idea', text: news });
+        }
+        if (action === 'approved') this.brain.invalidate();
+        this.broadcast({ type: 'company', ...this.companyDto() });
+        break;
+      }
+      case 'stage':
+        if (idea.stage === 'proposal' && idea.history.at(-1)?.action === 'deferred') tell('rt.why.idea.deferred');
+        break;
+    }
+  }
+
+  private committeeGroup(): Group | undefined {
+    return this.groups.list().find((g) => g.committee);
+  }
+
+  /** Offline stand-in for the committee: the policy-weighted score of the reviews decides, a little different per member. */
+  private committeeMock(idea: Idea): CommitteeMock {
+    const m = this.game.mock;
+    const score = weightedScore(idea.scores, this.weights()) ?? 0;
+    const verdict = (x: number): CommitteeDecision => (x >= m.committeeApproveAt ? 'approve' : x < m.committeeKillBelow ? 'kill' : 'defer');
+    const t = this.t;
+    return {
+      vote: (member) => {
+        const jitter = ((([...`${member.id}${idea.code}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 3)) % 5) - 2) / 4;
+        const vote = verdict(score + jitter);
+        return { vote, reason: t(`rt.mock.committee.${vote}`, { score }) };
+      },
+      chair: (votes: CommitteeVote[]) => {
+        const count = (d: CommitteeDecision) => votes.filter((v) => v.vote === d).length;
+        const top = (['approve', 'kill', 'defer'] as const).filter((d) => count(d) > 0).sort((a, b) => count(b) - count(a));
+        const decision = top.length && count(top[0]!) > (top[1] ? count(top[1]) : 0) ? top[0]! : verdict(score);
+        return { decision, summary: t(`rt.mock.committee.${decision}`, { score }) };
+      },
+    };
+  }
+
+  /**
+   * The committee's session: the oldest submitted ideas (at most `ideas.committee.maxPerSession`) are decided by
+   * the committee's members (groups.reviewIdea). Policies hold: below quorum nobody decides; with no slot left or
+   * in a freeze that blocks approvals, an approval becomes a deferral.
+   */
+  private async runCommittee(g: Group): Promise<void> {
+    if (!g.committee || this.committeeBusy || !this.game.ideas.enabled) return;
+    this.committeeBusy = true;
+    const t = this.t;
+    try {
+      for (const idea of this.ideas.pitches().slice(0, this.game.ideas.committee.maxPerSession)) {
+        const w = this.world;
+        const present = g.members.filter((id) => w.entities.get(id)?.alive).length;
+        if (present < w.r('committee_quorum')) {
+          console.log(`[committee ${g.name}] no quorum (${present}/${w.r('committee_quorum')}): ${idea.code} waits`);
+          return;
+        }
+        const brief = [
+          this.ideaText(idea),
+          t('rt.committee.company', { quarter: quarterLabel(w.quarter()), slots: this.slotsLeft(), total: w.r('quarter_idea_slots'), freeze: t(w.isFreeze() ? 'rt.observation.freezeOn' : 'rt.observation.freezeOff') }),
+        ].join('\n\n');
+        const out = await this.groups.reviewIdea(g, brief, this.committeeMock(idea));
+        if ('error' in out) {
+          console.warn(`[committee ${g.name}] ${idea.code}: ${out.error}`);
+          return;
+        }
+        let { decision, summary } = out;
+        const blocked = decision === 'approve' && (this.slotsLeft() <= 0 ? 'noSlots' : w.isFreeze() && w.r('freeze_blocks_approvals') >= 1 ? 'freeze' : undefined);
+        if (blocked) {
+          decision = 'defer';
+          summary = `${summary} ${t(`rt.committee.${blocked}`)}`.trim();
+        }
+        const lead = w.entities.get(g.leader ?? '')?.name ?? g.name;
+        const done = this.ideas.decide(idea.code, decision, summary, out.votes, this.now(), lead);
+        if (typeof done === 'string') {
+          console.warn(`[committee ${g.name}] ${idea.code}: ${done}`);
+          continue;
+        }
+        g.lastDecision = { summary: `${idea.title}: ${t(`rt.committee.vote.${decision}`)} - ${summary}`, trace: out.votes.map((v) => ({ member: v.member, role: 'voter' as const, text: `${v.vote}: ${v.reason}` })) };
+        g.memory.push(`[g${w.day} ${w.clockText()}] ${g.lastDecision.summary}`);
+        if (g.memory.length > this.game.decisions.memoryItems) g.memory.splice(0, g.memory.length - this.game.decisions.memoryItems);
+        this.broadcastGroup(g);
+        this.broadcastCommittee({ type: 'committee', groupId: g.id, ideaCode: idea.code, decision, votes: out.votes, summary });
+        for (const id of g.members) this.live(w.entities.get(id), 'committee', t('rt.memory.committee', { title: idea.title, decision: t(`rt.committee.vote.${decision}`), summary }));
+        console.log(`[committee ${g.name}] ${idea.code}: ${decision}${summary ? ` (${summary.slice(0, 120)})` : ''}`);
+      }
+      // What is left waits for the committee's next session (its cooldown applies).
+      if (this.ideas.pitches().length) this.groupMinds.get(g.id)?.perceive(t('rt.why.idea.waiting'), false);
+    } finally {
+      this.committeeBusy = false;
+    }
+  }
+
+  /** A committee decision: the votes only to privileged connections, the summary to everyone. */
+  private broadcastCommittee(msg: Msg): void {
+    if (!this.cfg.apiToken) return this.broadcast(msg);
+    const open: Msg = { ...msg, votes: [] };
+    for (const pc of this.conns.values()) pc.conn.send(pc.conn.authorized ? msg : open);
+    for (const fn of this.listeners) {
+      try {
+        fn(msg);
+      } catch {
+        // a broken listener never stops the world
+      }
+    }
+  }
+
+  /** GET /api/ideas?stage=&tag=&author= */
+  ideaList(f: IdeaFilter): Idea[] {
+    return this.ideas.list(f);
+  }
+
+  /** GET /api/ideas/:code */
+  ideaView(code: string): Idea | undefined {
+    return this.ideas.get(code);
+  }
+
+  /** GET /api/ideas/export.md */
+  ideasExport(): string {
+    return exportMarkdown(this.ideas.list(), (k, v) => this.t(`rt.export.${k}`, v), this.weights(), { name: this.game.company.name, quarter: quarterLabel(this.world.quarter()) });
+  }
+
+  /** GET /api/company */
+  companyView() {
+    return { ...this.companyDto(), stats: { ...this.company.stats }, slotsPerQuarter: this.world.r('quarter_idea_slots'), committee: this.committeeGroup() ? this.groupDto(this.committeeGroup()!, false) : null };
   }
 
   // ---- players (WebSocket) -------------------------------------------------------
@@ -1432,7 +1811,7 @@ export class Game {
   }
 
   timeDto() {
-    return { day: this.world.day, minute: this.world.minute, season: this.world.season() };
+    return { day: this.world.day, minute: this.world.minute, season: this.world.season(), quarter: quarterLabel(this.world.quarter()), freeze: this.world.isFreeze() };
   }
 
   entityDto(e: RtEntity) {
@@ -1441,7 +1820,7 @@ export class Game {
       x: r2(e.x), y: r2(e.y), dir: e.dir, anim: e.anim, hp: r1(e.hp), maxHp: e.maxHp, hunger: r1(e.hunger),
       inventory: { ...e.inventory }, tools: e.tools.map((x) => ({ ...x })), speed: e.alive ? this.world.speedOf(e) : 0, alive: e.alive,
       age: { stage: e.stage, days: Math.round(this.world.ageDays(e) * 10) / 10 }, esteem: this.society.esteemOf(e.id), fame: this.society.fameOf(e.id, this.world.clock),
-      rank: this.society.ranks.get(e.id) ?? 0, family: e.family, parents: e.parents,
+      rank: this.society.ranks.get(e.id) ?? 0, family: e.family, parents: e.parents, career: this.careerOf(e),
     };
   }
 
@@ -1452,7 +1831,7 @@ export class Game {
   /** `full: false` hides how the group deliberated (the trace), keeping only what it decided. */
   groupDto(g: Group, full = true) {
     const last = g.lastDecision ? (full ? g.lastDecision : { summary: g.lastDecision.summary, trace: [] }) : undefined;
-    return { id: g.id, name: g.name, pattern: g.pattern, members: [...g.members], leader: g.leader, color: g.color, ...(last ? { lastDecision: last } : {}) };
+    return { id: g.id, name: g.name, pattern: g.pattern, members: [...g.members], leader: g.leader, color: g.color, committee: g.committee, jointPlans: g.jointPlans, ...(last ? { lastDecision: last } : {}) };
   }
 
   /** Whether a connection may see god-mode content (always, when no token is configured). */
@@ -1507,6 +1886,8 @@ export class Game {
       lorebase: { connected: this.watcher.connected, branch: this.cfg.lorebase.branch, revision: this.revision },
       economy: this.economyDto(),
       society: this.societyView(full),
+      company: this.companyDto(),
+      ideas: this.ideas.list(),
     };
   }
 
@@ -1683,6 +2064,7 @@ export class Game {
       decisions: { ...this.stats, running: this.limiter.running, minds: this.minds.size, groupMinds: this.groupMinds.size },
       brain: { connected: this.brain.connected, calls: this.brain.calls, cacheHits: this.brain.cacheHits },
       insights: { pending: this.insights.allPending().length },
+      ideas: { total: this.ideas.ideas.size, pitches: this.ideas.pitches().length, writes: this.ideas.writes, lastError: this.ideas.lastError ?? null },
       chronicle: { session: this.chronicle.session, written: this.chronicle.written, pending: this.chronicle.pending, lastError: this.chronicle.lastError ?? null },
       lorebase: { connected: this.watcher.connected, url: this.cfg.lorebase.url, domain: this.cfg.lorebase.domain, branch: this.cfg.lorebase.branch, revision: this.revision },
     };

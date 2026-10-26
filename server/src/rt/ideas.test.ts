@@ -1,0 +1,107 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import type { LorebaseClient } from '../lorebase/client.ts';
+import { careerFor, Company } from './company.ts';
+import {
+  aggregate, exportMarkdown, filterIdeas, type IdeasConfig, IdeaBook, ideaFromRecord, ideaRow, type Scores, scoresFrom, stageFromFields, weightedScore,
+} from './ideas.ts';
+
+const cfg: IdeasConfig = {
+  enabled: true, kind: 'Idea', reviewKind: 'Review', writeOperation: 'import_records', branchPrefix: 'idea/', titleMaxChars: 90, textMaxChars: 500, tagsMax: 6,
+  tagMaxChars: 30, historyMax: 30, commentMaxChars: 280, perceiveMax: 6, signalsMax: 3, retries: 0, retryBaseMs: 1, committee: { groupName: 'Comitato', maxPerSession: 3 },
+};
+
+/** A Keeper stand-in that records the calls. */
+function fakeClient() {
+  const calls: string[] = [];
+  const client = {
+    createBranch: async (name: string) => (calls.push(`branch ${name}`), { name, head: 'h' }),
+    execute: async (op: string, p: { kind: string }, o: { branch: string }) => (calls.push(`${op} ${p.kind} @${o.branch}`), { status: 'ok', revision: 'r', head: 'h', edit_count: 1 }),
+    createProposal: async (src: string) => (calls.push(`proposal ${src}`), { id: 'prp_1', status: 'open' }),
+    review: async (id: string, v: string) => (calls.push(`review ${id} ${v}`), { approval: { satisfied: true } }),
+    merge: async (id: string) => (calls.push(`merge ${id}`), { result: 'merged', revision: 'r2' }),
+    closeProposal: async (id: string) => (calls.push(`close ${id}`), {}),
+    deleteBranch: async (name: string) => (calls.push(`delete ${name}`), {}),
+  } as unknown as LorebaseClient;
+  return { client, calls };
+}
+
+const at = { day: 1, minute: 600 };
+const full = { problem: 'p', users: 'u', solution: 's', differentiation: 'd', feasibility: 'f', risks: 'r' };
+
+test('stages follow the fields; scores aggregate and weigh risk inverted', () => {
+  assert.equal(stageFromFields({ ...full, users: '', solution: '', differentiation: '', feasibility: '', risks: '' }), 'signal');
+  assert.equal(stageFromFields({ ...full, solution: '', differentiation: '', feasibility: '', risks: '' }), 'insight');
+  assert.equal(stageFromFields({ ...full, differentiation: '' }), 'concept');
+  assert.equal(stageFromFields(full), 'proposal');
+  const s: Scores = { impact: 8, feasibility: 6, novelty: 4, fit: 10, risk: 2 };
+  const agg = aggregate([{ by: 'a', scores: s, comment: '', at }, { by: 'b', scores: { ...s, impact: 6 }, comment: '', at }])!;
+  assert.equal(agg.impact, 7);
+  assert.equal(weightedScore(s, { impact: 1, feasibility: 0, novelty: 0, fit: 0, risk: 1 }), 8);
+  assert.deepEqual(scoresFrom({ impatto: 7, fattibilita: '5', novelty: 3, fit: 12, rischio: -1 }, { impatto: 'impact', fattibilita: 'feasibility', rischio: 'risk' }), { impact: 7, feasibility: 5, novelty: 3, fit: 10, risk: 0 });
+  assert.deepEqual(scoresFrom({ impact: 1 }, {}), { missing: ['feasibility', 'novelty', 'fit', 'risk'] });
+});
+
+test('idea lifecycle: branch per idea, peer reviews only, submit needs reviews, committee merges or closes', async () => {
+  const { client, calls } = fakeClient();
+  const events: string[] = [];
+  const book = new IdeaBook(client, 'main', cfg, 's1', { changed: (i, a, by) => events.push(`${a}:${i.stage}:${by}`) });
+  const idea = await book.create('Livia', { title: 'Audit AI', problem: 'p', users: 'u', solution: 's', tags: 'AI, Compliance' }, { at, quarter: 'Q1', signals: ['pain_x'], maxOpen: 1 });
+  assert.ok(typeof idea !== 'string');
+  assert.equal(idea.stage, 'concept');
+  assert.deepEqual(idea.tags, ['ai', 'compliance']);
+  assert.ok(idea.branch.startsWith('idea/audit-ai-'));
+  assert.equal(await book.create('Livia', { title: 'Altra', problem: 'p' }, { at, quarter: 'Q1', signals: [], maxOpen: 1 }), 'too_many_ideas');
+  assert.equal(book.review(idea.code, 'Livia', { impact: 5, feasibility: 5, novelty: 5, fit: 5, risk: 5 }, '', at), 'own_idea');
+  assert.equal(await book.submit(idea.code, 'Livia', { at, clock: 0, minReviewers: 2 }), 'not_complete');
+  const enriched = book.enrich(idea.code, 'Giulia', { differentiation: 'd', feasibility: 'f', risks: 'r' }, { at, signals: [] });
+  assert.ok(typeof enriched !== 'string' && enriched.stage === 'proposal' && enriched.authors.includes('Giulia'));
+  assert.equal(book.review(idea.code, 'Giulia', { impact: 5, feasibility: 5, novelty: 5, fit: 5, risk: 5 }, '', at), 'own_idea');
+  book.review(idea.code, 'Dario', { impact: 8, feasibility: 6, novelty: 7, fit: 8, risk: 3 }, 'bene', at);
+  assert.equal(await book.submit(idea.code, 'Livia', { at, clock: 0, minReviewers: 2 }), 'few_reviews');
+  book.review(idea.code, 'Sara', { impact: 6, feasibility: 6, novelty: 5, fit: 7, risk: 4 }, 'ok', at);
+  book.review(idea.code, 'Sara', { impact: 7, feasibility: 6, novelty: 5, fit: 7, risk: 4 }, 'meglio', at);
+  assert.equal(book.get(idea.code)!.reviews.length, 2);
+  assert.equal(await book.submit(idea.code, 'Dario', { at, clock: 0, minReviewers: 2 }), 'not_author');
+  const pitched = await book.submit(idea.code, 'Livia', { at, clock: 5, minReviewers: 2 });
+  assert.ok(typeof pitched !== 'string' && pitched.stage === 'pitch' && pitched.proposalId === 'prp_1');
+  assert.deepEqual(book.pitches().map((i) => i.code), [idea.code]);
+  assert.equal(book.enrich(idea.code, 'Sara', { risks: 'x' }, { at, signals: [] }), 'idea_closed');
+  const done = book.decide(idea.code, 'approve', 'Solida', [{ member: 'a1', vote: 'approve', reason: 'ok' }], at, 'Livia');
+  assert.ok(typeof done !== 'string' && done.stage === 'approved');
+  await book.settle();
+  assert.ok(calls.includes('merge prp_1') && calls.some((c) => c.startsWith('import_records Review @idea/')));
+  assert.ok(events.includes('approved:approved:Livia'));
+  const killed = await book.create('Matteo', { title: 'Debole', ...full }, { at, quarter: 'Q1', signals: [], maxOpen: 3 });
+  assert.ok(typeof killed !== 'string');
+  book.review(killed.code, 'Dario', { impact: 2, feasibility: 2, novelty: 2, fit: 2, risk: 9 }, 'no', at);
+  book.review(killed.code, 'Sara', { impact: 3, feasibility: 2, novelty: 2, fit: 2, risk: 9 }, 'no', at);
+  await book.submit(killed.code, 'Matteo', { at, clock: 6, minReviewers: 2 });
+  book.decide(killed.code, 'kill', 'Debole', [], at, 'Livia');
+  await book.settle();
+  assert.ok(calls.includes('close prp_1'));
+  assert.deepEqual(filterIdeas(book.list(), { stage: 'killed' }).map((i) => i.title), ['Debole']);
+  assert.deepEqual(filterIdeas(book.list(), { author: 'giulia' }).map((i) => i.title), ['Audit AI']);
+  const md = exportMarkdown(book.list(), (k) => k, { impact: 1, feasibility: 1, novelty: 1, fit: 1, risk: 1 }, { name: 'Hub', quarter: 'Q1' });
+  assert.ok(md.includes('Audit AI') && md.includes('Debole'));
+  const back = ideaFromRecord({ key: idea.code, values: JSON.parse(JSON.stringify(ideaRow(book.get(idea.code)!, 's1'))) });
+  assert.equal(back.stage, 'approved');
+  assert.equal(back.decision?.decision, 'approve');
+});
+
+test('company: quarters turn with stats, slots, careers never go down', () => {
+  const c = new Company({ name: 'Hub', themeCategory: 'strategy', careers: [{ code: 'junior' }, { code: 'senior', rule: 'promotion_senior_fame' }, { code: 'principal', rule: 'promotion_principal_fame' }], startCareer: { agent: 'senior' } });
+  assert.equal(c.track(1, 1), undefined);
+  c.stats.approved = 2;
+  assert.equal(c.slotsLeft(3), 1);
+  assert.equal(c.track(1, 1), undefined);
+  const turn = c.track(1, 2)!;
+  assert.equal(turn.ended, 'Q1');
+  assert.equal(turn.stats.approved, 2);
+  assert.equal(c.slotsLeft(3), 3);
+  const r = (k: string) => ({ promotion_senior_fame: 2, promotion_principal_fame: 6 })[k] ?? 0;
+  assert.equal(careerFor(c.cfg.careers, 7, 'junior', r as never), 'principal');
+  assert.equal(careerFor(c.cfg.careers, 0, 'principal', r as never), 'principal');
+  assert.equal(c.startCareer('agent'), 'senior');
+  assert.deepEqual(c.themes([{ key: 'tema', value: 1, text: 'AI', category: 'strategy', unit: '' }, { key: 'x', value: 1, text: 'no', category: 'ideas', unit: '' }]), ['AI']);
+});

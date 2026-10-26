@@ -46,6 +46,8 @@ export interface SimConfig {
     proposalBranchPrefix: string;
     pollMs: number;
     reconnectMs: number;
+    /** Categories a Rule (policy) may have (the schema's enum). */
+    ruleCategories: string[];
   };
   models: Record<Tier, string>;
   /** Extra model ids a roster entry may name besides the tier models (no other id is accepted). */

@@ -29,11 +29,11 @@ export const LAW_CATEGORIES = ['survival', 'economy', 'climate', 'society', 'tim
 const slug = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '_').slice(0, 40).replace(/^_+|_+$/g, '');
 
 /** Validates and completes a proposal from an agent: key (from the text when missing), category, value. Pure. */
-export function lawDraft(input: { key?: unknown; text?: unknown; category?: unknown; value?: unknown }, maxText: number, defaultValue: number): { key: string; text: string; category: string; value: number } | { error: string } {
+export function lawDraft(input: { key?: unknown; text?: unknown; category?: unknown; value?: unknown }, maxText: number, defaultValue: number, categories: readonly string[] = LAW_CATEGORIES): { key: string; text: string; category: string; value: number } | { error: string } {
   const text = typeof input.text === 'string' ? input.text.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, maxText) : '';
   if (!text) return { error: 'empty' };
   const category = String(input.category ?? '').trim().toLowerCase();
-  if (!LAW_CATEGORIES.includes(category)) return { error: 'category' };
+  if (!categories.includes(category)) return { error: 'category' };
   const raw = typeof input.key === 'string' && input.key.trim() ? input.key.trim().toLowerCase() : `legge_${slug(text)}`;
   const key = raw.slice(0, 60);
   if (!RULE_KEY.test(key)) return { error: 'key' };

@@ -23,7 +23,8 @@ import {
 import type { Translate } from '../i18n.ts';
 import type { GameConfig, GroupPattern } from './config.ts';
 import { AGENT_PATTERNS } from './config.ts';
-import { type DecideHost, decisionTier, decisionTimeoutMs, type Failure, faculties, limitsOf, modelRef, normalizeSteps, planSchema } from './decide.ts';
+import { type DecideHost, decisionTier, decisionTimeoutMs, type Failure, faculties, ideaTools, limitsOf, modelRef, normalizeSteps, planSchema } from './decide.ts';
+import type { CommitteeDecision, CommitteeVote } from './ideas.ts';
 import type { Tier } from '../world/types.ts';
 import { flatSteps, mockGroupPlan, mockSteps } from './mock.ts';
 import type { PlanStep } from './plan.ts';
@@ -57,6 +58,23 @@ export interface Group {
   /** Reached the minimum size at least once (dropping below it then dissolves the group). */
   complete: boolean;
   memory: string[];
+  /** False for a body that only decides on submitted ideas (the investment committee): its members plan on their own. */
+  jointPlans: boolean;
+  /** The investment committee (config ideas.committee.groupName). */
+  committee: boolean;
+}
+
+/** What the committee decided on one idea, with each member's vote. */
+export interface CommitteeOutcome {
+  decision: CommitteeDecision;
+  summary: string;
+  votes: CommitteeVote[];
+}
+
+/** Offline stand-ins for the committee's members and chair. */
+export interface CommitteeMock {
+  vote(m: RtEntity): { vote: CommitteeDecision; reason: string };
+  chair(votes: CommitteeVote[]): { decision: CommitteeDecision; summary: string };
 }
 
 export interface JointPlan {
@@ -78,6 +96,11 @@ const SEP = '__';
 /** Structured outputs of the judges and the voters. */
 const VERDICT = { type: 'object', properties: { pass: { type: 'boolean' }, feedback: { type: 'string' } }, required: ['pass', 'feedback'] };
 const BALLOT = { type: 'object', properties: { choice: { type: 'integer' }, reason: { type: 'string' } }, required: ['choice', 'reason'] };
+const DECISIONS: CommitteeDecision[] = ['approve', 'kill', 'defer'];
+/** Structured outputs of the committee: a member's vote, the chair's decision. */
+const IDEA_BALLOT = { type: 'object', properties: { vote: { enum: DECISIONS }, reason: { type: 'string' } }, required: ['vote', 'reason'] };
+const IDEA_VERDICT = { type: 'object', properties: { decision: { enum: DECISIONS }, summary: { type: 'string' } }, required: ['decision', 'summary'] };
+const asDecision = (v: unknown): CommitteeDecision | undefined => (DECISIONS.includes(v as CommitteeDecision) ? (v as CommitteeDecision) : undefined);
 
 /** A joint plan as committed through commit_plan (the data of the writer's run). */
 export interface PlanData {
@@ -185,7 +208,7 @@ export class GroupManager {
 
   // ---- membership -------------------------------------------------------------
 
-  create(name: string, pattern: GroupPattern, founders: RtEntity[], leader: RtEntity | null): Group | string {
+  create(name: string, pattern: GroupPattern, founders: RtEntity[], leader: RtEntity | null, opts: { jointPlans?: boolean; committee?: boolean } = {}): Group | string {
     const clean = name.trim().replace(new RegExp(SEP, 'g'), '_').slice(0, this.cfg.groups.nameMaxChars);
     if (!clean) return 'name';
     if (pattern !== 'crowd' && !AGENT_PATTERNS.includes(pattern)) return 'pattern';
@@ -195,7 +218,7 @@ export class GroupManager {
     const colors = this.cfg.groups.colors;
     const g: Group = {
       id, name: clean, pattern, members: [], leader: leader?.id ?? null, color: colors[(this.nextId - 2) % colors.length] ?? '#888888',
-      complete: false, memory: [],
+      complete: false, memory: [], jointPlans: opts.jointPlans !== false, committee: opts.committee === true,
     };
     this.groups.set(id, g);
     for (const f of founders) this.attach(g, f);
@@ -345,7 +368,7 @@ export class GroupManager {
     const name = `${m.id}${SEP}${role}`;
     this.models.set(name, model);
     const bare = opts.structured === true;
-    const tools = bare ? [] : [...(opts.json ? [this.planTool(counts.max)] : []), ...faculties(this.host, m, tc.maxConsults)];
+    const tools = bare ? [] : [...(opts.json ? [this.planTool(counts.max)] : []), ...faculties(this.host, m, tc.maxConsults), ...ideaTools(this.host, m)];
     const format = bare ? '' : opts.json ? this.formatText(opts.members ?? [m], tier) : this.t('rt.group.proposeFormat');
     const p = this.cfg.decisions.modelParams;
     return agent({
@@ -589,6 +612,62 @@ export class GroupManager {
         return { output: JSON.stringify(win.plan), data: { ...win.plan, votes: result.counts, weights: weighted.weights, winner: weighted.winner + 1, majority: result.majority }, failures };
       },
     });
+  }
+
+  /**
+   * The committee decides on one submitted idea (`brief`: the idea, its reviews and the company's facts).
+   * Every consulted member votes (structured output, members' tier); in an assembly the esteem-weighted
+   * plurality decides, otherwise the chair (the leader, own model) decides after reading the votes.
+   */
+  async reviewIdea(g: Group, brief: string, mock: CommitteeMock): Promise<CommitteeOutcome | Failure> {
+    const members = this.livingMembers(g);
+    if (!members.length) return { error: 'no living members' };
+    const t = this.t;
+    const signal = AbortSignal.timeout(decisionTimeoutMs(this.cfg, this.host.world()));
+    const sinks = this.host.runSinks();
+    const voting = this.consulted(members);
+    let costUsd = 0;
+    const run = async (who: RtEntity, a: EasyAgent, task: string, role: TraceRole) => {
+      const res = await a.run(task, { sinks, signal });
+      costUsd += res.costUsd ?? 0;
+      const model = this.models.get(a.name) ?? who.model;
+      this.host.ranModel({ id: model === who.model ? `${g.id}/${who.id}` : `${g.id}/${who.id}:${model}`, name: `${g.name}/${who.name}`, model, tier: `group:${g.pattern}` }, res);
+      return { res, role };
+    };
+    const ballots = await Promise.all(voting.map((m) => {
+      const voter = this.member(m, g, 'voter', { structured: true, output: IDEA_BALLOT, mock: () => ({ text: JSON.stringify(mock.vote(m)) }) });
+      return run(m, voter, t('rt.committee.voteTask', { brief, name: m.name, id: m.id, group: g.name }), 'voter');
+    }));
+    const max = this.cfg.groups.traceMaxChars;
+    const votes: CommitteeVote[] = [];
+    ballots.forEach(({ res }, k) => {
+      const d = res.status === 'completed' ? (res.data as { vote?: unknown; reason?: unknown } | undefined) : undefined;
+      const vote = asDecision(d?.vote);
+      if (!vote) return;
+      const reason = String(d?.reason ?? '').slice(0, max);
+      votes.push({ member: voting[k]!.id, vote, reason });
+      this.host.deliberated(g, voting[k]!.id, 'voter', `${vote}: ${reason}`);
+    });
+    const named = (v: CommitteeVote) => members.find((m) => m.id === v.member)?.name ?? v.member;
+    if (g.pattern === 'assembly') {
+      if (!votes.length) return { error: 'no valid vote' };
+      const weighted = weightedWinner(votes.map((v) => DECISIONS.indexOf(v.vote)), votes.map((v) => this.host.voteWeight(v.member)), DECISIONS.length);
+      const decision = DECISIONS[weighted.winner] ?? 'defer';
+      const summary = votes.filter((v) => v.vote === decision).map((v) => `${named(v)}: ${v.reason}`).join(' ').slice(0, this.cfg.decisions.textMaxChars);
+      console.log(`[committee ${g.name}] assembly: ${decision} (${votes.length} vote(s)), estimated cost $${costUsd.toFixed(4)}`);
+      return { decision, summary, votes };
+    }
+    const chair = members[0]!;
+    const lines = votes.length ? votes.map((v) => t('rt.committee.voteLine', { name: named(v), vote: t(`rt.committee.vote.${v.vote}`), reason: v.reason })).join('\n') : t('rt.committee.noVotes');
+    const judge = this.member(chair, g, 'leader', { structured: true, deciding: true, output: IDEA_VERDICT, mock: () => ({ text: JSON.stringify(mock.chair(votes)) }) });
+    const { res } = await run(chair, judge, t('rt.committee.chairTask', { brief, votes: lines, name: chair.name, id: chair.id, group: g.name }), 'leader');
+    const d = res.status === 'completed' ? (res.data as { decision?: unknown; summary?: unknown } | undefined) : undefined;
+    const decision = asDecision(d?.decision);
+    if (!decision) return { error: `chair ${chair.name}: ${res.status}${res.reason ? ` (${res.reason})` : ''}` };
+    const summary = String(d?.summary ?? '').slice(0, this.cfg.decisions.textMaxChars);
+    this.host.deliberated(g, chair.id, 'leader', `${decision}: ${summary}`.slice(0, max));
+    console.log(`[committee ${g.name}] ${g.pattern}: ${decision} (${votes.length} vote(s)), estimated cost $${costUsd.toFixed(4)}`);
+    return { decision, summary, votes };
   }
 
   /** Runs the group's pattern and returns the joint plan with the trace of how it was decided (or why there is none). */
