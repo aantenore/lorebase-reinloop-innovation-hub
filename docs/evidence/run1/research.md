@@ -1,0 +1,141 @@
+# Web research (run 1)
+
+Provider: tavily. Searches 29, page reads 7, cache hits 0, refused by policy 22.
+
+Titles and links only (no page content).
+
+- giorno 1 10:11 **Matteo** cerca «costo integrazione sistemi legacy enterprise durata progetti 2025»
+  - [Strategie per modernizzare i sistemi legacy in azienda](https://www.kinetikon.com/modernizzare-sistemi-legacy-vantaggi-strategie-framework)
+  - [Come modernizzare i sistemi legacy senza interrompere il business - WEGG](https://wegg.it/come-modernizzare-i-sistemi-legacy-senza-interrompere-il-business)
+  - [DURATA ⚡️ Information](https://rocketreach.co/durata-profile_b54bf0baf60f85af)
+- giorno 1 10:32 **Matteo** cerca «costo integrazione sistemi legacy logistica durata progetti modernizzazione dati»
+  - [Sistemi legacy: cosa sono e perché modernizzarli fa bene](https://news.beta80group.it/modernizzazione-dei-sistemi-legacy-trasformare-limpresa)
+  - [Legacy Software and System Modernization Services in Italia | LeverX](https://leverx.com/it/services/legacy-software-and-system-modernization-services)
+  - [Servizi di modernizzazione delle applicazioni — Innowise](https://innowise.com/it/servizi/modernizzazione-dei-sistemi-legacy)
+- giorno 1 12:31 **Matteo** cerca «costo integrazione sistemi legacy progetti AI on-premise sanità»
+  - [Come integrare agentic AI con sistemi legacy: sfide e opportunità per l'enterprise - Manager.it](https://manager.it/come-integrare-agentic-ai-con-sistemi-legacy-sfide-e-opportunita-per-lenterprise)
+  - [ERP Cloud in Sanità: come scegliere il software giusto - Healthtech360](https://www.healthtech360.it/salute-digitale/cloud-storage/erp-cloud-in-sanita)
+  - [Strategie per modernizzare i sistemi legacy in azienda](https://www.kinetikon.com/modernizzare-sistemi-legacy-vantaggi-strategie-framework)
+- giorno 1 12:31 **Dario** cerca «on-premise private LLM appliance hospitals healthcare vendors 2025»
+  - [28 On-Premise LLM Deployment Statistics (2026)](https://www.dreamfactory.com/hub/on-premise-llm-deployment-statistics)
+  - [Top 6 Companies That Deploy Private Language Models for Healthcare in 2026 | HX AI](https://www.thehxai.com/blog/private-language-model-deployment-companies-healthcare)
+  - [Top 8 On-Premise AI Deployments Enterprises Are Planning in 2025](https://medium.com/@marketing_39301/top-8-on-premise-ai-deployments-enterprises-are-planning-in-2025-e335a70f34f8)
+- giorno 1 12:32 **Dario** cerca «AI Act GDPR medical device software hospital on-premise LLM compliance requirements»
+  - [Private LLM Deployment in Pharma: Architecture & Compliance | IntuitionLabs](https://intuitionlabs.ai/articles/private-llm-pharma-compliance-architecture)
+  - [GDPR and AI Compliance for Hospitals: 2026 Guide](https://www.questa-ai.com/privacy-cafe/navigating-medical-gdpr-in-the-age-of-ai)
+  - [Security & Compliance — Medicus AI](https://www.medicus.ai/security)
+- giorno 1 12:37 **Matteo** cerca «ospedali AI on-premise costo hardware GPU integrazione cartella clinica Italia»
+  - [Cartella Clinica Elettronica: software e tecnologie - Healthtech360](https://www.healthtech360.it/salute-digitale/cartella-clinica-elettronica-software)
+  - [GPU-as-a-Service: Leveling the Playing Field in the AI Hardware Market](https://finance.yahoo.com/news/gpu-leveling-playing-field-ai-125100548.html)
+  - [GPU Infrastructure for Medical Imaging AI: 2026 Guide | Arc Compute](https://www.arccompute.io/resources/arc-blog/gpu-infrastructure-for-medical-imaging-ai)
+- giorno 1 12:48 **Dario** cerca «on-premise AI appliance healthcare hospitals turnkey competitors»
+  - [Top Premise Health Alternatives, Competitors](https://www.cbinsights.com/company/premise-health/alternatives-competitors)
+  - [Best Turnkey AI Servers & AI Appliances for Business 2026](https://iternal.ai/best-private-ai-appliances)
+  - [Viking Enterprise Solutions Announces Award-Winning Edge AI Turnkey Appliance](https://finance.yahoo.com/news/viking-enterprise-solutions-announces-award-123000579.html)
+- giorno 1 13:29 **Livia** cerca «on-premise AI appliance hospitals competitors turnkey private LLM healthcare cost per hospital»
+  - [A cost model for patient-level healthcare AI: $1M for locally deployed Medical LLM vs. $13M to $30M via frontier APIs](https://www.talby.com/p/a-cost-model-for-patient-level-healthcare)
+  - [Generative AI costs in large healthcare systems, an example in revenue cycle](https://pmc.ncbi.nlm.nih.gov/articles/PMC12485018)
+  - [Self-Hosted AI for Hospitals and Health Systems…](https://ibl.ai/blog/self-hosted-ai-for-hospitals-and-health-systems)
+- giorno 1 13:55 **Dario** cerca «hospital legacy EHR integration cost HL7 FHIR on-premise AI deployment per hospital»
+  - [EHR Implementation Cost 2026: Practice and Hospital Budgets](https://nirmitee.io/blog/ehr-implementation-cost-guide)
+  - [EHR Integration Software: Top 7 Companies Leading the Market](https://www.mindbowser.com/top-ehr-integration-software-companies)
+  - [FHIR Implementation Cost & Guide 2026: Timeline, Budget & Vendor Comparison](https://www.socialroots.ai/blog/fhir/fhir-implementation-cost-and-guide)
+- giorno 1 14:06 **Matteo** cerca «costo integrazione HL7 FHIR ospedale progetto euro dollari per struttura»
+  - [HL7 and FHIR Integration Cost | Taction](https://www.tactionsoft.com/hl7-fhir-integration-cost)
+  - [FHIR Implementation Cost & Guide 2026: Timeline, Budget & Vendor Comparison](https://www.socialroots.ai/blog/fhir/fhir-implementation-cost-and-guide)
+  - [Healthcare Interoperability Explained: HL7, FHIR & HIE](https://www.capminds.com/blog/healthcare-interoperability-hl7-fhir-hie-integration-explained)
+- giorno 1 14:09 **Matteo** legge https://www.socialroots.ai/blog/fhir/fhir-implementation-cost-and-guide
+  - [FHIR Implementation Cost & Guide 2026: Timeline, Budget & Vendor Comparison](https://www.socialroots.ai/blog/fhir/fhir-implementation-cost-and-guide)
+- giorno 1 14:51 **Dario** cerca «on-premise AI healthcare total cost of ownership hardware maintenance annual per hospital»
+  - [On-Premise AI Total Cost of Ownership (TCO)](https://apxml.com/courses/planning-optimizing-ai-infrastructure/chapter-6-cost-management-and-optimization/analyzing-on-premise-tco)
+  - [On-Premise vs Cloud: Generative AI Total Cost of Ownership (2026 Edition) > Lenovo Press](https://lenovopress.lenovo.com/lp2368-on-premise-vs-cloud-generative-ai-total-cost-of-ownership-2026-edition)
+  - [The 5 Key Components of Total Cost of Ownership (TCO) – Part 1 - Blog - Remi](https://theremigroup.com/total-cost-of-ownership)
+- giorno 1 14:53 **Dario** cerca «EHR integration cost pilot hospital interface engine HL7 FHIR cost range»
+  - [EHR Integration Cost 2026: FHIR and HL7 Pricing](https://www.clyrixdigital.com/blogs/ehr-integration-cost-2026)
+  - [EHR Integration Cost Calculator | Epic, Cerner, athena](https://www.tactionsoft.com/tools/ehr-integration-cost-calculator)
+  - [EHR Implementation Cost 2026: Practice and Hospital Budgets](https://nirmitee.io/blog/ehr-implementation-cost-guide)
+- giorno 1 15:29 **Livia** cerca «HL7 interface cost per interface hospital integration engine annual maintenance»
+  - [HL7 Interface cost and maintenance - IT & Tech Careers - Spiceworks Community](https://community.spiceworks.com/t/hl7-interface-cost-and-maintenance/115728)
+  - [HL7 Interface Guide: Build vs Buy for Healthcare CTOs](https://www.invene.com/blog/hl7-interface)
+  - [Healthcare Integration Engines: How to Choose One | Clarity](https://www.clarity-ventures.com/hipaa-ecommerce/healthcare-integration-engine)
+- giorno 1 15:31 **Livia** cerca «on-premise GPU server cost small clinic local LLM deployment hardware price»
+  - [A Cost-Benefit Analysis of On-Premise Large Language Model Deployment: Breaking Even with Commercial LLM Services](https://arxiv.org/html/2509.18101v1)
+  - [On-Prem LLM Deployment (2026): GPU Sizing, vLLM & Air-Gapped](https://iternal.ai/how-to-deploy-llm-on-premise)
+  - [Best Local LLM Hardware 2026: Servers, Workstations & GPUs - PCSP](https://pcserverandparts.com/news/local-llm-hardware-guide-2026-servers-workstations-gpus)
+- giorno 1 16:23 **Enea** cerca «on-premise hospital EHR total cost of ownership annual maintenance percentage hardware cost»
+  - [EHR Costs Explained - Tebra](https://www.tebra.com/ehr-software/cost-of-ehr-software-and-how-to-budget-for-one)
+  - [EHR software cost in 2026: a complete pricing breakdown](https://pabau.com/blog/ehr-software-cost)
+  - [EHR Implementation Cost 2026: $300K–$700K Breakdown](https://www.tactionsoft.com/blog/cost-of-ehr-implementation)
+- giorno 1 17:29 **Livia** legge https://tebra.com/ehr-software/cost-of-ehr-software-and-how-to-budget-for-one
+  - [EHR Costs Explained - Tebra](https://tebra.com/ehr-software/cost-of-ehr-software-and-how-to-budget-for-one)
+- giorno 1 17:30 **Livia** legge https://pabau.com/blog/ehr-software-cost
+  - [EHR software cost in 2026: a complete pricing breakdown](https://pabau.com/blog/ehr-software-cost)
+- giorno 1 17:31 **Livia** cerca «nirmitee.io HL7 interface cost integration EHR $5,000-$15,000 annual maintenance»
+  - [EHR Implementation Cost 2026: Practice and Hospital Budgets](https://nirmitee.io/blog/ehr-implementation-cost-guide)
+  - [Mirth Connect Pricing 2026: Interface Build Cost Guide](https://nirmitee.io/blog/mirth-connect-interface-build-cost-pricing-matrix-2026)
+  - [HL7 Integration Services & Implementation | Nirmitee.io](https://nirmitee.io/healthcare-interoperability/hl7-integration-services)
+- giorno 1 18:37 **Enea** cerca «average cost per insurance claim manual processing adjuster independent study»
+  - [Insurance Claims Adjuster Salary Guide 2026 | Real Earnings](https://www.sonant.ai/blog/insurance-claims-adjuster-salary)
+  - [The High Cost of Manual Claims Processing - and How to Fix It](https://www.inovalon.com/blog/the-high-cost-of-manual-claims-processing-and-how-to-fix-it)
+  - [The Hidden Cost of Claims Processing](https://www.dataworkz.com/blog/the-hidden-cost-of-claims-processing)
+- giorno 1 18:41 **Enea** legge https://www.inovalon.com/blog/the-high-cost-of-manual-claims-processing-and-how-to-fix-it
+  - [The High Cost of Manual Claims Processing - and How to Fix It](https://www.inovalon.com/blog/the-high-cost-of-manual-claims-processing-and-how-to-fix-it)
+- giorno 1 18:43 **Bruno** cerca «costo medio gestione sinistro manuale assicurazione studio indipendente»
+  - [Gestione sinistri: affidarsi all'assicurazione è un rischio](https://gesacsinistri.com/2024/04/affidarsi-assicurazione-sinistro-rischi)
+  - [Assicurazioni per lavoratori indipendenti in Svizzera (2026)](https://www.allianz.ch/it/clienti-commerciali/guida-business/assicurazioni-lavoratori-autonomi.html)
+  - [G.A.R. S.r.l. - Gestione Assicurazioni Roma Information](https://rocketreach.co/gar-srl-gestione-assicurazioni-roma-profile_b7ec5b05c38797ac)
+- giorno 1 18:45 **Bruno** cerca «insurance claims processing cost per claim manual study McKinsey Deloitte»
+  - [The High Cost of Manual Claims Processing - and How to Fix It](https://www.inovalon.com/blog/the-high-cost-of-manual-claims-processing-and-how-to-fix-it)
+  - [RPA in Insurance Claims Processing: 7 Ways to Cut Costs and Errors | DashDevs](https://dashdevs.com/blog/rpa-in-insurance-claims-processing)
+  - [Real-Time Adjudication for Health Insurance Claims | 1% Steps for Health Care Reform](https://www.onepercentsteps.com/policy-briefs/real-time-adjudication-for-health-insurance-claims)
+- giorno 1 18:49 **Bruno** legge https://www.onepercentsteps.com/policy-briefs/real-time-adjudication-for-health-insurance-claims
+  - [Real-Time Adjudication for Health Insurance Claims | 1% Steps for Health Care Reform](https://www.onepercentsteps.com/policy-briefs/real-time-adjudication-for-health-insurance-claims)
+- giorno 1 18:49 **Bruno** legge https://www.mckinsey.com/industries/healthcare/our-insights/for-better-healthcare-claims-management-think-digital-first
+  - [For better healthcare claims management, think “digital first” | McKinsey](https://www.mckinsey.com/industries/healthcare/our-insights/for-better-healthcare-claims-management-think-digital-first)
+- giorno 2 00:36 **Livia** cerca «insurance claims automation unstructured documents human-in-the-loop study accuracy report»
+  - [Automated Claims Processing: Implementation Guide for Insurance Operations](https://www.v7labs.com/blog/automated-claims-processing)
+  - [Human in the Loop AI for Insurance Documents | SortSpoke](https://sortspoke.com/our-approach/human-in-the-loop-ai)
+  - [Improving accuracy in claims processing with Intelligent Document Processing](https://indicodata.ai/blog/improving-accuracy-in-claims-processing-with-intelligent-document-processing)
+- giorno 2 00:38 **Livia** cerca «hospitals on-premise AI deployment data sovereignty survey GDPR health data»
+  - [Data Sovereignty and AI: Keep Workflows In-House (2026) - worqlo](https://worqlo.com/blog/data-sovereignty-ai-enterprise)
+  - [Sovereign AI for Hospitals: GDPR Art. 9 Ready | Xinity](https://xinity.ai/sovereign-ai-for-hospitals)
+  - [Healthcare AI Data Sovereignty in 2026: What Breaks | Arc Compute](https://www.arccompute.io/resources/arc-blog/healthcare-ai-data-sovereignty-in-2026-what-breaks-and-how-to-architect-around-it)
+- giorno 2 03:14 **Irene** cerca «LLM inference price decline per token trend 2025»
+  - [Inference Unit Economics: The True Cost Per Million Tokens | Introl Blog](https://introl.com/blog/inference-unit-economics-true-cost-per-million-tokens-guide)
+  - [The Price of Progress: Price Performance and the Future of AI](https://arxiv.org/pdf/2511.23455)
+  - [LLM inference prices have fallen rapidly but unequally across tasks | Epoch AI](https://epoch.ai/data-insights/llm-inference-price-trends)
+- giorno 2 03:46 **Irene** cerca «EU AI Act credit scoring banks explainability audit automated decisions 2026»
+  - [How the EU AI Act will change mobile banking apps on your phone](https://speednetsoftware.com/how-the-eu-ai-act-will-change-mobile-banking-apps-on-your-phone)
+  - [AI Governance Checklist for Lenders: What Binds in 2026](https://timvero.com/blog/ai-governance-checklist-lenders)
+  - [EU AI Act for financial services: implementation guide for May 2026 | Openlayer](https://www.openlayer.com/blog/eu-ai-act-financial-services)
+- giorno 2 04:05 **Livia** cerca «claims processing manual data entry unstructured documents insurers study McKinsey OR Deloitte OR Gartner OR IVASS»
+  - [Best Document Processing Software For Insurance Claims In 2026](https://www.infrrd.ai/blog/best-document-processing-software-for-insurance-claims-2026)
+  - [Claims Processing - The Slow Part Is Not the Decision | Parseur®](https://parseur.com/blog/claims-processing)
+  - [Insurance Document Processing: Moving Beyond Manual Data Entry · Inaza](https://www.inaza.com/blog/insurance-document-processing-moving-beyond-manual-data-entry)
+- giorno 2 04:09 **Livia** cerca «McKinsey "Claims 2030" insurance claims automation cost reduction»
+  - [Discover McKinsey's Impact on Insurance Claims: How Consulting Revolutionized Your Acciden](https://866attylaw.com/mckinsey-s-impact-insurance-claims-how-consulting-changed-way-your-accident-case-is-handled)
+  - [Claims 2030: A talent strategy for the future of insurance claims | McKinsey](https://www.mckinsey.com/industries/financial-services/our-insights/claims-2030-a-talent-strategy-for-the-future-of-insurance-claims)
+  - [Insurance Third Party Administrators (TPAs) Global Market Report 2026: YoY Revenue Grew by $32 Billion - AI-Driven Claims Automation to Boost Insurance TPA Growth Through 2030](https://finance.yahoo.com/sectors/healthcare/articles/insurance-third-party-administrators-tpas-111800203.html)
+- giorno 2 08:52 **Livia** cerca «insurance claims processing document automation cost per claim study adjuster time spent on administrative tasks percent»
+  - [10 Best Insurance Claims Automation Tools Compared (2026)](https://www.kognitos.com/blog/ai-tools-for-insurance-claims-processing)
+  - [AI Claims Processing: The Complete 2026 Guide](https://vcasoftware.com/ai-for-claims-processing)
+  - [State of Claims Automation 2026 | Hesper AI](https://gethesperai.com/reports/state-of-claims-automation-2026)
+- giorno 2 09:34 **Matteo** cerca «Hesper 46% professionals spend 30-40% time administrative claims»
+  - [Workers' Compensation Industry Faces Administrative Overload as Technology Transformation Lags - Risk & Insurance : Risk & Insurance](https://riskandinsurance.com/workers-compensation-industry-faces-administrative-overload-as-technology-transformation-lags)
+  - [Legal professionals feel ‘miserable’ over admin tasks, new 8am report shows](https://www.abajournal.com/news/article/legal-professionals-feel-miserable-over-admin-tasks-new-report-shows)
+  - [Do "10,000 Hours" Make a Great Claims Professional? How Claims Teams Can Achieve Peak Performance - Rising Medical Solutions](https://www.risingms.com/research-knowledge/workers-compensation-benchmarking-study/how-claims-teams-can-achieve-peak-performance)
+- giorno 2 09:38 **Matteo** legge https://riskandinsurance.com/workers-compensation-industry-faces-administrative-overload-as-technology-transformation-lags
+  - [Workers' Compensation Industry Faces Administrative Overload as Technology Transformation Lags - Risk & Insurance : Risk & Insurance](https://riskandinsurance.com/workers-compensation-industry-faces-administrative-overload-as-technology-transformation-lags)
+- giorno 2 12:31 **Matteo** cerca «insurance companies unstructured documents claims processing survey percentage insurers 2024»
+  - [14 Florida Insurers Closed Over Half of Homeowner Damage Claims with Zero Payment in 2024](https://finance.yahoo.com/news/14-florida-insurers-closed-over-095900451.html)
+  - [Global-Insurance-Market-Report-2025.pdf](https://www.iais.org/uploads/2025/12/Global-Insurance-Market-Report-2025.pdf)
+  - [WTW survey: AI adopters post 6-point lower ratios | WTW Stock News](https://www.stocktitan.net/news/WTW/insurers-using-advanced-analytics-and-ai-report-strong-returns-on-fym1gtb0iqjj.html)
+- giorno 2 12:37 **Matteo** cerca «cost per manual insurance claim document processing study McKinsey Gartner claims automation percentage insurers survey»
+  - [Best Document Processing Software For Insurance Claims In 2026](https://www.infrrd.ai/blog/best-document-processing-software-for-insurance-claims-2026)
+  - [10 Best Insurance Claims Automation Tools Compared (2026)](https://www.kognitos.com/blog/ai-tools-for-insurance-claims-processing)
+  - [Best AI Claims-Automation Tools for Insurers in 2026 | Blog | Perspective AI](https://getperspective.ai/blog/best-ai-claims-automation-tools-insurers-2026-ranked)
+
+## Sources cited by ideas
+
+- AI on-premise chiavi in mano per strutture sanitarie (proposal): [Cost model for locally deployed medical LLM](https://www.talby.com/p/a-cost-model-for-patient-level-healthcare), [Self-Hosted AI for Hospitals and Health Systems](https://ibl.ai/blog/self-hosted-ai-for-hospitals-and-health-systems), [HL7 Interface cost and maintenance - Spiceworks](https://community.spiceworks.com/t/hl7-interface-cost-and-maintenance/115728), [HL7 Interface Guide: Build vs Buy](https://www.invene.com/blog/hl7-interface), [Cost-Benefit Analysis of On-Premise LLM Deployment](https://arxiv.org/html/2509.18101v1), [On-Prem LLM Deployment: GPU Sizing](https://iternal.ai/how-to-deploy-llm-on-premise)
+- Triage sinistri su documenti non strutturati, con revisore umano (proposal): [Claims 2030: A talent strategy for the future of insurance claims (McKinsey, fonte non-vendor)](https://www.mckinsey.com/industries/financial-services/our-insights/claims-2030-a-talent-strategy-for-the-future-of-insurance-claims), [Insurance productivity 2030 (McKinsey, fonte non-vendor)](https://www.mckinsey.com/~/media/McKinsey/Industries/Financial%20Services/Our%20Insights/Insurance%20productivity%202030%20Reimagining%20the%20insurer%20for%20the%20future/Insurance-productivity-2030.pdf), [State of Claims Automation 2026 (Hesper AI, fonte vendor, survey citata ma non verificata alla fonte)](https://gethesperai.com/reports/state-of-claims-automation-2026)
