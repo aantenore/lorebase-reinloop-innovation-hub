@@ -1,5 +1,5 @@
 {
-  "description": "Low-cost runs: every mind on haiku except the committee chair (Livia) on sonnet; committee voters and group proposers on haiku, no interns, shorter replies.",
+  "description": "Low-cost runs: every mind on haiku except the committee chair (Livia) on sonnet; committee voters and group proposers on haiku, no interns, shorter replies; game clock x3 for live runs, more turns and a web-call cap per decision.",
   "rosterTiers": {
     "*": "haiku",
     "Livia": "sonnet"
@@ -11,17 +11,19 @@
           "maxSteps": 35,
           "horizonFactor": 1,
           "cooldownFactor": 2,
-          "maxTurns": 5,
+          "maxTurns": 8,
           "maxOutputTokens": 2500,
-          "maxConsults": 1
+          "maxConsults": 1,
+          "maxWebCalls": 2
         },
         "sonnet": {
           "maxSteps": 50,
           "horizonFactor": 1.5,
           "cooldownFactor": 3,
-          "maxTurns": 6,
+          "maxTurns": 8,
           "maxOutputTokens": 4000,
-          "maxConsults": 2
+          "maxConsults": 2,
+          "maxWebCalls": 3
         }
       },
       "modelParams": {
@@ -51,6 +53,9 @@
       "enabled": true,
       "ttl": "5m",
       "groupTtl": "5m"
+    },
+    "loop": {
+      "timeScale": 3
     }
   }
 }

@@ -8,7 +8,7 @@ import { loadGameConfig } from './config.ts';
 import { lastHeard } from './decide.ts';
 import { Game } from './game.ts';
 import { recipeFrom, resourceFrom } from './economy.ts';
-import { bodyBlock, proclamation, recalledBlock, recipesBlock } from './prompt.ts';
+import { bodyBlock, pendingBlock, proclamation, recalledBlock, recipesBlock, textLanguage } from './prompt.ts';
 import { type RtEntity, RtWorld } from './world.ts';
 
 const game = loadGameConfig({});
@@ -122,4 +122,31 @@ test('campus: walls block, every zone is reachable from the plaza through its do
   }
   assert.ok(w.tiles.some((x) => x.biome === 'meeting' && x.shelter === 2) && w.tiles.some((x) => x.biome === 'office' && x.shelter === 1));
   assert.ok(w.tiles.every((x) => x.shelter === 0 || w.walkable(x.x, x.y)));
+});
+
+test('words to a named person without an answer are perceived with how long ago; an answer clears them', () => {
+  const w = new RtWorld(game.map, game.movement, 1337, 0, { namePool: [], memoryItems: 5, inboxItems: 5 });
+  w.rules = { ...w.rules, speech_radius: 6 };
+  const person = (id: string, name: string, x: number) => ({ id, name, x, y: 10, alive: true, inbox: [] }) as unknown as RtEntity;
+  const irene = person('a1', 'Irene', 10);
+  const giulia = person('a2', 'Giulia', 12);
+  w.entities.set(irene.id, irene);
+  w.entities.set(giulia.id, giulia);
+  const limits = { ...game.decisions.perception };
+  assert.ok(w.say(irene, 'Giulia', 'Mi mandi il segnale sul dolore utenti?').ok);
+  w.clock += 10;
+  assert.equal(pendingBlock(t, w, irene, limits), '');
+  w.clock += 110;
+  const block = pendingBlock(t, w, irene, limits);
+  assert.ok(block.includes('Giulia') && block.includes('2 ore') && block.includes('segnale'), block);
+  assert.equal(pendingBlock(t, w, giulia, limits), '');
+  w.say(giulia, 'all', 'Ci sto lavorando.');
+  assert.equal(pendingBlock(t, w, irene, limits), '');
+});
+
+test('the language of a reasoning summary is guessed from marker words', () => {
+  const m = game.decisions.thoughtLanguage!;
+  assert.equal(textLanguage('Devo ancora capire se la fattibilità è credibile, perché non ho fonti.', m.markers, m.minHits), 'it');
+  assert.equal(textLanguage('I need to check the sources and the costs before this review is fair.', m.markers, m.minHits), 'en');
+  assert.equal(textLanguage('ok', m.markers, m.minHits), undefined);
 });

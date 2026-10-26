@@ -70,12 +70,23 @@ export interface MindHost {
   commitJointPlan(g: Group, plan: JointPlan): void;
   /** The group could not decide: the member's own mind takes over. */
   groupFailed(member: RtEntity): void;
-  stats: { decisions: number; groupDecisions: number; replies: number; failures: number };
+  /** `failureReasons`: failures counted by kind and reason (`decide: max_turns`, ...). */
+  stats: { decisions: number; groupDecisions: number; replies: number; failures: number; failureReasons?: Record<string, number> };
+}
+
+/** The reason of a failure without its details (`stopped: max_turns (5)` -> `stopped: max_turns`). Pure. */
+export function failureKey(kind: string, reason: string): string {
+  const head = reason.replace(/\s+/g, ' ').trim().split(/[(\[{]/)[0]!.trim().slice(0, 60);
+  return `${kind}: ${head || '?'}`;
 }
 
 /** Counts a failed decision and says briefly why. */
 export function failed(host: Pick<MindHost, 'stats'>, kind: string, who: string, reason: string): void {
   host.stats.failures++;
+  if (host.stats.failureReasons) {
+    const key = failureKey(kind, reason);
+    host.stats.failureReasons[key] = (host.stats.failureReasons[key] ?? 0) + 1;
+  }
   console.warn(`[failure ${host.stats.failures}] ${kind} ${who}: ${reason.replace(/\s+/g, ' ').slice(0, 400)}`);
 }
 

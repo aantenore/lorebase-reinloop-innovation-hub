@@ -153,7 +153,8 @@
         "cooldownFactor": 0.5,
         "maxTurns": 5,
         "maxOutputTokens": 3000,
-        "maxConsults": 2
+        "maxConsults": 2,
+        "maxWebCalls": 3
       },
       "sonnet": {
         "maxSteps": 60,
@@ -161,7 +162,8 @@
         "cooldownFactor": 1,
         "maxTurns": 6,
         "maxOutputTokens": 5000,
-        "maxConsults": 3
+        "maxConsults": 3,
+        "maxWebCalls": 4
       },
       "opus": {
         "maxSteps": 100,
@@ -169,7 +171,8 @@
         "cooldownFactor": 2,
         "maxTurns": 7,
         "maxOutputTokens": 8000,
-        "maxConsults": 4
+        "maxConsults": 4,
+        "maxWebCalls": 6
       }
     },
     "timeoutGameMinutes": 90,
@@ -185,7 +188,11 @@
       "carriedMax": 3,
       "recipesMax": 6,
       "gatherSpotsMax": 4,
-      "bodyMinDelta": 0.2
+      "bodyMinDelta": 0.2,
+      "pendingMinMinutes": 30,
+      "pendingMaxMinutes": 1440,
+      "pendingMax": 3,
+      "pendingTextChars": 80
     },
     "textMaxChars": 240,
     "replanOn": {
@@ -218,6 +225,51 @@
       "prose": {
         "effort": "low",
         "retryMaxTokens": 2000
+      }
+    },
+    "thoughtLanguage": {
+      "expected": "it",
+      "minHits": 3,
+      "markers": {
+        "it": [
+          "il",
+          "lo",
+          "la",
+          "gli",
+          "le",
+          "di",
+          "che",
+          "non",
+          "per",
+          "una",
+          "sono",
+          "questo",
+          "questa",
+          "perché",
+          "ancora",
+          "anche",
+          "devo",
+          "ho",
+          "è"
+        ],
+        "en": [
+          "the",
+          "and",
+          "that",
+          "is",
+          "to",
+          "of",
+          "not",
+          "for",
+          "this",
+          "with",
+          "should",
+          "need",
+          "have",
+          "will",
+          "it",
+          "be"
+        ]
       }
     }
   },
@@ -636,7 +688,11 @@
       "maxPerSession": 3
     },
     "sourcesMax": 8,
-    "sourceTitleMaxChars": 120
+    "sourceTitleMaxChars": 120,
+    "policies": {
+      "conflictOfInterest": "astensione_conflitto_interessi",
+      "independentReviews": "revisioni_indipendenti"
+    }
   },
   "company": {
     "name": "Hub Innovazione",

@@ -28,6 +28,11 @@ export interface PromptLimits {
   gatherSpotsMax: number;
   /** Smallest change of health or hunger worth a line in the body block. */
   bodyMinDelta: number;
+  /** Unanswered words to a named person (see `decisions.perception`); absent: no such block. */
+  pendingMinMinutes?: number;
+  pendingMaxMinutes?: number;
+  pendingMax?: number;
+  pendingTextChars?: number;
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -236,6 +241,24 @@ export function inboxBlock(t: Translate, e: RtEntity): string {
   return t('rt.observation.messages', { messages: lines.length ? lines.join('\n') : t('rt.observation.noMessages') });
 }
 
+/** How long ago, in words (minutes under 90, then hours). */
+export function agoText(t: Translate, minutes: number): string {
+  const m = Math.max(0, Math.round(minutes));
+  if (m < 90) return t('rt.observation.agoMinutes', { n: m });
+  const h = Math.round(m / 60);
+  return t('rt.observation.agoHours', { n: h });
+}
+
+/** What the person said to someone by name and has not heard back from them since (facts); empty when nothing. */
+export function pendingBlock(t: Translate, w: Pick<RtWorld, 'unanswered'>, e: RtEntity, limits: PromptLimits): string {
+  if (!limits.pendingMax || limits.pendingMaxMinutes === undefined) return '';
+  const items = w.unanswered(e, limits.pendingMinMinutes ?? 0, limits.pendingMaxMinutes, limits.pendingMax);
+  if (!items.length) return '';
+  const cut = limits.pendingTextChars ?? 80;
+  const lines = items.map((x) => t('rt.observation.pendingLine', { name: x.to.name, ago: agoText(t, x.minutes), text: x.text.length > cut ? `${x.text.slice(0, cut)}…` : x.text }));
+  return t('rt.observation.pending', { lines: lines.join('\n') });
+}
+
 export function memoryBlock(t: Translate, e: RtEntity): string {
   return t('rt.observation.memory', { memory: e.memory.length ? e.memory.map((m) => `- ${m}`).join('\n') : t('rt.observation.noMemory') });
 }
@@ -269,6 +292,7 @@ export function rtObservation(
     recipesBlock(t, w, e, limits),
     ...(society?.blocks(e) ?? []),
     inboxBlock(t, e),
+    pendingBlock(t, w, e, limits),
     memoryBlock(t, e),
     changedBlock(t, changed),
   ].filter(Boolean).join('\n\n');
@@ -282,4 +306,19 @@ export function memberLine(t: Translate, w: RtWorld, e: RtEntity, roleTitle: (co
     name: e.name, id: e.id, role: roleTitle(e.role), x: p.x, y: p.y, hp: round1(e.hp), maxHp: e.maxHp, hunger: round1(e.hunger),
     food: e.inventory.food ?? 0, wood: e.inventory.wood ?? 0, doing: cur ? t('rt.group.memberDoing', { label: cur }) : t('rt.group.memberIdle'),
   });
+}
+
+/**
+ * The language a text is most likely written in, by counting marker words (`markers`: language -> words);
+ * undefined below `minHits` or on a tie. Pure.
+ */
+export function textLanguage(text: string, markers: Record<string, string[]>, minHits: number): string | undefined {
+  const words = text.toLowerCase().match(/[\p{L}']+/gu) ?? [];
+  const counts = Object.entries(markers).map(([lang, list]) => {
+    const set = new Set(list.map((x) => x.toLowerCase()));
+    return { lang, n: words.filter((x) => set.has(x)).length };
+  }).sort((a, b) => b.n - a.n);
+  const [top, next] = counts;
+  if (!top || top.n < minHits || (next && next.n === top.n)) return undefined;
+  return top.lang;
 }

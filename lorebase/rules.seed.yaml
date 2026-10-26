@@ -60,7 +60,7 @@ rules:
     category: climate
     text: "Un anno aziendale dura questo numero di periodi; diviso in quattro parti uguali dà i trimestri, e l'ultima parte dell'anno è il freeze."
   - code: winter_length_ticks
-    value: 2
+    value: 1
     unit: "periodi"
     category: climate
     text: "Il freeze di fine anno dura questo numero di periodi."
@@ -100,12 +100,12 @@ rules:
     category: time
     text: "Un turno dura questi minuti. Le policy espresse per turno (stress, crunch, pause, rifornimenti) valgono per ogni turno."
   - code: dawn_minute
-    value: 480
+    value: 420
     unit: "minuto del giorno"
     category: time
     text: "Il giorno ha 1440 minuti; a questo minuto comincia l'orario di lavoro."
   - code: dusk_minute
-    value: 1140
+    value: 1260
     unit: "minuto del giorno"
     category: time
     text: "A questo minuto del giorno finisce l'orario di lavoro."
@@ -440,12 +440,12 @@ rules:
     category: ideas
     text: "Il comitato investimenti accetta idee con rischio medio fino a questo valore; oltre servono ragioni eccezionali."
   - code: ricerche_web_per_persona_al_giorno
-    value: 6
+    value: 12
     unit: "ricerche"
     category: ideas
     text: "Ricerche e letture sul web che una persona può fare in un giorno."
   - code: ricerche_web_totali_al_giorno
-    value: 40
+    value: 60
     unit: "ricerche"
     category: ideas
     text: "Ricerche e letture sul web che l'intero hub può fare in un giorno."
@@ -473,7 +473,7 @@ rules:
     value: 1
     unit: "policy"
     category: company
-    text: "L'orario di lavoro va dalle 8 alle 19; fuori orario non si fissano riunioni."
+    text: "L'orario di lavoro va dalle 7 alle 21; fuori orario non si fissano riunioni."
   - code: regole_riunioni
     value: 1
     unit: "policy"
@@ -494,6 +494,16 @@ rules:
     unit: "policy"
     category: ideas
     text: "Le valutazioni giudicano le idee, mai le persone; ogni punteggio è motivato da un commento."
+  - code: astensione_conflitto_interessi
+    value: 1
+    unit: "policy"
+    category: ideas
+    text: "Con valore 1, il champion e gli autori di un'idea non votano e non presiedono la sessione del comitato su di essa; se il presidente è tra loro presiede il membro idoneo di grado più alto (a parità, di maggiore stima); il quorum si conta sui membri idonei. Con 0 non si applica."
+  - code: revisioni_indipendenti
+    value: 1
+    unit: "policy"
+    category: ideas
+    text: "Con valore 1, chi non è autore di un'idea legge punteggi e commenti delle altre valutazioni solo dopo aver dato la propria. Con 0 sono visibili a tutti."
 
 roles:
   - code: ricercatore

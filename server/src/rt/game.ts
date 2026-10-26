@@ -16,7 +16,7 @@ import { type Catalog, Flows, inputMatches, unlocksOf } from './economy.ts';
 import { Company, careerFor, quarterLabel, type QuarterTurn } from './company.ts';
 import {
   type CommitteeDecision, type CommitteeVote, exportMarkdown, type Idea, type IdeaAction, IdeaBook, type IdeaFilter, IDEA_FIELDS, isClosed, isOpen, SCORE_KEYS, type ScoreKey, type Scores,
-  scoresFrom, weightedScore,
+  conflicted, scoresFrom, seesReviews, weightedScore,
 } from './ideas.ts';
 import { EconomyBook } from './economy-book.ts';
 import { type MemoryEvent, memoryKey, Mnemo } from './mnemo.ts';
@@ -28,7 +28,7 @@ import { type DecideHost, decide, type IdeaBrief, type IdeaDesk, reply, type Too
 import { type CommitteeMock, type Group, GroupManager, type JointPlan } from './groups.ts';
 import { AgentMind, GroupMind, Limiter, type MindHost, type Perception } from './mind.ts';
 import { type Plan, type PlanStep, tileOf } from './plan.ts';
-import { type GroupView, proclamation } from './prompt.ts';
+import { type GroupView, proclamation, textLanguage } from './prompt.ts';
 import { reflexEat, reflexSteps } from './reflex.ts';
 import { canAddAgentMind, childSpec } from './births.ts';
 import { missingRtRules, RT_RULE_KEYS, type Resource, type RtEntity, type RtTile, RtWorld, type WorldEvent } from './world.ts';
@@ -72,7 +72,7 @@ export class Game {
   private readonly flows = new Flows();
   readonly usage = new UsageLedger();
   /** Recent thoughts (plan reasons) and Lorebase consultations per agent, for god mode. */
-  private readonly thoughts = new Map<string, Array<{ at: { day: number; minute: number }; text: string }>>();
+  private readonly thoughts = new Map<string, Array<{ at: { day: number; minute: number }; text: string; lang?: string }>>();
   private readonly consults = new Map<string, Array<{ at: { day: number; minute: number }; tool: string; query: string }>>();
   /** Web research per agent (inspector) and of the whole run (GET /api/research), titles and URLs only. */
   private readonly researchBy = new Map<string, ResearchLine[]>();
@@ -99,7 +99,11 @@ export class Game {
   private readonly minds = new Map<string, AgentMind>();
   private readonly groupMinds = new Map<string, GroupMind>();
   private readonly limiter: Limiter;
-  private readonly stats = { decisions: 0, groupDecisions: 0, replies: 0, failures: 0, thoughts: 0 };
+  private readonly stats = {
+    decisions: 0, groupDecisions: 0, replies: 0, failures: 0, thoughts: 0,
+    /** Failed runs by kind and reason; thoughts by guessed language; committee seats left for a conflict; same five scores as another review. */
+    failureReasons: {} as Record<string, number>, thoughtLangs: {} as Record<string, number>, recusals: 0, scoreMatches: 0,
+  };
   /** Set while a reply is spoken, so a reply never triggers another reply. */
   private speakingReply = false;
   readonly offers = new OfferBook();
@@ -157,7 +161,7 @@ export class Game {
       agents: () => this.world.living().filter((e) => e.kind === 'agent').map((e) => ({ id: e.id, name: e.name, key: memoryKey(e.name) })),
       stats: () => ({
         ...this.stats, running: this.limiter.running,
-        ...(this.research ? { webSearches: this.research.stats.searches, webFetches: this.research.stats.fetches, webCached: this.research.stats.cached, webRefused: this.research.stats.refused, webErrors: this.research.stats.errors } : {}), budgetMaxUsd: game.budget.maxUsd, budgetPaused: this.budgetPaused ? 1 : 0 }),
+        ...(this.research ? { webSearches: this.research.stats.searches, webFetches: this.research.stats.fetches, webCached: this.research.stats.cached, webRefused: this.research.stats.refused, webCapped: this.research.stats.capped, webErrors: this.research.stats.errors } : {}), budgetMaxUsd: game.budget.maxUsd, budgetPaused: this.budgetPaused ? 1 : 0 }),
     }, game.observatory);
     this.world = this.newWorld();
     this.groups = this.newGroups();
@@ -303,8 +307,12 @@ export class Game {
       },
       reasoned: (e, text) => {
         this.stats.thoughts++;
-        this.broadcastPrivileged({ type: 'say', from: e.id, to: e.id, text, kind: 'thought' });
-        this.recent(this.thoughts, e.id, { at: this.now(), text });
+        // The summary is the model's: kept as it is, its language recorded (never translated).
+        const tl = this.game.decisions.thoughtLanguage;
+        const lang = tl ? textLanguage(text, tl.markers, tl.minHits) : undefined;
+        if (lang) this.stats.thoughtLangs[lang] = (this.stats.thoughtLangs[lang] ?? 0) + 1;
+        this.broadcastPrivileged({ type: 'say', from: e.id, to: e.id, text, kind: 'thought', ...(lang ? { lang } : {}) });
+        this.recent(this.thoughts, e.id, { at: this.now(), text, ...(lang ? { lang } : {}) });
       },
       consulted: (e, ev) => {
         this.recent(this.consults, e.id, { at: this.now(), tool: ev.tool, query: ev.query });
@@ -1411,12 +1419,18 @@ export class Game {
     const closed = all.filter(isClosed).sort((a, b) => (b.decision?.at.day ?? 0) * 1440 + (b.decision?.at.minute ?? 0) - (a.decision?.at.day ?? 0) * 1440 - (a.decision?.at.minute ?? 0));
     const shown = [...open.slice(0, max), ...closed.slice(0, Math.max(1, Math.floor(max / 3)))];
     if (!shown.length) return t('rt.observation.ideas', { lines: t('rt.observation.noIdeas') });
+    const seat = !!this.committeeGroup()?.members.includes(e.id);
+    const conflictRule = seat && this.policyOn(this.game.ideas.policies.conflictOfInterest);
     const lines = shown.map((i) => {
       const missing = IDEA_FIELDS.filter((k) => !i[k]);
       const reviewed = i.reviews.some((r) => r.by === e.name);
+      const recused = seat && i.stage === 'pitch' && mine(i) && conflictRule;
+      const g = i.stage === 'pitch' ? this.committeeGroup() : undefined;
+      const seated = g ? this.committeeSeats(g, i).seated.length : 0;
+      const short = g && seated < this.world.r('committee_quorum') ? t('rt.observation.ideaNoQuorum', { seated, quorum: this.world.r('committee_quorum') }) : '';
       return t('rt.observation.ideaLine', {
         code: i.code, title: i.title, stage: t(`rt.ideaStage.${i.stage}`), champion: i.champion ?? '-', authors: i.authors.join(', '),
-        reviews: i.reviews.length, mine: mine(i) ? t('rt.observation.ideaMine') : reviewed ? t('rt.observation.ideaReviewed') : '',
+        reviews: i.reviews.length, mine: `${mine(i) ? t('rt.observation.ideaMine') : reviewed ? t('rt.observation.ideaReviewed') : ''}${recused ? t('rt.observation.ideaRecused') : ''}${short}`,
         missing: isOpen(i) && missing.length ? t('rt.observation.ideaMissing', { fields: missing.map((k) => t(`rt.ideaField.${k}`)).join(', ') }) : '',
       });
     });
@@ -1480,9 +1494,9 @@ export class Game {
         if (typeof out === 'string') return fail(out);
         return { ok: true, text: t('rt.act.ideaSubmitted', { code: out.code }) };
       },
-      read: (_e, code) => {
+      read: (e, code) => {
         const i = this.ideas.get(code);
-        return i ? this.ideaText(i) : this.ideaReason('unknown_idea');
+        return i ? this.ideaText(i, this.hidesReviews(i, e.name)) : this.ideaReason('unknown_idea');
       },
       briefs: (e) => {
         const maxOpen = this.world.r('max_open_ideas_per_person');
@@ -1495,17 +1509,36 @@ export class Game {
     };
   }
 
-  /** An idea in full, as people read it (tool leggi_idea and the committee's brief). */
-  private ideaText(i: Idea): string {
+  /** Whether a policy (Lorebase `Rule`) is on: value 1 or more. A missing policy is off. */
+  private policyOn(key: string): boolean {
+    const v = Number(this.laws.find((x) => x.key === key)?.value);
+    return Number.isFinite(v) && v >= 1;
+  }
+
+  /** Policy revisioni_indipendenti: the other reviews stay hidden from a non-author until they review it. */
+  private hidesReviews(i: Idea, name: string): boolean {
+    return !isClosed(i) && this.policyOn(this.game.ideas.policies.independentReviews) && !seesReviews(i, name);
+  }
+
+  /**
+   * An idea in full, as people read it (tool leggi_idea and the committee's brief). `hideReviews`: the other
+   * reviews' scores and comments are left out (their number stays), also from the history.
+   */
+  private ideaText(i: Idea, hideReviews = false): string {
     const t = this.t;
-    const reviews = i.reviews.map((r) => t('rt.committee.reviewLine', { by: r.by, ...r.scores, comment: r.comment || '-' })).join('\n') || t('rt.committee.noReviews');
-    const weighted = weightedScore(i.scores, this.weights());
+    const reviews = hideReviews
+      ? t('rt.committee.reviewsHidden', { n: i.reviews.length })
+      : i.reviews.map((r) => t('rt.committee.reviewLine', { by: r.by, ...r.scores, comment: r.comment || '-' })).join('\n') || t('rt.committee.noReviews');
+    const weighted = hideReviews ? null : weightedScore(i.scores, this.weights());
     return t('rt.committee.idea', {
       code: i.code, title: i.title, stage: t(`rt.ideaStage.${i.stage}`), champion: i.champion ?? '-', authors: i.authors.join(', ') || '-', tags: i.tags.join(', ') || '-',
       ...Object.fromEntries(IDEA_FIELDS.map((k) => [k, i[k] || '-'])), signals: i.signals.map((c) => this.itemName(c)).join(', ') || '-',
       sources: (i.sources ?? []).map((x) => `${x.title} (${x.url})`).join('; ') || '-',
-      n: i.reviews.length, reviews, scores: i.scores ? SCORE_KEYS.map((k) => `${t(`rt.score.${k}`)} ${i.scores![k]}`).join(', ') : '-', weighted: weighted ?? '-',
-      history: i.history.slice(-5).map((h) => `${h.by}: ${t(`rt.ideaAction.${h.action}`)}${h.note ? ` (${h.note})` : ''}`).join('; ') || '-',
+      n: i.reviews.length, reviews, scores: i.scores && !hideReviews ? SCORE_KEYS.map((k) => `${t(`rt.score.${k}`)} ${i.scores![k]}`).join(', ') : '-', weighted: weighted ?? '-',
+      history: i.history.slice(-5).map((h) => {
+        const note = hideReviews && (h.action === 'reviewed' || h.action === 'scores_match') ? '' : h.note;
+        return `${h.by}: ${t(`rt.ideaAction.${h.action}`)}${note ? ` (${note})` : ''}`;
+      }).join('; ') || '-',
     });
   }
 
@@ -1541,6 +1574,10 @@ export class Game {
         break;
       case 'reviewed':
         if (actor) this.society.deed(actor.id, 'review_given', w.clock);
+        if (idea.history.at(-1)?.action === 'scores_match') {
+          this.stats.scoreMatches++;
+          console.log(`[ideas] ${idea.code}: ${by}'s scores equal ${idea.history.at(-1)!.note}'s`);
+        }
         this.live(actor, 'review', t('rt.memory.ideaReviewed', vars));
         tell('rt.why.idea.reviewed');
         break;
@@ -1576,6 +1613,28 @@ export class Game {
         if (idea.stage === 'proposal' && idea.history.at(-1)?.action === 'deferred') tell('rt.why.idea.deferred');
         break;
     }
+  }
+
+  /**
+   * Who sits in the committee's session on an idea. Policy astensione_conflitto_interessi: its champion and
+   * authors neither vote nor chair; when the chair is one of them, the eligible member with the highest career
+   * step chairs (then the higher vote weight, rule esteem_vote_weight). Chair first; the quorum counts `seated`.
+   */
+  private committeeSeats(g: Group, idea: Idea): { seated: RtEntity[]; recused: RtEntity[] } {
+    const w = this.world;
+    const living = g.members.map((id) => w.entities.get(id)).filter((m): m is RtEntity => !!m && m.alive);
+    const lead = living.find((m) => m.id === g.leader);
+    const ordered = lead ? [lead, ...living.filter((m) => m !== lead)] : living;
+    if (!this.policyOn(this.game.ideas.policies.conflictOfInterest)) return { seated: ordered, recused: [] };
+    const names = conflicted(idea);
+    const recused = ordered.filter((m) => names.includes(m.name));
+    const seated = ordered.filter((m) => !names.includes(m.name));
+    if (lead && recused.includes(lead) && seated.length) {
+      const step = (m: RtEntity) => this.game.company.careers.findIndex((c) => c.code === this.careerOf(m));
+      const chair = [...seated].sort((a, b) => step(b) - step(a) || this.society.voteWeight(b.id) - this.society.voteWeight(a.id))[0]!;
+      return { seated: [chair, ...seated.filter((m) => m !== chair)], recused };
+    }
+    return { seated, recused };
   }
 
   private committeeGroup(): Group | undefined {
@@ -1615,16 +1674,21 @@ export class Game {
     try {
       for (const idea of this.ideas.pitches().slice(0, this.game.ideas.committee.maxPerSession)) {
         const w = this.world;
-        const present = g.members.filter((id) => w.entities.get(id)?.alive).length;
-        if (present < w.r('committee_quorum')) {
-          console.log(`[committee ${g.name}] no quorum (${present}/${w.r('committee_quorum')}): ${idea.code} waits`);
+        const { seated, recused } = this.committeeSeats(g, idea);
+        if (seated.length < w.r('committee_quorum')) {
+          console.log(`[committee ${g.name}] no quorum (${seated.length}/${w.r('committee_quorum')}${recused.length ? `, recused ${recused.map((m) => m.name).join(', ')}` : ''}): ${idea.code} waits`);
           return;
         }
         const brief = [
           this.ideaText(idea),
           t('rt.committee.company', { quarter: quarterLabel(w.quarter()), slots: this.slotsLeft(), total: w.r('quarter_idea_slots'), freeze: t(w.isFreeze() ? 'rt.observation.freezeOn' : 'rt.observation.freezeOff') }),
-        ].join('\n\n');
-        const out = await this.groups.reviewIdea(g, brief, this.committeeMock(idea));
+          recused.length ? t('rt.committee.recused', { names: recused.map((m) => m.name).join(', '), chair: seated[0]!.name }) : '',
+        ].filter(Boolean).join('\n\n');
+        if (recused.length) {
+          this.stats.recusals += recused.length;
+          console.log(`[committee ${g.name}] ${idea.code}: recused ${recused.map((m) => m.name).join(', ')} (conflict of interest), chair ${seated[0]!.name}`);
+        }
+        const out = await this.groups.reviewIdea(g, brief, this.committeeMock(idea), seated);
         if ('error' in out) {
           console.warn(`[committee ${g.name}] ${idea.code}: ${out.error}`);
           return;
@@ -1635,8 +1699,8 @@ export class Game {
           decision = 'defer';
           summary = `${summary} ${t(`rt.committee.${blocked}`)}`.trim();
         }
-        const lead = w.entities.get(g.leader ?? '')?.name ?? g.name;
-        const done = this.ideas.decide(idea.code, decision, summary, out.votes, this.now(), lead);
+        const lead = seated[0]?.name ?? g.name;
+        const done = this.ideas.decide(idea.code, decision, summary, out.votes, this.now(), lead, recused.map((m) => m.name));
         if (typeof done === 'string') {
           console.warn(`[committee ${g.name}] ${idea.code}: ${done}`);
           continue;
@@ -1647,6 +1711,7 @@ export class Game {
         this.broadcastGroup(g);
         this.broadcastCommittee({ type: 'committee', groupId: g.id, ideaCode: idea.code, decision, votes: out.votes, summary });
         for (const id of g.members) this.live(w.entities.get(id), 'committee', t('rt.memory.committee', { title: idea.title, decision: t(`rt.committee.vote.${decision}`), summary }));
+        for (const m of recused) this.live(m, 'committee', t('rt.memory.recused', { title: idea.title }));
         console.log(`[committee ${g.name}] ${idea.code}: ${decision}${summary ? ` (${summary.slice(0, 120)})` : ''}`);
       }
       // What is left waits for the committee's next session (its cooldown applies).

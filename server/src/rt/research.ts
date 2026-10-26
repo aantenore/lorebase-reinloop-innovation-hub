@@ -121,7 +121,8 @@ export class ResearchDesk {
   private readonly used = new Map<string, number>();
   /** Per agent: the normalized URLs its own searches returned, with their expiry (what `web_fetch` may read). */
   private readonly allowed = new Map<string, Map<string, number>>();
-  readonly stats = { searches: 0, fetches: 0, cached: 0, refused: 0, errors: 0 };
+  /** `capped`: calls refused because the run had used its per-decision web calls (not counted in `refused`). */
+  readonly stats = { searches: 0, fetches: 0, cached: 0, refused: 0, errors: 0, capped: 0 };
 
   constructor(cfg: ResearchConfig, host: ResearchHost, t: Translate, web: WebTools) {
     this.cfg = cfg;
@@ -265,14 +266,26 @@ export class ResearchDesk {
     return JSON.stringify(body);
   }
 
-  /** The web tools of one person (same names and schemas as reinloop's, descriptions in the world's language). */
-  tools(who: { id: string; name: string }): Tool[] {
+  /**
+   * The web tools of one person (same names and schemas as reinloop's, descriptions in the world's language).
+   * `budget`: calls left to this run (searches and reads together); past it a call is refused and costs no quota.
+   */
+  tools(who: { id: string; name: string }, budget?: { left: number }): Tool[] {
     const wrap = (inner: Tool, kind: ResearchEvent['tool']) => defineTool<Record<string, unknown>>({
       name: inner.name,
       description: this.t(`rt.tools.${kind}`),
       schema: inner.schema,
       risk: 'read',
-      run: (args, ctx) => this.call(who, inner, kind, args ?? {}, ctx),
+      run: (args, ctx) => {
+        if (budget) {
+          if (budget.left <= 0) {
+            this.stats.capped++;
+            return { content: this.t('rt.act.researchFailed', { reason: this.t('rt.researchReason.decision_cap') }), isError: true };
+          }
+          budget.left--;
+        }
+        return this.call(who, inner, kind, args ?? {}, ctx);
+      },
     });
     return [wrap(this.web.web_search, 'web_search'), ...(this.web.web_fetch ? [wrap(this.web.web_fetch, 'web_fetch')] : [])];
   }

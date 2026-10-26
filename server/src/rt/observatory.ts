@@ -171,7 +171,7 @@ export interface ObservatoryHost {
   branch: string;
   revision(): string;
   agents(): Array<{ id: string; name: string; key: string }>;
-  stats(): Record<string, number>;
+  stats(): Record<string, number | Record<string, number>>;
   usage: UsageLedger;
 }
 

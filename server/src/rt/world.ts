@@ -246,6 +246,10 @@ export class RtWorld {
   discovered = new Map<string, Discovery>();
   /** Multiplies game time per real second (engine knob, config `loop.timeScale`). */
   timeScale = 1;
+  /** Words said to a named person (`from\u0000to`): when (clock) and what. */
+  private readonly addressed = new Map<string, { at: number; text: string }>();
+  /** When a listener last heard a speaker (`listener\u0000speaker`, clock). */
+  private readonly heardAt = new Map<string, number>();
   minExperimentItems = 2;
   onEvent: (ev: WorldEvent) => void = () => undefined;
   namePool: string[];
@@ -618,6 +622,27 @@ export class RtWorld {
     if (e.memory.length > this.memoryItems) e.memory.splice(0, e.memory.length - this.memoryItems);
   }
 
+  /**
+   * What `e` said to a named person and has not heard that person say anything since (facts for the perception):
+   * at least `minMinutes` and at most `maxMinutes` ago, newest first, at most `max`.
+   */
+  unanswered(e: Pick<RtEntity, 'id'>, minMinutes: number, maxMinutes: number, max: number): Array<{ to: RtEntity; minutes: number; text: string }> {
+    const out: Array<{ to: RtEntity; minutes: number; text: string }> = [];
+    const prefix = `${e.id}\u0000`;
+    for (const [k, v] of this.addressed) {
+      if (!k.startsWith(prefix)) continue;
+      const to = this.entities.get(k.slice(prefix.length));
+      const minutes = this.clock - v.at;
+      if (!to || !to.alive || minutes > maxMinutes) {
+        if (!to || !to.alive || minutes > maxMinutes * 2) this.addressed.delete(k);
+        continue;
+      }
+      if (minutes < minMinutes || (this.heardAt.get(`${e.id}\u0000${to.id}`) ?? -Infinity) >= v.at) continue;
+      out.push({ to, minutes, text: v.text });
+    }
+    return out.sort((a, b) => a.minutes - b.minutes).slice(0, Math.max(0, max));
+  }
+
   clockText(): string {
     const m = this.minute;
     return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
@@ -822,7 +847,11 @@ export class RtWorld {
     if (!all && (!target || !target.alive)) return { ok: false, reason: 'no_such_person' };
     if (target && !near.includes(target)) return { ok: false, reason: 'too_far' };
     const item: InboxItem = { from: e.id, fromName: e.name, to: target?.id ?? 'all', text, day: this.day, minute: this.minute };
-    for (const b of near) this.deliver(b, item);
+    for (const b of near) {
+      this.deliver(b, item);
+      this.heardAt.set(`${b.id}\u0000${e.id}`, this.clock);
+    }
+    if (target) this.addressed.set(`${e.id}\u0000${target.id}`, { at: this.clock, text });
     this.onEvent({ type: 'say', from: e.id, to: item.to, text, hearers: near.map((b) => b.id) });
     return { ok: true };
   }

@@ -98,3 +98,14 @@ test('research: fetch mode off refuses every fetch', async () => {
     cfg.fetch.mode = 'search-results-only';
   }
 });
+
+test('research: a per-decision budget caps the web calls of one run, without spending quota', async () => {
+  const f = fixture({ per_person: { value: 10, text: '' }, total: { value: 10, text: '' }, domains: { value: 1, text: '' } });
+  const [search] = f.desk.tools({ id: 'a1', name: 'Enea' }, { left: 1 });
+  await search!.run({ query: 'one' }, f.ctx);
+  const capped = await search!.run({ query: 'two' }, f.ctx);
+  assert.match((capped as { content: string }).content, /decision_cap/);
+  assert.equal(f.calls(), 1);
+  assert.equal(f.desk.stats.capped, 1);
+  assert.equal(f.desk.stats.refused, 0);
+});

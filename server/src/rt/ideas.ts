@@ -73,8 +73,8 @@ export interface Idea {
   signals: string[];
   /** Web pages its authors cite (title and http/https URL). */
   sources: IdeaSource[];
-  /** The committee's last word on it. */
-  decision: { decision: CommitteeDecision; summary: string; at: At; votes: CommitteeVote[] } | null;
+  /** The committee's last word on it (`recused`: members who abstained for a conflict of interest, names). */
+  decision: { decision: CommitteeDecision; summary: string; at: At; votes: CommitteeVote[]; recused?: string[] } | null;
 }
 
 export interface IdeaSource {
@@ -111,6 +111,12 @@ export interface IdeasConfig {
     /** Ideas reviewed per committee session. */
     maxPerSession: number;
   };
+  /**
+   * Policy keys (Lorebase `Rule` records, value >= 1 means on): `conflictOfInterest` keeps the champion and the
+   * authors of an idea out of the committee's session on it; `independentReviews` hides the other reviews of an
+   * idea from a person until that person has reviewed it.
+   */
+  policies: { conflictOfInterest: string; independentReviews: string };
 }
 
 export interface IdeaEvents {
@@ -161,6 +167,21 @@ export function aggregate(reviews: IdeaReview[]): Scores | null {
   const out = {} as Scores;
   for (const k of SCORE_KEYS) out[k] = round1(reviews.reduce((s, r) => s + r.scores[k], 0) / reviews.length);
   return out;
+}
+
+/** Reviewers (names) whose five scores equal those of `r`, by someone else. Pure. */
+export function sameScores(reviews: IdeaReview[], r: IdeaReview): string[] {
+  return reviews.filter((x) => x.by !== r.by && SCORE_KEYS.every((k) => x.scores[k] === r.scores[k])).map((x) => x.by);
+}
+
+/** Whether a person may read the other reviews of an idea: authors always, others once they reviewed it. Pure. */
+export function seesReviews(i: Pick<Idea, 'authors' | 'champion' | 'reviews'>, name: string): boolean {
+  return i.champion === name || i.authors.includes(name) || i.reviews.some((r) => r.by === name);
+}
+
+/** Names of the people with a conflict of interest on an idea: its champion and authors. Pure. */
+export function conflicted(i: Pick<Idea, 'authors' | 'champion'>): string[] {
+  return [...new Set([i.champion, ...i.authors].filter((x): x is string => !!x))];
 }
 
 /**
@@ -437,6 +458,9 @@ export class IdeaBook {
     i.reviews = [...i.reviews.filter((x) => x.by !== by), r];
     i.scores = aggregate(i.reviews);
     this.note(i, at, by, 'reviewed', r.comment);
+    // A fact, not a block: the same five scores as a review already there.
+    const same = sameScores(i.reviews, r);
+    if (same.length) this.note(i, at, by, 'scores_match', same.join(', '));
     void this.persist(i, r);
     this.events.changed(i, 'reviewed', by);
     return i;
@@ -475,12 +499,13 @@ export class IdeaBook {
    * kill: stage killed with the reason, the Proposal closed (the branch keeps the record); defer: back to
    * proposal (the Proposal stays open for a later submission).
    */
-  decide(code: string, decision: CommitteeDecision, summary: string, votes: CommitteeVote[], at: At, by: string): Idea | string {
+  decide(code: string, decision: CommitteeDecision, summary: string, votes: CommitteeVote[], at: At, by: string, recused: string[] = []): Idea | string {
     const i = this.get(code);
     if (!i) return 'unknown_idea';
     if (i.stage !== 'pitch') return 'not_submitted';
     const text = clean(summary, this.cfg.textMaxChars);
-    i.decision = { decision, summary: text, at, votes };
+    i.decision = { decision, summary: text, at, votes, ...(recused.length ? { recused } : {}) };
+    if (recused.length) this.note(i, at, by, 'recused', recused.join(', '));
     this.submittedAt.delete(i.code);
     const proposal = i.proposalId;
     if (decision === 'defer') {

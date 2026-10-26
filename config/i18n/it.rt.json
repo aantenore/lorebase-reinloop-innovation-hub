@@ -5,7 +5,7 @@
     "Il tuo ruolo nell'azienda: {roleTitle} ({role}).",
     "La tua mente è collegata a Lorebase (strumenti lorebase_*): lì trovi le policy dell'azienda, il playbook condiviso del tuo ruolo, la newsletter aziendale e il portafoglio delle idee approvate. Hai anche una memoria privata (remember/recall).",
     "Il tempo scorre senza pause. Quando ti fermi a pensare fissi con commit_plan ciò che farai per circa {horizon} minuti; mentre pensi continui a fare ciò che stavi facendo.",
-    "Pensi e parli in italiano."
+    "Lavori in italiano: pensi, scrivi e parli in italiano."
   ],
   "replyInstructions": "Un collega ti ha appena rivolto la parola. Rispondi a voce, in una o due frasi, come la persona che sei. Se dopo questa conversazione vuoi ripensare a cosa fare, usa lo strumento rethink.",
   "biome": {
@@ -82,7 +82,13 @@
     "ideaLine": "- {code}: «{title}» ({stage}); champion {champion}; autori {authors}; valutazioni {reviews}{mine}{missing}",
     "ideaMine": "; è tua",
     "ideaReviewed": "; l'hai valutata",
-    "ideaMissing": "; mancano: {fields}"
+    "ideaMissing": "; mancano: {fields}",
+    "agoMinutes": "{n} minuti",
+    "agoHours": "{n} ore",
+    "pending": "PAROLE SENZA RISPOSTA:\n{lines}",
+    "pendingLine": "- {ago} fa hai detto a {name}: «{text}»; da allora non hai sentito parlare {name}.",
+    "ideaRecused": "; ne sei tra gli autori: per policy (astensione_conflitto_interessi) non voti e non presiedi la sessione del comitato su di essa",
+    "ideaNoQuorum": "; membri del comitato che possono decidere su di essa: {seated}, quorum {quorum}"
   },
   "why": {
     "start": "arrivi in ufficio e ti guardi intorno per la prima volta",
@@ -437,7 +443,8 @@
     "ideaReviewed": "Ho valutato l'idea «{title}» ({code})",
     "ideaSubmitted": "Ho candidato l'idea «{title}» al comitato",
     "committee": "Il comitato ha deciso sull'idea «{title}»: {decision}. {summary}",
-    "promoted": "Sono stato promosso: ora sono {career}"
+    "promoted": "Sono stato promosso: ora sono {career}",
+    "recused": "Non ho votato sull'idea «{title}»: ne sono tra gli autori (policy astensione_conflitto_interessi)."
   },
   "mock": {
     "reason": {
@@ -645,7 +652,7 @@
   "memberInstructions": [
     "Sei {name}, una delle menti più brillanti del mondo agentico. Il tuo carattere: {personality}",
     "Il tuo ruolo nell'azienda: {roleTitle} ({role}).",
-    "Fai parte del gruppo {group}. Pensi e parli in italiano."
+    "Fai parte del gruppo {group}. Lavori in italiano: pensi, scrivi e parli in italiano."
   ],
   "insightReason": {
     "own": "è una tua voce",
@@ -723,7 +730,9 @@
     "noReviews": "- nessuna",
     "company": "AZIENDA: trimestre {quarter}; slot di approvazione rimasti nel trimestre: {slots} su {total}; {freeze}.",
     "noSlots": "(Nessuno slot di approvazione rimasto nel trimestre: l'idea è rimandata.)",
-    "freeze": "(Freeze di budget in corso: l'idea è rimandata.)"
+    "freeze": "(Freeze di budget in corso: l'idea è rimandata.)",
+    "reviewsHidden": "- {n} valutazioni di altre persone: per policy (revisioni_indipendenti) le leggi dopo aver dato la tua",
+    "recused": "ASTENSIONI: {names}, tra gli autori dell'idea, per policy (astensione_conflitto_interessi) non votano e non presiedono. Presiede {chair}."
   },
   "ideaStage": {
     "signal": "segnale",
@@ -757,7 +766,9 @@
     "approved": "approvata",
     "killed": "scartata",
     "deferred": "rimandata",
-    "stage": "è passata di fase"
+    "stage": "è passata di fase",
+    "scores_match": "punteggi identici a una valutazione già data",
+    "recused": "astensione per conflitto di interessi"
   },
   "ideaReason": {
     "disabled": "non disponibile",
@@ -847,6 +858,7 @@
     "total_quota": "l'hub ha esaurito le ricerche web di oggi",
     "person_quota": "hai esaurito le tue ricerche web di oggi",
     "unavailable": "il servizio di ricerca non risponde",
-    "aborted": "ricerca interrotta"
+    "aborted": "ricerca interrotta",
+    "decision_cap": "in questa riflessione hai già usato tutte le ricerche web a disposizione"
   }
 }

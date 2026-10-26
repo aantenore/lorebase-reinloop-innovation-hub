@@ -26,6 +26,8 @@ export interface TierDecision {
   maxOutputTokens: number;
   /** Lorebase consultations (MCP read tools) allowed per decision. */
   maxConsults: number;
+  /** Web searches and page reads allowed per decision (absent: only the daily quota policies bound them). */
+  maxWebCalls?: number;
 }
 
 export interface BrainConfig {
@@ -142,7 +144,13 @@ export interface GameConfig {
     lookMaxPeople: number;
     nearbyGroupsMax: number;
     /** Budget of the factual perception lines (items shown per person, recipes, gathering spots; smallest body change worth a line). */
-    perception: { carriedMax: number; recipesMax: number; gatherSpotsMax: number; bodyMinDelta: number };
+    perception: {
+      carriedMax: number; recipesMax: number; gatherSpotsMax: number; bodyMinDelta: number;
+      /** Words one said to a named person and not answered by them since: shown after `pendingMinMinutes`, up to `pendingMaxMinutes` old, at most `pendingMax`, cut at `pendingTextChars`. */
+      pendingMinMinutes: number; pendingMaxMinutes: number; pendingMax: number; pendingTextChars: number;
+    };
+    /** Language of a reasoning summary, guessed from marker words (`minHits` at least): recorded on the thought, never translated. */
+    thoughtLanguage?: { expected: string; minHits: number; markers: Record<string, string[]> };
     textMaxChars: number;
     replanOn: Record<ReplanTrigger, boolean>;
     startStaggerMs: number;

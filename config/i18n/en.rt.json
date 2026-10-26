@@ -5,7 +5,7 @@
     "Your role in the company: {roleTitle} ({role}).",
     "Your mind is connected to Lorebase (lorebase_* tools): there you find the company policies, your role's shared playbook, the company newsletter and the portfolio of approved ideas. You also have a private memory (remember/recall).",
     "Time flows without pause. When you stop to think you fix with commit_plan what you will do for about {horizon} minutes; while you think you keep doing what you were doing.",
-    "You think and speak in English."
+    "You work in English: you think, write and speak in English."
   ],
   "replyInstructions": "Someone has just spoken to you. Reply aloud, in one or two sentences, as the person you are. If after this conversation you want to reconsider what to do, use the rethink tool.",
   "biome": {
@@ -82,7 +82,13 @@
     "ideaLine": "- {code}: \"{title}\" ({stage}); champion {champion}; authors {authors}; reviews {reviews}{mine}{missing}",
     "ideaMine": "; it is yours",
     "ideaReviewed": "; you reviewed it",
-    "ideaMissing": "; missing: {fields}"
+    "ideaMissing": "; missing: {fields}",
+    "agoMinutes": "{n} minutes",
+    "agoHours": "{n} hours",
+    "pending": "WORDS WITHOUT AN ANSWER:\n{lines}",
+    "pendingLine": "- {ago} ago you told {name}: \"{text}\"; you have not heard {name} speak since.",
+    "ideaRecused": "; you are among its authors: by policy (astensione_conflitto_interessi) you neither vote nor chair the committee session on it",
+    "ideaNoQuorum": "; committee members who may decide on it: {seated}, quorum {quorum}"
   },
   "why": {
     "start": "you look around for the first time",
@@ -437,7 +443,8 @@
     "ideaReviewed": "I reviewed the idea \"{title}\" ({code})",
     "ideaSubmitted": "I submitted the idea \"{title}\" to the committee",
     "committee": "The committee decided on \"{title}\": {decision}. {summary}",
-    "promoted": "I was promoted: I am now {career}"
+    "promoted": "I was promoted: I am now {career}",
+    "recused": "I did not vote on the idea \"{title}\": I am among its authors (policy astensione_conflitto_interessi)."
   },
   "mock": {
     "reason": {
@@ -645,7 +652,7 @@
   "memberInstructions": [
     "You are {name}. Your character: {personality}",
     "Your role in society: {roleTitle} ({role}).",
-    "You are part of the group {group}. You think and speak in English."
+    "You are part of the group {group}. You work in English: you think, write and speak in English."
   ],
   "insightReason": {
     "own": "it is your own idea",
@@ -723,7 +730,9 @@
     "noReviews": "- none",
     "company": "COMPANY: quarter {quarter}; approval slots left: {slots} of {total}; {freeze}.",
     "noSlots": "(No approval slot left this quarter: the idea is deferred.)",
-    "freeze": "(Budget freeze on: the idea is deferred.)"
+    "freeze": "(Budget freeze on: the idea is deferred.)",
+    "reviewsHidden": "- {n} reviews by other people: by policy (revisioni_indipendenti) you read them after giving yours",
+    "recused": "ABSTENTIONS: {names}, among the idea's authors, by policy (astensione_conflitto_interessi) neither vote nor chair. {chair} chairs."
   },
   "ideaStage": {
     "signal": "signal",
@@ -757,7 +766,9 @@
     "approved": "approved",
     "killed": "killed",
     "deferred": "deferred",
-    "stage": "moved to a new stage"
+    "stage": "moved to a new stage",
+    "scores_match": "scores identical to a review already given",
+    "recused": "abstention for a conflict of interest"
   },
   "ideaReason": {
     "disabled": "not available",
@@ -847,6 +858,7 @@
     "total_quota": "the hub has used up today's web searches",
     "person_quota": "you have used up your web searches for today",
     "unavailable": "the search service does not answer",
-    "aborted": "search interrupted"
+    "aborted": "search interrupted",
+    "decision_cap": "you have already used every web call available in this thought"
   }
 }

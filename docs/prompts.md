@@ -65,7 +65,7 @@ Lavori nell'hub innovazione di un'azienda IT: qui le persone generano e valutano
 Il tuo ruolo nell'azienda: Architetto (architetto).
 La tua mente è collegata a Lorebase (strumenti lorebase_*): lì trovi le policy dell'azienda, il playbook condiviso del tuo ruolo, la newsletter aziendale e il portafoglio delle idee approvate. Hai anche una memoria privata (remember/recall).
 Il tempo scorre senza pause. Quando ti fermi a pensare fissi con commit_plan ciò che farai per circa 60 minuti; mentre pensi continui a fare ciò che stavi facendo.
-Pensi e parli in italiano.
+Lavori in italiano: pensi, scrivi e parli in italiano.
 Puoi cercare sul web (web_search, web_fetch).
 ```
 
@@ -105,6 +105,20 @@ CIÒ CHE TI È STATO DETTO:
 CIÒ CHE RICORDI:
 - niente
 ```
+
+Facts added when they apply (texts from `config/i18n/it.rt.json`):
+
+```text
+PAROLE SENZA RISPOSTA:
+- 2 ore fa hai detto a Giulia: «Mi mandi il segnale sul dolore utenti?»; da allora non hai sentito parlare Giulia.
+
+IDEE IN AZIENDA:
+- triage-sinistri-...: «Triage sinistri» (pitch); champion Livia; autori Livia; valutazioni 3; è tua; ne sei tra gli autori: per policy (astensione_conflitto_interessi) non voti e non presiedi la sessione del comitato su di essa
+```
+
+`leggi_idea` by someone who is not an author and has not reviewed the idea yet (policy `revisioni_indipendenti`):
+the reviews block reads `- 3 valutazioni di altre persone: per policy (revisioni_indipendenti) le leggi dopo aver dato
+la tua`, the mean and weighted score are `-`, and review comments are left out of the history.
 
 ## Prompt caching
 

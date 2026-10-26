@@ -368,7 +368,7 @@ export class GroupManager {
     const name = `${m.id}${SEP}${role}`;
     this.models.set(name, model);
     const bare = opts.structured === true;
-    const tools = bare ? [] : [...(opts.json ? [this.planTool(counts.max)] : []), ...faculties(this.host, m, tc.maxConsults), ...ideaTools(this.host, m)];
+    const tools = bare ? [] : [...(opts.json ? [this.planTool(counts.max)] : []), ...faculties(this.host, m, tc), ...ideaTools(this.host, m)];
     const format = bare ? '' : opts.json ? this.formatText(opts.members ?? [m], tier) : this.t('rt.group.proposeFormat');
     const p = this.cfg.decisions.modelParams;
     return agent({
@@ -619,9 +619,11 @@ export class GroupManager {
    * The committee decides on one submitted idea (`brief`: the idea, its reviews and the company's facts).
    * Every consulted member votes (structured output, members' tier); in an assembly the esteem-weighted
    * plurality decides, otherwise the chair (the leader, own model) decides after reading the votes.
+   * `seated`: who sits in this session, chair first (the host leaves out members with a conflict of interest);
+   * default every living member, the leader first.
    */
-  async reviewIdea(g: Group, brief: string, mock: CommitteeMock): Promise<CommitteeOutcome | Failure> {
-    const members = this.livingMembers(g);
+  async reviewIdea(g: Group, brief: string, mock: CommitteeMock, seated?: RtEntity[]): Promise<CommitteeOutcome | Failure> {
+    const members = seated ?? this.livingMembers(g);
     if (!members.length) return { error: 'no living members' };
     const t = this.t;
     const signal = AbortSignal.timeout(decisionTimeoutMs(this.cfg, this.host.world()));

@@ -71,7 +71,7 @@ export interface DecideHost {
   /** Ideas: propose, enrich, review, submit to the committee, read one in full. */
   ideas: IdeaDesk;
   /** Web research (web_search, web_fetch) under the company policies; undefined when off. */
-  research?: { tools(who: { id: string; name: string }): Tool[] };
+  research?: { tools(who: { id: string; name: string }, budget?: { left: number }): Tool[] };
 }
 
 /** What a person can do with ideas (tools); results are factual lines. */
@@ -115,11 +115,12 @@ export interface Failure {
 export const isFailure = (v: unknown): v is Failure => !!v && typeof v === 'object' && typeof (v as Failure).error === 'string';
 
 /** Lorebase read tools (bounded per decision) and the private memory of one person. */
-export function faculties(host: DecideHost, e: RtEntity, maxConsults: number): Tool[] {
+export function faculties(host: DecideHost, e: RtEntity, tc: Pick<TierDecision, 'maxConsults' | 'maxWebCalls'>): Tool[] {
   return [
-    ...host.brain.lorebaseTools({ left: maxConsults, onConsult: (ev) => host.consulted(e, ev) }),
+    ...host.brain.lorebaseTools({ left: tc.maxConsults, onConsult: (ev) => host.consulted(e, ev) }),
     ...host.brain.memoryTools(e.name, () => ({ day: host.world().day, minute: host.world().minute }), host.cfg.memory.ingest.remember ?? { importance: 0.5, emotion: 0 }),
-    ...(host.research?.tools(e) ?? []),
+    // Web calls of one decision are bounded (tier `maxWebCalls`) so the run keeps turns to commit its plan.
+    ...(host.research?.tools(e, tc.maxWebCalls === undefined ? undefined : { left: tc.maxWebCalls }) ?? []),
   ];
 }
 
@@ -474,7 +475,7 @@ export async function decide(host: DecideHost, e: RtEntity, why: string, stop?: 
     model: modelRef(host, e.model, (req) => mockDecision(host, e, tc, req), cfg.mock.thinkDelayMs),
     params: { ...cfg.decisions.modelParams.plan, ...cacheParams(cfg), maxTokens: tc.maxOutputTokens },
     instructions: rtInstructions(t, e, host.roleOf(e.role), { horizon }, !!host.research),
-    tools: [commit, ...socialTools(host, e), ...faculties(host, e, tc.maxConsults)],
+    tools: [commit, ...socialTools(host, e), ...faculties(host, e, tc)],
     budget: { maxTurns: tc.maxTurns, maxToolCalls: tc.maxConsults + tc.maxTurns * 4 },
     toolSettings: { concurrency: 1 },
   });

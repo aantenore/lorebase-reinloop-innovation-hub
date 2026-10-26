@@ -195,7 +195,14 @@ share one mind (crowd "Stagisti").
   into `config/game.json`, `sim` into `config/sim.json`, `rosterTiers` by name, `"*"` for the rest). `economy`:
   every mind on haiku except Livia (venture lead, committee chair) on sonnet; committee voters and group
   proposers on haiku, no interns, replan cooldowns x2 (sonnet x3), one Lorebase consultation per haiku decision,
-  replies capped at 500 tokens.
+  replies capped at 500 tokens, 8 turns per decision with at most 2 web calls (haiku) or 3 (sonnet), game clock x3
+  (`loop.timeScale`; `GAME_TIME_SCALE` still wins).
+- **Per-decision web cap.** `decisions.tiers.<tier>.maxWebCalls`: searches and page reads one decision may make
+  (past it a call is refused as `decision_cap`, counted in `reinloop.webCapped`, no quota spent), so a run keeps
+  turns to commit its plan. Failures are counted by reason in `reinloop.failureReasons`.
+- **Language of thoughts.** Reasoning summaries are the model's: kept as they come, their language guessed from
+  marker words (`decisions.thoughtLanguage`) and recorded on the thought (`lang` on the `say` event of kind
+  `thought`, `reinloop.thoughtLangs`); never translated.
 
 ## Policies
 
@@ -212,12 +219,15 @@ Seeded from `lorebase/rules.seed.yaml` (Kind `Rule`). The ones about ideas and t
 | `fame_idea_proposed`, `fame_idea_approved`, `fame_review_given` | 0.5, 5, 0.5 | impact of each deed |
 | `promotion_senior_fame`, `promotion_principal_fame`, `promotion_fellow_fame` | 2, 6, 12 | career steps |
 | `risk_appetite` | 6 | read by people; not enforced by the world |
-| `ricerche_web_per_persona_al_giorno` | 6 | web searches and page reads one person may do per game day (a cached answer is free) |
-| `ricerche_web_totali_al_giorno` | 40 | the same for the whole hub |
+| `ricerche_web_per_persona_al_giorno` | 12 | web searches and page reads one person may do per game day (a cached answer is free) |
+| `ricerche_web_totali_al_giorno` | 60 | the same for the whole hub |
+| `astensione_conflitto_interessi` | 1 | the champion and authors of an idea neither vote nor chair its committee session; a conflicted chair is replaced by the eligible member with the highest career step (then vote weight); quorum counts eligible members (enforced by the server) |
+| `revisioni_indipendenti` | 1 | a non-author reads the other reviews' scores and comments of an idea only after reviewing it (`leggi_idea` and perception filtered by the server); identical five scores to an existing review are noted in the idea's history (`scores_match`), never blocked |
 | `domini_esclusi` | text | domains named in the text are dropped from results and never fetched |
 | `tema_agenti_ai`, `tema_developer_experience`, `tema_sicurezza` | text | strategic themes (category `strategy`, in `company.themes`) |
 | `orario_di_lavoro`, `regole_riunioni`, `giorni_remoti`, `zona_relax`, `codice_valutazione` | text | conduct policies people read and may report |
-| `winter_every_ticks`, `winter_length_ticks`, `season_turn_minutes` | 16, 2, 45 | the year (four quarters) and its freeze |
+| `winter_every_ticks`, `winter_length_ticks`, `season_turn_minutes` | 16, 1, 45 | the year (four quarters) and its freeze |
+| `dawn_minute`, `dusk_minute` | 420, 1260 | working hours (7-21, as in `orario_di_lavoro`); the rest is night |
 | `food_per_tick`, `starvation_threshold`, `rest_heal` | 0.4, 8, 1 | stress per turn, burnout threshold, energy back from a break |
 
 ### Changing a policy
@@ -305,4 +315,5 @@ Live run 1 (2026-10-26, 30 real minutes, $2.33, economy profile, Tavily research
 - Research quotas are counted in memory per game day: a restart starts the count again. `anthropic-native`
   searches run a small model call whose tokens are not booked in the run's cost.
 - Herald pins agents to `main`: they read approved ideas there and see open ones through their perception and
-  `leggi_idea`.
+  `leggi_idea`. Reviews of open ideas live on their `idea/` branches, out of reach of the agents' Lorebase tools, so
+  `revisioni_indipendenti` is enforced where agents can read them (perception, `leggi_idea`).

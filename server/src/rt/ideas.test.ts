@@ -3,12 +3,14 @@ import { test } from 'node:test';
 import type { LorebaseClient } from '../lorebase/client.ts';
 import { careerFor, Company } from './company.ts';
 import {
-  aggregate, exportMarkdown, filterIdeas, type IdeasConfig, IdeaBook, ideaFromRecord, ideaRow, type Scores, scoresFrom, sourcesFrom, stageFromFields, weightedScore,
+  aggregate, conflicted, exportMarkdown, filterIdeas, type IdeasConfig, IdeaBook, ideaFromRecord, ideaRow, sameScores, type Scores, scoresFrom, seesReviews, sourcesFrom,
+  stageFromFields, weightedScore,
 } from './ideas.ts';
 
 const cfg: IdeasConfig = {
   enabled: true, kind: 'Idea', reviewKind: 'Review', writeOperation: 'import_records', branchPrefix: 'idea/', titleMaxChars: 90, textMaxChars: 500, tagsMax: 6,
   tagMaxChars: 30, historyMax: 30, commentMaxChars: 280, perceiveMax: 6, signalsMax: 3, sourcesMax: 2, sourceTitleMaxChars: 20, retries: 0, retryBaseMs: 1, committee: { groupName: 'Comitato', maxPerSession: 3 },
+  policies: { conflictOfInterest: 'astensione_conflitto_interessi', independentReviews: 'revisioni_indipendenti' },
 };
 
 /** A Keeper stand-in that records the calls. */
@@ -111,4 +113,28 @@ test('ideas: sources keep http/https URLs only, without duplicates, titled by ho
   assert.deepEqual(out, [{ title: 'a.example.org', url: 'https://a.example.org/x' }, { title: 'B', url: 'http://b.example.org/' }, { title: 'c.example.org', url: 'https://c.example.org/' }]);
   assert.equal(sourcesFrom('ftp://x.org', 5, 20).length, 0);
   assert.equal(sourcesFrom(undefined, 5, 20).length, 0);
+});
+
+test('conflicts, review visibility and copied scores are facts on the idea', async () => {
+  const { client } = fakeClient();
+  const book = new IdeaBook(client, 'main', cfg, 's1', { changed: () => undefined });
+  const idea = await book.create('Livia', { title: 'Triage', ...full }, { at, quarter: 'Q1', signals: [], maxOpen: 3 });
+  assert.ok(typeof idea !== 'string');
+  book.enrich(idea.code, 'Matteo', { risks: 'r2' }, { at, signals: [] });
+  assert.deepEqual(conflicted(idea), ['Livia', 'Matteo']);
+  assert.equal(seesReviews(idea, 'Matteo'), true);
+  assert.equal(seesReviews(idea, 'Irene'), false);
+  const s: Scores = { impact: 5, feasibility: 6, novelty: 3, fit: 6, risk: 6 };
+  book.review(idea.code, 'Dario', s, 'ok', at);
+  assert.equal(seesReviews(idea, 'Dario'), true);
+  book.review(idea.code, 'Irene', { ...s }, 'idem', at);
+  assert.deepEqual(sameScores(idea.reviews, idea.reviews.at(-1)!), ['Dario']);
+  assert.deepEqual(idea.history.at(-1), { at, by: 'Irene', action: 'scores_match', note: 'Dario' });
+  book.review(idea.code, 'Giulia', { ...s, impact: 7 }, 'diverso', at);
+  assert.equal(idea.history.at(-1)!.action, 'reviewed');
+  await book.submit(idea.code, 'Livia', { at, clock: 0, minReviewers: 2 });
+  const out = book.decide(idea.code, 'defer', 'dati', [], at, 'Dario', ['Livia', 'Matteo']);
+  assert.ok(typeof out !== 'string');
+  assert.deepEqual(out.decision!.recused, ['Livia', 'Matteo']);
+  assert.deepEqual(out.history.slice(-2).map((h) => h.action), ['recused', 'deferred']);
 });
