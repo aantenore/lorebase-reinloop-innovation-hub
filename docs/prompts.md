@@ -10,9 +10,9 @@ consulted with the `lorebase_*` tools.
 
 | Part | Source |
 |------|--------|
-| Instructions (system) | `rt.instructions`: name and personality, the hub (people here generate and evaluate IT product ideas, they do not build them), role code and title (Lorebase `Role`), the faculties (a mind connected to Lorebase: policies, the role's playbook, the newsletter, the portfolio of approved ideas; a private memory `remember`/`recall`; when research is on, `rt.webFaculty`: "Puoi cercare sul web (web_search, web_fetch).") and the plan interface (`commit_plan`, horizon of the tier) |
+| Instructions (system) | `rt.instructions`: name and personality, the hub (people here generate and evaluate IT product ideas, they do not build them), role code and title (Lorebase `Role`), the faculties (a mind connected to Lorebase: policies, the role's playbook, the newsletter, the portfolio of approved ideas; a private memory `remember`/`recall`; when research is on, `rt.webFaculty`: "Puoi cercare sul web (web_search, web_fetch)."; when evidence is on, `rt.evidenceFaculty`: the signal tools, `allega_prova` and `intervista_simulata`, whose answers are generated hypotheses) and the plan interface; the first line is the working language (`Lingua di lavoro: italiano...`) (`commit_plan`, horizon of the tier) |
 | Observation (user message, at each decision) | `rt.observation.*`, `rt.look.*`, `rt.recipes.*`, `rt.body.*`: day, hour, quarter and freeze; energy, stress, what the person carries (codes and names) and where; body changes since it last thought; group; current step; why it thinks again (a fact); what it sees within `vision_radius` (rooms, coffee, whiteboard material, desks, colleagues, signals to pick up); the work methods it knows and what it lacks; seniority; exchange offers; hearsay; the company line; the ideas block; what was said to it; what it lived; which policies changed |
-| Tools | `commit_plan`, `say`, `form_group`, `join_group`, `leave_group`, `scambia`, `chiedi`, `rispondi_scambio`, `giudica`, `testimonia`, `proponi_legge` (a policy proposal), `share_insight` / `review_insights` / `judge_insight` (role playbook), the idea tools below; Lorebase read tools from Herald; private memory `remember` / `recall`; `web_search` / `web_fetch` (`rt.tools.web_search`, `rt.tools.web_fetch`: what they return, nothing on when) |
+| Tools | `commit_plan`, `say`, `form_group`, `join_group`, `leave_group`, `scambia`, `chiedi`, `rispondi_scambio`, `giudica`, `testimonia`, `proponi_legge` (a policy proposal), `share_insight` / `review_insights` / `judge_insight` (role playbook), the idea tools below; Lorebase read tools from Herald; private memory `remember` / `recall`; `web_search` / `web_fetch` (`rt.tools.web_search`, `rt.tools.web_fetch`: what they return, nothing on when); the evidence tools below |
 | Spoken reply | same instructions + `rt.replyInstructions`; short observation; optional `rethink` |
 | Group members | `rt.memberInstructions` + the group situation (`rt.group.*`); plan writers get `commit_plan`, proposers prose; both get the faculties line, the Lorebase and memory tools and the idea tools; judges, voters and routers answer with structured output and no tools |
 | Committee | `rt.committee.voteTask` (each consulted member, structured `{vote, reason}`), `rt.committee.chairTask` (the chair, structured `{decision, summary}`); the brief is `rt.committee.idea` + `rt.committee.company` |
@@ -28,6 +28,19 @@ Descriptions say what each tool does, never when or why to use it (`rt.tools.ide
 | `valuta_idea` | `code`, `impact`, `feasibility`, `novelty`, `fit`, `risk` (0-10), `comment` | a peer review (never of one's own idea; one per person, a new one replaces the old) |
 | `candida_al_comitato` | `code` | an author submits a complete idea with enough reviews; a Proposal into `main` opens |
 | `leggi_idea` | `code` | the idea in full (fields, authors, reviews, weighted score, history) |
+
+## Evidence tools
+
+| Tool | Arguments | Effect |
+|------|-----------|--------|
+| `cerca_discussioni`, `cerca_progetti`, `cerca_domande`, `cerca_paper` | `query`, `max_results?` | Hacker News, GitHub, Stack Overflow, arXiv through reinloop `signalTools`; compact JSON marked untrusted (`rt.tools.signal.*` say what each returns) |
+| `allega_prova` | `idea`, `tipo` (`segnale_pubblico` / `fonte_web`), `url`, `titolo?`, `metrica?`, `estratto?` | an `Evidence` Record on the idea's branch, only for a URL from the person's own searches; source, title and metric come from the result |
+| `intervista_simulata` | `idea`, `persona` (`cliente` / `dpo` / `utente`), `domande` | one call to a small model playing that persona (`rt.interview.*`); answers stored with weight 0, label `ipotesi`, prefixed "IPOTESI (intervista simulata ..., non è una prova)" |
+
+Refusals are facts (`rt.evidenceReason.*`): "l'indirizzo non è tra i risultati delle tue ricerche", "hai esaurito
+le tue ricerche di segnali pubblici di oggi", "questa prova è già allegata all'idea". A submission short of the
+candidacy requirements is refused with the numbers (`rt.gate.*`): "requisiti di candidatura non soddisfatti: prove
+reali 1 di 3; fonti distinte 1 di 2; validazioni umane 0 di 1 (in alternativa)".
 
 Web research refusals are facts too (`rt.researchReason.*`): "hai esaurito le tue ricerche web di oggi",
 "il dominio è escluso dalle policy", "la pagina non è tra i risultati delle tue ricerche web" (`web_fetch` only reads URLs
@@ -46,14 +59,20 @@ Two blocks, facts only:
   freeze on or off, the person's career step.
 - `IDEE IN AZIENDA`: up to `ideas.perceiveMax` open ideas (the person's first) and the latest decided
   ones: code, title, stage, champion, authors, number of reviews, whether it is the person's or reviewed
-  by it, which fields are missing.
+  by it, which fields are missing, and for open ideas the evidence against the candidacy requirements
+  (`rt.observation.ideaEvidence`: "prove reali 1/3, fonti distinte 1/2, validazioni umane 0/1, ipotesi 1", or
+  "requisiti di candidatura soddisfatti").
+- New evidence is news for the authors and, for a player's validation, for the people within earshot
+  (`rt.why.idea.evidence`).
 
 Why a person thinks again may also be a fact about ideas (`rt.why.idea.*`: a colleague reviewed your idea,
 the committee approved, killed or deferred it) or the end of a quarter (`rt.why.quarter`).
 
 The strategic themes are policies (category `strategy`): they are not in the prompt, people read them in
 Lorebase like any policy. The committee brief carries the weighted score of the reviews computed with the
-evaluation policies (`weight_*`, risk counted inverted): a fact derived from the policies, not advice.
+evaluation policies (`weight_*`, risk counted inverted), the evidence (`rt.committee.evidence`: each piece with
+type, source, metric, weight, who collected it, `[ipotesi]` on interviews), where the idea stands against the
+requirements and the score mixed by `peso_prove_nel_punteggio_comitato`: facts derived from the policies, not advice.
 
 ## Rendered example
 

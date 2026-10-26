@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- reinloop pinned at 474f0b5 (`vendor/reinloop-474f0b5c.tgz`): `signalTools` and recovery from malformed streamed
+  tool arguments (the group plan JSON failures of run 2).
+- Evidence for ideas: Lorebase Kind `Evidence` on the idea branch (`public_signal`, `web_source`,
+  `human_validation`, `simulated_interview`), tools `cerca_discussioni`, `cerca_progetti`, `cerca_domande`,
+  `cerca_paper`, `allega_prova` (only URLs from the person's own searches), `intervista_simulata` (weight 0, label
+  `ipotesi`); `POST /api/ideas/:code/validation` for players and `npm run idea:validate`; `evidence` event.
+- Candidacy requirements and evidence weights as policies (`requisiti_candidatura_*`, `peso_prova_*`,
+  `peso_prove_nel_punteggio_comitato`, `prove_per_punteggio_pieno`, quotas `segnali_pubblici_*`,
+  `interviste_simulate_*`); the submit tool says what is missing; perception and the committee brief show evidence.
+- Plan calls use `thinking.display: "omitted"`; the thought shown is the person's Italian plan reason; the working
+  language is the first line of the instructions.
+- `economy` profile: Livia on haiku too (run 2: sonnet was 76% of the cost).
+- Game client: evidence in the idea drawer grouped by type with weights and the `ipotesi` badge, requirements
+  bar, evidence badge and pulse on cards, "Valida idea" panel.
 - reinloop pinned at 96601b2 (`vendor/reinloop-96601b26.tgz`): prompt caching, hosted tools, web tools.
 - Web research for every mind (`web_search`, `web_fetch`, provider in `research.provider`: tavily,
   anthropic-native or off): daily quotas and excluded domains are policies (`ricerche_web_per_persona_al_giorno`,

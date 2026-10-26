@@ -187,6 +187,23 @@ share one mind (crowd "Stagisti").
   http(s), without credentials, not an IP literal, not localhost / `.local` / `.internal` / single-label hosts, at
   most `maxUrlChars` long; fragments are dropped. `mode: "off"` refuses every fetch. Hostnames that resolve to
   private addresses are not detected (no DNS check).
+- **Public signals and evidence.** `evidence` in `config/game.json`. Four signal tools from reinloop's
+  `signalTools` (no key needed), given Italian names: `cerca_discussioni` (Hacker News, points), `cerca_progetti`
+  (GitHub, stars), `cerca_domande` (Stack Overflow, votes), `cerca_paper` (arXiv). They share the decision's web cap
+  (`maxWebCalls`), have their own daily quotas (policies `segnali_pubblici_*`) and a server-side cache
+  (`signals.cacheTtlMs`, a cached answer is free); results are untrusted text. `allega_prova {idea, tipo, url,
+  titolo?, metrica?, estratto?}` turns a result into an `Evidence` Record on the idea's branch, but only when the URL
+  came back from the same person's own signal or web searches (`signals.allowTtlMs`, `allowMax`); source, title and
+  metric are taken from the result, not from the model. `intervista_simulata {idea, persona: cliente|dpo|utente,
+  domande}` is one cheap call (`interview.tier`, `maxOutputTokens`) whose answers are stored as `simulated_interview`
+  evidence with weight 0 and the label `ipotesi`, prefixed "IPOTESI ...". A player in the hub, within speech range
+  of a person, validates an idea from the game's "Valida idea" panel (`POST /api/ideas/:code/validation`, or
+  `npm run idea:validate -- --role dpo --verdict neutro --comment "..."`): `human_validation` evidence with the
+  policy weight. Weights, quotas and the candidacy requirements are policies (table below); `candida_al_comitato`
+  checks the requirements and answers with the numbers missing; the committee brief lists the evidence and a score
+  that mixes reviews and evidence (`peso_prove_nel_punteggio_comitato`). Offline the signal tools answer with
+  deterministic results under `example.org`. Counters in `reinloop`: `signalSearches`, `signalCached`,
+  `signalRefused`, `signalErrors`, `evidenceAttached`, `interviews`; `gateRefusals` and `validations` in the stats.
 - **Prompt caching.** On Anthropic models reinloop caches the prompt prefix (tool catalog, instructions, then the
   latest message). Every call puts what does not change between decisions first: tools, then the person's
   instructions (identity, role, faculties, horizon); the perception of the moment is the message, last. Config
@@ -196,16 +213,18 @@ share one mind (crowd "Stagisti").
   (`webSearches`, `webFetches`, `webCached`, `webRefused`, `webErrors`).
 - **Cost profiles.** `GAME_PROFILE=<name>` applies `config/profiles/<name>.json` over the config files (`game`
   into `config/game.json`, `sim` into `config/sim.json`, `rosterTiers` by name, `"*"` for the rest). `economy`:
-  every mind on haiku except Livia (venture lead, committee chair) on sonnet; committee voters and group
-  proposers on haiku, no interns, replan cooldowns x2 (sonnet x3), one Lorebase consultation per haiku decision,
+  every mind on haiku, the committee chair (Livia) included; committee voters and group proposers on haiku, no interns, replan cooldowns x2 (sonnet x3), one Lorebase consultation per haiku decision,
   replies capped at 500 tokens, 8 turns per decision with at most 2 web calls (haiku) or 3 (sonnet), game clock x3
   (`loop.timeScale`; `GAME_TIME_SCALE` still wins).
 - **Per-decision web cap.** `decisions.tiers.<tier>.maxWebCalls`: searches and page reads one decision may make
   (past it a call is refused as `decision_cap`, counted in `reinloop.webCapped`, no quota spent), so a run keeps
   turns to commit its plan. Failures are counted by reason in `reinloop.failureReasons`.
-- **Language of thoughts.** Reasoning summaries are the model's: kept as they come, their language guessed from
-  marker words (`decisions.thoughtLanguage`) and recorded on the thought (`lang` on the `say` event of kind
-  `thought`, `reinloop.thoughtLangs`); never translated.
+- **Language of thoughts.** The Messages API has no setting for the language of thinking summaries, and in run 2
+  they came back in English. Plan calls now use `thinking.display: "omitted"` (`decisions.modelParams.plan`): the
+  thought shown for a decision is the person's own plan reason, written in Italian; the working-language line is
+  the first line of the instructions. A thought's language is still guessed from marker words
+  (`decisions.thoughtLanguage`) and recorded (`lang` on the `say` event of kind `thought`, `reinloop.thoughtLangs`);
+  nothing is translated.
 
 ## Policies
 
@@ -226,6 +245,13 @@ Seeded from `lorebase/rules.seed.yaml` (Kind `Rule`). The ones about ideas and t
 | `ricerche_web_totali_al_giorno` | 60 | the same for the whole hub |
 | `astensione_conflitto_interessi` | 1 | the champion and authors of an idea neither vote nor chair its committee session; a conflicted chair is replaced by the eligible member with the highest career step (then vote weight); quorum counts eligible members (enforced by the server) |
 | `revisioni_indipendenti` | 1 | a non-author reads the other reviews' scores and comments of an idea only after reviewing it (`leggi_idea` and perception filtered by the server); identical five scores to an existing review are noted in the idea's history (`scores_match`), never blocked |
+| `segnali_pubblici_per_persona_al_giorno`, `segnali_pubblici_totali_al_giorno` | 10, 60 | public signal searches per person and for the hub per game day (cached answers are free) |
+| `interviste_simulate_per_persona_al_giorno`, `interviste_simulate_totali_al_giorno` | 2, 10 | simulated interviews per person and for the hub per game day |
+| `peso_prova_segnale_pubblico`, `peso_prova_fonte_web`, `peso_prova_validazione_umana` | 1, 0.5, 2 | weight of each kind of evidence (simulated interviews always 0) |
+| `requisiti_candidatura_prove_reali`, `requisiti_candidatura_fonti_distinte` | 3, 2 | to submit, an idea needs this much real evidence (weight > 0, interviews excluded) from this many distinct sources... |
+| `requisiti_candidatura_validazioni_umane` | 1 | ...or this many human validations instead (0: no such path) |
+| `requisiti_candidatura_punteggio_minimo` | 0 | minimum weighted review score to submit (0: none) |
+| `peso_prove_nel_punteggio_comitato`, `prove_per_punteggio_pieno` | 0.3, 6 | share of the evidence score (0-10, full at this sum of weights) in the score the committee reads |
 | `domini_esclusi` | text | domains named in the text are dropped from results and never fetched |
 | `tema_agenti_ai`, `tema_developer_experience`, `tema_sicurezza` | text | strategic themes (category `strategy`, in `company.themes`) |
 | `orario_di_lavoro`, `regole_riunioni`, `giorni_remoti`, `zona_relax`, `codice_valutazione` | text | conduct policies people read and may report |
@@ -261,16 +287,18 @@ kept (see the civilization README); the hub changes and adds:
 - `time`: adds `quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4'` and `freeze: boolean` (`season` kept).
 - `hello`: adds `company: {name, quarter, slotsLeft, themes: string[], freeze}` and `ideas: Idea[]`.
 - `group`: adds `committee: boolean` and `jointPlans: boolean`.
-- `Idea = {code, title, problem, users, solution, differentiation, feasibility, risks, tags: string[], stage, champion: string | null, authors: string[], scores: {impact, feasibility, novelty, fit, risk} | null, reviews: [{by, scores, comment, at: {day, minute}}], branch, proposalId: string | null, quarter, history: [{at: {day, minute}, by, action, note}], signals: string[], sources: [{title, url}], decision: {decision, summary, at, votes} | null}`.
+- `Idea = {code, title, problem, users, solution, differentiation, feasibility, risks, tags: string[], stage, champion: string | null, authors: string[], scores: {impact, feasibility, novelty, fit, risk} | null, reviews: [{by, scores, comment, at: {day, minute}}], branch, proposalId: string | null, quarter, history: [{at: {day, minute}, by, action, note}], signals: string[], sources: [{title, url}], evidence: Evidence[], gate?: {pass, real, sources, human, hypotheses, missing: [{code, have, need}], need: {minReal, minSources, minHuman, minScore}}, decision: {decision, summary, at, votes} | null}`.
+  `Evidence = {code, idea, type: 'public_signal' | 'human_validation' | 'simulated_interview' | 'web_source', source: 'hackernews' | 'github' | 'stackoverflow' | 'arxiv' | 'web' | 'player' | 'persona', url, title, metric: number | null, metric_name, excerpt, collected_by, collected_at: {day, minute}, weight, label ('ipotesi' on simulated interviews), role?, verdict?}`.
   `stage` in `signal | insight | concept | proposal | pitch | approved | killed`. People (champion, authors,
   reviewers, history `by`) are **names**. `scores` is the mean of the reviews (0-10, one decimal).
-- `idea {idea, action}`: `action` in `created | updated | reviewed | submitted | approved | killed | stage`.
+- `idea {idea, action}`: `action` in `created | updated | reviewed | submitted | approved | killed | stage | evidence`.
+- `evidence {ideaCode, evidence}`: a piece of evidence was attached (the `idea` message that follows carries the full idea).
 - `committee {groupId, ideaCode, decision: 'approve' | 'kill' | 'defer', votes: [{member, vote, reason}], summary}`:
   `member` is an entity id; with `SIM_API_TOKEN` set the votes go only to privileged connections (others get
   `votes: []`), the summary to everyone.
 - `company {name, quarter, slotsLeft, themes, freeze}`: at every quarter turn, after each committee decision and when policies change.
 - `world_event` kinds add `idea` and `company` (promotions, quarterly reviews).
-- `research {agentId, tool: 'web_search' | 'web_fetch', query?, url?, results: [{title, url}], cached, snippets?}`:
+- `research {agentId, tool: 'web_search' | 'web_fetch' | 'cerca_discussioni' | 'cerca_progetti' | 'cerca_domande' | 'cerca_paper', query?, url?, results: [{title, url}], cached, snippets?}`:
   a person searched the web or read a page; `snippets` only to privileged connections. `GET /api/agents/:id/mind`
   adds `research` (the person's latest, same fields without snippets).
 
@@ -278,6 +306,7 @@ REST:
 
 - `GET /api/ideas?stage=&tag=&author=` → `Idea[]` (author matches authors and champion, by name).
 - `GET /api/ideas/:code` → `Idea` (404 when unknown).
+- `POST /api/ideas/:code/validation` `{player, role: 'cliente' | 'dpo' | 'utente', verdict: 'positivo' | 'neutro' | 'negativo', comment}` → `{ok, evidence}`; 403 when `player` is not a player entity, 409 when no person of the hub is within `speech_radius` (or the idea is decided). Same mutation guard as every POST.
 - `GET /api/ideas/export.md` → the portfolio in markdown (approved, pipeline by stage, killed), `text/markdown`.
 - `GET /api/research` → `{provider, stats, items: [{at, agentId, name, tool, query?, url?, results, cached}]}` (the run's searches, no snippets).
 - `GET /api/company` → `{name, quarter, slotsLeft, themes, freeze, stats: {proposed, submitted, approved, killed}, slotsPerQuarter, committee}`.
@@ -324,7 +353,9 @@ policies on, clock x3), section "Run 2" of [docs/run-report.md](docs/run-report.
 - Offline, movement follows `mock.habits` (which company roles explore, gather, build or look after colleagues);
   idea work comes from the individual minds (committee members and people outside groups), squad members follow
   joint plans.
-- Research quotas are counted in memory per game day: a restart starts the count again.
+- Research, signal and interview quotas are counted in memory per game day: a restart starts the count again.
+- A human validation is accepted from any player entity in speech range of a person of the hub; players are not
+  authenticated beyond the API token.
 - Herald pins agents to `main`: they read approved ideas there and see open ones through their perception and
   `leggi_idea`. Reviews of open ideas live on their `idea/` branches, out of reach of the agents' Lorebase tools, so
   `revisioni_indipendenti` is enforced where agents can read them (perception, `leggi_idea`).
