@@ -15,7 +15,8 @@ consulted with the `lorebase_*` tools.
 | Tools | `commit_plan`, `say`, `form_group`, `join_group`, `leave_group`, `scambia`, `chiedi`, `rispondi_scambio`, `giudica`, `testimonia`, `proponi_legge` (a policy proposal), `share_insight` / `review_insights` / `judge_insight` (role playbook), the idea tools below; Lorebase read tools from Herald; private memory `remember` / `recall`; `web_search` / `web_fetch` (`rt.tools.web_search`, `rt.tools.web_fetch`: what they return, nothing on when); the evidence tools below |
 | Spoken reply | same instructions + `rt.replyInstructions`; short observation; optional `rethink` |
 | Group members | `rt.memberInstructions` + the group situation (`rt.group.*`); plan writers get `commit_plan`, proposers prose; both get the faculties line, the Lorebase and memory tools and the idea tools; judges, voters and routers answer with structured output and no tools |
-| Committee | `rt.committee.voteTask` (each consulted member, structured `{vote, reason}`), `rt.committee.chairTask` (the chair, structured `{decision, summary}`); the brief is `rt.committee.idea` + `rt.committee.company` |
+| Committee | every seated member votes (`ideas.committee.maxVoters`, 0 = all; `groups.maxProposers` does not apply). With policy `criteri_comitato` on: `rt.committee.voteTaskCriteria` and the only tool `vota_idea` (`criteri`: `{<criterion>: {soddisfatto, nota}}` for every criterion, `voto`, `motivo`, `richieste_fuori_policy?`), then `rt.committee.chairTaskCriteria` and the only tool `decidi_idea` (`decisione`, `criteri_non_soddisfatti`, `sintesi`, `richieste_fuori_policy?`); a call the policy refuses says why ("non registrato: per policy criteri_comitato un kill o un defer ha almeno un criterio non soddisfatto ...") and may be repeated (`ballotMaxTurns`). With the policy off: `rt.committee.voteTask` (structured `{vote, reason}`), `rt.committee.chairTask` (structured `{decision, summary}`). The brief is `rt.committee.idea` + `rt.committee.company` + the portfolio line + `rt.committee.policyBlock` (each criterion with its rule text, `fase_approvazione`, `costo_del_rinvio`) |
+| Closing run | a plan run that ends without `commit_plan`, or on its turn or tool-call budget, gets one more run on the same conversation (`decisions.closingTurn`) with the user line `rt.observation.closingTurn` ("FINE DELLA RIFLESSIONE: ... nessun piano è fissato. In questo turno risponde solo commit_plan ..."); the same tools stay listed (cache prefix), the others answer `rt.act.decisionClosed` |
 
 ## Idea tools
 
@@ -33,7 +34,7 @@ Descriptions say what each tool does, never when or why to use it (`rt.tools.ide
 
 | Tool | Arguments | Effect |
 |------|-----------|--------|
-| `cerca_discussioni`, `cerca_progetti`, `cerca_domande`, `cerca_paper` | `query`, `max_results?` | Hacker News, GitHub, Stack Overflow, arXiv through reinloop `signalTools`; compact JSON marked untrusted (`rt.tools.signal.*` say what each returns) |
+| `cerca_discussioni`, `cerca_progetti`, `cerca_domande`, `cerca_paper` | `query`, `max_results?` | Hacker News, GitHub, Stack Overflow, arXiv through reinloop `signalTools`; compact JSON marked untrusted (`rt.tools.signal.*` say what each returns and the language each source indexes, "indicizza contenuti in inglese"). Hacker News: a query no story matches with every word is asked again with every word optional and no typo tolerance (`evidence.signals.hackernews.partialMatch`), those results carry `match: "partial"` |
 | `allega_prova` | `idea`, `tipo` (`segnale_pubblico` / `fonte_web`), `url`, `titolo?`, `metrica?`, `estratto?` | an `Evidence` Record on the idea's branch, only for a URL from the person's own searches; source, title and metric come from the result |
 | `intervista_simulata` | `idea`, `persona` (`cliente` / `dpo` / `utente`), `domande` | one call to a small model playing that persona (`rt.interview.*`); answers stored with weight 0, label `ipotesi`, prefixed "IPOTESI (intervista simulata ..., non è una prova)" |
 
@@ -61,6 +62,15 @@ Two blocks, facts only:
   approvazione rimasti questo trimestre: 3 su 3, scadono il giorno 1 alle 10:00 (policy
   slot_scadono_a_fine_trimestre)"; with the policy off, `rt.observation.slotsCarry`: unused slots pass to the next
   quarter), freeze on or off, the person's career step.
+- `PORTAFOGLIO` (`rt.observation.portfolio`): ideas approved this quarter, the quarter target of policy
+  `obiettivo_portfolio_trimestre` ("3 concept esplorati"), approved and killed in all, ideas in the pipeline and how
+  many are before the committee.
+- `COMITATO INVESTIMENTI` (`rt.observation.committeePolicy`): the criteria of policy `criteri_comitato` (keys), that a
+  kill or defer names an unmet one and other demands are recorded as out of policy; what an approval funds by policy
+  `fase_approvazione` ("approvare un'idea significa finanziarla come esplorazione di concept; la prova di clienti
+  paganti appartiene a una fase successiva (pilota), fuori dal perimetro del comitato"); what a deferral costs by
+  policy `costo_del_rinvio` ("rinviare un'idea che soddisfa i requisiti di candidatura consuma 1 slot di approvazione
+  del trimestre").
 - `IDEE IN AZIENDA`: up to `ideas.perceiveMax` open ideas (the person's first) and the latest decided
   ones: code, title, stage, champion, authors, number of reviews, whether it is the person's or reviewed
   by it, which fields are missing, and for open ideas the evidence against the candidacy requirements
@@ -74,7 +84,8 @@ Two blocks, facts only:
   (`rt.why.idea.evidence`).
 
 Why a person thinks again may also be a fact about ideas (`rt.why.idea.*`: a colleague reviewed your idea,
-the committee approved, killed or deferred it) or the end of a quarter (`rt.why.quarter`).
+the committee approved, killed or deferred it; the decision's summary ends with the unmet criteria, the
+out-of-policy demands and the slots a deferral consumed: `rt.committee.unmetNote`, `outOfPolicyNote`, `slotsSpentNote`) or the end of a quarter (`rt.why.quarter`).
 
 The strategic themes are policies (category `strategy`): they are not in the prompt, people read them in
 Lorebase like any policy. The committee brief carries the weighted score of the reviews computed with the

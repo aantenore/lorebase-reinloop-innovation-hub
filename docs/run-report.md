@@ -409,3 +409,97 @@ A run where deferral is a fact with a cost (for example a policy on how often an
 can be deferred, or the slots left shown to voters as a number at stake), all three committee members voting
 (`groups.maxProposers` 3 or a committee-specific cap), and a player giving one validation, to see whether the
 committee approves or kills on evidence the policy accepts.
+
+# Run 5: a committee voting on policy criteria, closing runs, Hacker News that answers
+
+Date: 2026-10-26, 12:04-12:34 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (all
+haiku, clock x3), `GAME_BUDGET_USD=3`, reinloop 474f0b5. New since run 4: every seated committee member votes
+(`ideas.committee.maxVoters` 0 = all; `groups.maxProposers` capped the ballots before); policy `criteri_comitato`
+with five criteria (`criterio_comitato_prove_del_problema`, `_concorrenza`, `_fattibilita`, `_rischio`,
+`_coerenza_strategica`): ballots are `vota_idea` calls with a verdict per criterion, a kill or defer names an unmet
+criterion, other demands are recorded as out of policy; `fase_approvazione` 1 (an approval funds a concept
+exploration; paying customers belong to the pilot stage); `costo_del_rinvio` 1 (deferring an idea that meets the
+requirements consumes an approval slot); `obiettivo_portfolio_trimestre` 3; perception lines `PORTAFOGLIO` and
+`COMITATO INVESTIMENTI`; closing runs for plans; Hacker News partial match. No player joined. Stop rule: 30 real
+minutes or five committee decisions: **time came first**.
+
+Evidence: [docs/evidence/run5/](evidence/run5/) ([evidence.md](evidence/run5/evidence.md),
+[committee.md](evidence/run5/committee.md), [conversations.md](evidence/run5/conversations.md)). Progress log:
+[docs/run-progress.log](run-progress.log) (`run5` lines). Export: [docs/portfolio-run5.md](portfolio-run5.md).
+
+## Diagnosis of run 4's "no plan committed" (before the fix)
+
+From the run events kept in mnemo (the last 500 runs of run 4): every single-person plan run without a plan ended
+with status `completed`, stop reason `end`, after 3 to 6 turns (of 8) and 4 to 7 tool calls (of 33), with 54k to
+117k input tokens over the run on a 9.3k to 10.3k character observation. None ran out of turns or tool calls: the
+model closed with a prose summary ("Ho deciso di non candidare il Triage ...") instead of calling `commit_plan`.
+The fix is a closing run on the same conversation where only `commit_plan` answers (`decisions.closingTurn`), also
+after a turn or tool-call budget stop.
+
+## Runs 1 to 5
+
+| | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 |
+|---|---|---|---|---|---|
+| Real time, stop | 30 min, time | 19 min, budget | 28 min, time | 30 min, time | 30 min, time |
+| Decisions | 213 + 29 group | 293 + 48 group | 468 + 69 group | 500 + 81 group | 438 + 73 group, 395 replies, 1032 runs |
+| Failures | 8 (6 `maxTurns`) | 6 | 7 (6 no plan) | 29 (27 no plan) | **1** (a group orchestrator); **0 no plan**: 10 closing runs, 10 plans |
+| Ideas created | 2 | 3 | 2 | 1 | 1 |
+| Submitted | 1 | 0 | 0 | 2 (same idea) | **0** |
+| Decided | 1 defer | 0 | 0 | 2 defer | 0 |
+| Votes per criterion | - | - | - | - | none cast (no session; offline: 8 sessions, 3 ballots each) |
+| Out-of-policy demands | - | - | - | not recorded | 0 (no session) |
+| Cost | $2.33 | $3.01 | $2.27 (minds $1.30, web $0.98) | $1.93 (minds $1.46, web $0.48) | **$1.89: minds $1.37 (73%), web search $0.51 (27%), signals $0** |
+| Tokens in / out | 10.78 M / 0.43 M | 15.03 M / 0.63 M | 24.55 M / 1.16 M | 27.62 M / 1.15 M | 25.69 M / 1.17 M |
+| Prompt cache | hit 0.785 | hit 0.781 | hit 0.768 | hit 0.781 | hit 0.787, saved $1.70 |
+| Web searches | 29, 22 refused | 10 | 86 | 40, 102 refused | 53, 102 refused, 3 capped |
+| Public signal searches | - | - | 38 | 47 (HN 36, 31 empty) | 40: HN 31 (**0 empty**), GitHub 6, arXiv 3 (3 empty); 38 refused, 11 errors |
+| Evidence | - | - | 12 | 8 (1 signal) | 9 (web 6, HN 2, GitHub 1) |
+| Thoughts language | - | en 293 | it 438 | it 462 | it 411 |
+
+## Portfolio
+
+Nothing approved or killed. Full text in [portfolio-run5.md](portfolio-run5.md).
+
+- **Audit delle decisioni automatiche per banche (tracciabilità AI Act)** (champion and author Irene; reviews by
+  Dario and Matteo: impact 6.5, feasibility 5.5, novelty 3.5, fit 6.5, risk 6, weighted 5.5). Pitch: an audit trail
+  of automated credit and anti-fraud decisions (input, model version, reason) with supervisory reports, for the
+  logging duty of art. 12 of the AI Act. Requirements met from the first hours (9 real pieces from 3 sources);
+  never submitted.
+
+## Diagnosis: why no committee decision
+
+- **The gate moved upstream.** The policies were read as written: committee members quoted the criteria
+  («kill sul criterio prove del problema»), the cost of a deferral («non porto un rinvio che consuma slot») and the
+  target («l'obiettivo è 3 concept esplorati»). With a deferral now costing a slot, nobody wanted a session that
+  might end in one, and the chair and the critic asked the author not to submit until the text of art. 12 was read
+  on EUR-Lex and a DPO validated it; the author agreed. No policy gives the committee a say before submission, and
+  none stops it either: the conversation does it.
+- **The missing check was within reach but over quota.** The EUR-Lex pages were attached as evidence, but nobody read
+  them: `web_fetch` counts against the web quotas, which refused 102 calls (3 per person, 10 for the hub per day).
+- **One idea again.** The three committee members cannot propose (`comitato_non_coautore`); of the five others only
+  Irene proposed; Giulia worked on an insight; Enea, Sara and Bruno did not touch an idea.
+- **The demand changed shape.** «Un cliente pagante» almost disappeared (1 line, 539 in run 4 including validations);
+  «fonte primaria» and «DPO» took its place.
+
+## What changed, what it showed
+
+- **Closing runs.** 0 "no plan committed" (27 in run 4); 10 runs needed the closing run and all 10 committed a plan.
+- **Hacker News.** 31 of 31 searches returned stories (5 of 36 in run 4); 2 of the 3 public signals attached are
+  Hacker News stories. Queries were mostly English; the descriptions now say each source indexes English content.
+- **Committee ballots.** Not exercised live (no submission). Offline the whole path ran: 3 ballots per session (all
+  members), every kill and defer naming an unmet criterion, deferrals of ideas meeting the requirements consuming a slot.
+- **Cost.** $1.89 for 1032 runs; web search 27% of spend.
+
+## Problems seen
+
+- A cost on deferral without a matching fact about time to approval pushed the committee to keep ideas out of the
+  queue instead of deciding: the stop moved from the vote to the conversation before submission.
+- Signal refusals (38) and errors (11) are single counters; the run cannot tell quota from per-decision cap or which
+  source failed.
+- Committee members steer whether an author submits; no policy speaks to it.
+
+## Next useful step
+
+A run with the web quotas sized so a primary source can be read (`web_fetch` on a URL already found), or a player
+validation, and a fact in perception about how long a submitted idea waits for a session, to see whether the
+committee votes on the criteria once an idea is in front of it.

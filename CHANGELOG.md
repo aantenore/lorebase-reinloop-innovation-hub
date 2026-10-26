@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- Live run 5 recorded: `docs/run-report.md` (Run 5, with the diagnosis of run 4's plan runs), `docs/evidence/run5/`,
+  `docs/portfolio-run5.md`.
+- Committee ballots include every seated member (`ideas.committee.maxVoters`, default 0 = all); in run 4
+  `groups.maxProposers` 2 also capped the ballots and one member never voted.
+- Committee decision basis as policy: `criteri_comitato` with one rule per criterion (`criterio_comitato_*`:
+  prove del problema, concorrenza, fattibilità, rischio, coerenza strategica); ballots are `vota_idea` calls with a
+  verdict per criterion, a kill or defer must name an unmet criterion, demands outside the criteria are recorded as
+  out of policy; the chair records the decision with `decidi_idea`. `fase_approvazione` (1 = concept: an approval funds
+  a concept exploration, paying customers belong to the pilot stage), `costo_del_rinvio` (a deferral of an idea that
+  meets the candidacy requirements consumes approval slots), `obiettivo_portfolio_trimestre` (3 concepts explored).
+  Perception: `PORTAFOGLIO` and `COMITATO INVESTIMENTI` lines; decision records carry unmet criteria, out-of-policy
+  demands, the phase funded and the slots spent (also in the markdown export); stats `criteriaMet`, `criteriaUnmet`,
+  `outOfPolicy`, `deferralSlots`.
+- Plan runs that end without `commit_plan` (27 in run 4: the model closed with prose after 3 to 6 turns) get one
+  closing run where only `commit_plan` answers (`decisions.closingTurn`); stats `closingRuns`, `closingCommitted`.
+- Hacker News signal searches: a query no story matches with every word is asked again with optional words (no typo
+  tolerance), results marked `match: "partial"` (`evidence.signals.hackernews.partialMatch`); signal tool descriptions
+  state the language each source indexes.
 - Committee independence as policies: `comitato_non_coautore` (committee members cannot propose ideas; an edit of
   theirs is recorded as a reviewer's contribution, `contributed`, not co-authorship) and
   `supplenti_comitato_per_anzianita` (below quorum, non-conflicted people of the hub sit as alternates by career

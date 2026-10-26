@@ -1,0 +1,205 @@
+{
+    "lorebase": {
+        "url": "http://127.0.0.1:8280",
+        "domain": "hub",
+        "branch": "main",
+        "revision": "72886e5dac09b751632ab4784446380597d7dcb2696bf88d7e4c1cc02bf1a7d4",
+        "counts": {
+            "Signal": 40,
+            "Role": 8,
+            "Recipe": 11,
+            "Resource": 15,
+            "Chronicle": 33,
+            "Rule": 125
+        }
+    },
+    "mnemo": {
+        "connected": true,
+        "memories": 2584,
+        "perAgent": [
+            {
+                "agentId": "a1",
+                "name": "Livia",
+                "count": 300,
+                "avgFidelity": 0.962,
+                "gists": 0
+            },
+            {
+                "agentId": "a2",
+                "name": "Matteo",
+                "count": 386,
+                "avgFidelity": 0.961,
+                "gists": 0
+            },
+            {
+                "agentId": "a3",
+                "name": "Giulia",
+                "count": 302,
+                "avgFidelity": 0.969,
+                "gists": 0
+            },
+            {
+                "agentId": "a4",
+                "name": "Enea",
+                "count": 303,
+                "avgFidelity": 0.963,
+                "gists": 0
+            },
+            {
+                "agentId": "a5",
+                "name": "Sara",
+                "count": 382,
+                "avgFidelity": 0.959,
+                "gists": 0
+            },
+            {
+                "agentId": "a6",
+                "name": "Bruno",
+                "count": 304,
+                "avgFidelity": 0.964,
+                "gists": 0
+            },
+            {
+                "agentId": "a7",
+                "name": "Irene",
+                "count": 302,
+                "avgFidelity": 0.965,
+                "gists": 0
+            },
+            {
+                "agentId": "a8",
+                "name": "Dario",
+                "count": 305,
+                "avgFidelity": 0.966,
+                "gists": 0
+            }
+        ],
+        "dbBytes": 22323200,
+        "lastCompaction": null,
+        "embedder": {
+            "name": "transformers:Xenova/multilingual-e5-small:q8",
+            "dim": 384,
+            "fallback": false
+        }
+    },
+    "reinloop": {
+        "decisions": 438,
+        "groupDecisions": 73,
+        "replies": 395,
+        "failures": 1,
+        "thoughts": 0,
+        "failureReasons": {
+            "group: orchestrator: no joint plan committed": 1
+        },
+        "thoughtLangs": {},
+        "recusals": 0,
+        "alternates": 0,
+        "scoreMatches": 0,
+        "gateRefusals": 0,
+        "validations": 0,
+        "reasonLangs": {
+            "it": 411
+        },
+        "closingRuns": 10,
+        "closingCommitted": 10,
+        "criteriaMet": {},
+        "criteriaUnmet": {},
+        "outOfPolicy": 0,
+        "deferralSlots": 0,
+        "running": 4,
+        "signalSearches": 40,
+        "signalCached": 1,
+        "signalRefused": 38,
+        "signalErrors": 11,
+        "evidenceAttached": 9,
+        "interviews": 0,
+        "webSearches": 53,
+        "webFetches": 0,
+        "webCached": 10,
+        "webRefused": 102,
+        "webCapped": 3,
+        "webErrors": 0,
+        "budgetMaxUsd": 3,
+        "budgetPaused": 0,
+        "runs": 1032,
+        "tokens": {
+            "input": 25694183,
+            "output": 1171977
+        },
+        "costUsd": {
+            "total": 1.888475,
+            "byModel": {
+                "anthropic/claude-haiku-5-5": 1.374987,
+                "claude-haiku-5-5": 0.513486
+            },
+            "byTier": {
+                "haiku": 1.252217,
+                "group:orchestrator": 0.12277,
+                "research": 0.513486
+            },
+            "byTool": {
+                "minds": {
+                    "runs": 989,
+                    "costUsd": 1.374987,
+                    "share": 0.728
+                },
+                "web_search": {
+                    "runs": 43,
+                    "costUsd": 0.513486,
+                    "share": 0.272
+                },
+                "segnali_pubblici": {
+                    "runs": 40,
+                    "costUsd": 0,
+                    "share": 0
+                }
+            }
+        },
+        "cache": {
+            "readTokens": 20218033,
+            "writeTokens": 4907634,
+            "write1hTokens": 0,
+            "hitRatio": 0.7869,
+            "savedUsd": 1.696932,
+            "byModel": {
+                "anthropic/claude-haiku-5-5": {
+                    "readTokens": 20218033,
+                    "writeTokens": 4907634,
+                    "write1hTokens": 0,
+                    "hitRatio": 0.8045,
+                    "savedUsd": 1.696932
+                },
+                "claude-haiku-5-5": {
+                    "readTokens": 0,
+                    "writeTokens": 0,
+                    "write1hTokens": 0,
+                    "hitRatio": 0,
+                    "savedUsd": 0
+                }
+            },
+            "byTier": {
+                "haiku": {
+                    "readTokens": 18678504,
+                    "writeTokens": 4576866,
+                    "write1hTokens": 0,
+                    "hitRatio": 0.803,
+                    "savedUsd": 1.566644
+                },
+                "group:orchestrator": {
+                    "readTokens": 1539529,
+                    "writeTokens": 330768,
+                    "write1hTokens": 0,
+                    "hitRatio": 0.823,
+                    "savedUsd": 0.130288
+                },
+                "research": {
+                    "readTokens": 0,
+                    "writeTokens": 0,
+                    "write1hTokens": 0,
+                    "hitRatio": 0,
+                    "savedUsd": 0
+                }
+            }
+        }
+    }
+}

@@ -13,8 +13,8 @@ Derived from [lorebase-reinloop-civilization](https://github.com/aantenore/loreb
 which holds the history of the engine (real-time world, minds, groups, society, economy, god mode).
 
 Live runs (budget-capped, real models, web research on): [docs/run-report.md](docs/run-report.md), evidence in
-[docs/evidence/run1/](docs/evidence/run1/), [run2/](docs/evidence/run2/), [run3/](docs/evidence/run3/) and
-[run4/](docs/evidence/run4/).
+[docs/evidence/run1/](docs/evidence/run1/), [run2/](docs/evidence/run2/), [run3/](docs/evidence/run3/),
+[run4/](docs/evidence/run4/) and [run5/](docs/evidence/run5/).
 
 ## Screenshots
 
@@ -219,6 +219,9 @@ share one mind (crowd "Stagisti").
   every mind on haiku, the committee chair (Livia) included; committee voters and group proposers on haiku, no interns, replan cooldowns x2 (sonnet x3), one Lorebase consultation per haiku decision,
   replies capped at 500 tokens, 8 turns per decision with at most 2 web calls (haiku) or 3 (sonnet), game clock x3
   (`loop.timeScale`; `GAME_TIME_SCALE` still wins).
+- **Closing run.** A plan run that ends without `commit_plan` (or on its turn or tool-call budget) gets one closing
+  run on the same conversation where only `commit_plan` answers (`decisions.closingTurn`; counted in
+  `reinloop.closingRuns`, `closingCommitted`).
 - **Per-decision web cap.** `decisions.tiers.<tier>.maxWebCalls`: searches and page reads one decision may make
   (past it a call is refused as `decision_cap`, counted in `reinloop.webCapped`, no quota spent), so a run keeps
   turns to commit its plan. Failures are counted by reason in `reinloop.failureReasons`.
@@ -238,7 +241,12 @@ Seeded from `lorebase/rules.seed.yaml` (Kind `Rule`). The ones about ideas and t
 | `quarter_idea_slots` | 3 | approvals per quarter; with none left an approval becomes a deferral |
 | `slot_scadono_a_fine_trimestre` | 1 | unused approval slots are lost at the end of the quarter (0: they carry over); perception and the committee brief say how many are left and on which day and hour they expire |
 | `min_idea_reviewers` | 2 | reviews by non-authors needed to submit |
-| `committee_quorum` | 2 | committee members present for it to decide |
+| `committee_quorum` | 2 | committee members present for it to decide; every seated member votes (`ideas.committee.maxVoters`, 0 = all) |
+| `criteri_comitato` | 1 | the committee votes on the criteria of the rules `criterio_comitato_*` with value 1: a ballot (`vota_idea`) gives a verdict per criterion, a kill or defer names an unmet one, demands outside the criteria are recorded as out of policy; the chair records the decision with `decidi_idea` (0: free votes) |
+| `criterio_comitato_prove_del_problema`, `_concorrenza`, `_fattibilita`, `_rischio`, `_coerenza_strategica` | 1 each | the criteria (their text is what the members read; set one to 0 to drop it, add a rule with the prefix to add one) |
+| `fase_approvazione` | 1 | what an approval funds: 1 concept exploration (paying customers belong to the pilot stage, outside the committee's scope), 2 pilot, 3 scale (`ideas.committee.phases`) |
+| `costo_del_rinvio` | 1 | approval slots of the quarter a deferral consumes when the idea meets the candidacy requirements (0: none) |
+| `obiettivo_portfolio_trimestre` | 3 | concepts explored (approved ideas) the company expects per quarter; in perception with the portfolio counts |
 | `weight_impact`, `weight_feasibility`, `weight_novelty`, `weight_fit`, `weight_risk` | 0.3, 0.2, 0.2, 0.2, 0.1 | the weighted score shown to the committee (risk counted inverted) |
 | `freeze_blocks_approvals` | 1 | no approvals during the year-end freeze |
 | `max_open_ideas_per_person` | 3 | open ideas one can champion |
@@ -368,6 +376,17 @@ verified customer spend no policy requires.
   [docs/portfolio-run4.md](docs/portfolio-run4.md)), [committee.md](docs/evidence/run4/committee.md) (votes and
   reasons), [conversations.md](docs/evidence/run4/conversations.md), [research.md](docs/evidence/run4/research.md),
   [lorebase-log.md](docs/evidence/run4/lorebase-log.md)
+
+Live run 5 (2026-10-26, 30 real minutes, $1.89: minds $1.37, hosted web search $0.51, public signals $0), section
+"Run 5" of [docs/run-report.md](docs/run-report.md): committee criteria, deferral cost and portfolio target as
+policies, closing runs (0 plans lost, 27 in run 4), Hacker News answering 31 of 31 searches; the one idea meeting
+the requirements was held back before submission, so the committee never sat.
+
+- [evidence.md](docs/evidence/run5/evidence.md), [summary.json](docs/evidence/run5/summary.json) (adds
+  `closingRuns`, `closingCommitted`, `criteriaMet`, `criteriaUnmet`, `outOfPolicy`, `deferralSlots`),
+  [portfolio.md](docs/evidence/run5/portfolio.md) (also [docs/portfolio-run5.md](docs/portfolio-run5.md)),
+  [committee.md](docs/evidence/run5/committee.md), [conversations.md](docs/evidence/run5/conversations.md),
+  [research.md](docs/evidence/run5/research.md), [lorebase-log.md](docs/evidence/run5/lorebase-log.md)
 
 - [run-progress.log](docs/run-progress.log) and the screenshots above (the idea detail with its evidence is from run 3, board mode from run 4) (all live except the idea board, from an
   offline run with more ideas)

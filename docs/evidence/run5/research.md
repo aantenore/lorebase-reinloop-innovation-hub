@@ -1,0 +1,353 @@
+# Research (run 5)
+
+Web provider: anthropic-native. Web searches 53, cache hits 10, refused by the daily quotas 102 (`ricerche_web_per_persona_al_giorno` 3, `ricerche_web_totali_al_giorno` 10), refused by the per-decision cap 3, errors 0. Public signal searches: 40 (1 cached, 38 refused, 11 errors; summary.json `signalSearches`, `signalCached`, `signalRefused`, `signalErrors`). Hacker News: 31 of 31 searches returned stories (31 of 36 came back empty in run 4); queries matching no story with every word were asked again with optional words. The log below keeps the last 93 calls the server holds.
+
+Titles and links only (no page content).
+
+- giorno 1 10:51 **Dario** cerca_discussioni «AI decision audit bank explainability»
+  - [Show HN: OmnAI – Sovereign AI infrastructure with multi-vault isolation](https://github.com/TadTanyaTalaTadenTadhgTaya/OmnAI-v3.5)
+  - [Queryable context graphs to audit AI decision-making](https://www.pylar.ai/blog/building-context-graphs-pylar-decision-traces)
+  - [Banks are already bumping up against the limits of AI in lending decisions](https://qz.com/1277305/ai-for-lending-decisions-us-bank-regulations-make-that-tough/)
+- giorno 1 12:10 **Matteo** cerca_discussioni «AI decision audit bank»
+  - [Show HN: OmnAI – Sovereign AI infrastructure with multi-vault isolation](https://github.com/TadTanyaTalaTadenTadhgTaya/OmnAI-v3.5)
+  - [Show HN: EnforceAuth GA Launch](https://enforceauth.com/contact?inquiry=waitlist)
+  - [Show HN: AIP – An open protocol for verifying what AI agents are allowed to do](https://github.com/theaniketgiri/aip)
+- giorno 1 12:17 **Irene** web_search «AI decision audit logging requirements EU AI Act Article 12 automated decisions banks»
+  - [EU AI Act Credit Scoring High-Risk System Guide (July 2026)](https://www.openlayer.com/blog/credit-scoring-eu-ai-act-compliance-guide)
+  - [Article 12: Record-Keeping](https://artificialintelligenceact.eu/article/12/)
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+- giorno 1 13:13 **Dario** web_search «EU AI Act banking automated decision logging requirements audit»
+  - [EU AI Act Credit Scoring High-Risk System Guide (July 2026)](https://www.openlayer.com/blog/credit-scoring-eu-ai-act-compliance-guide)
+  - [EU AI Act for Credit Scoring: Annex III Classification and Article 12 Logging](https://www.deepinspect.ai/blog/eu-ai-act-for-credit-scoring)
+  - [EU AI Act for Financial Services: What Banks & Insurers Must Do](https://alicelabs.ai/en/insights/eu-ai-act-for-financial-services)
+- giorno 1 13:43 **Irene** web_search «AI Act Article 12 record-keeping logs high-risk creditworthiness banking automated decisions»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-keeping - AI Act](https://rgpd.com/ai-act/chapter-3-high-risk-ai-systems/article-12-record-keeping)
+  - [EU AI Act Record-Keeping: Article 12 Requirements Explained](https://truescreen.io/insights/ai-act-record-keeping-requirements/)
+- giorno 1 13:57 **Enea** cerca_discussioni «bank AI decision audit logs»
+  - [Show HN: Would your AI audit logs survive an audit challenge?](https://github.com/Rehanrana11/evidence-verify)
+  - [The Benefits of AI Audit Logs for Maximizing Security and Enterprise Value](https://www.credal.ai/blog/the-benefits-of-ai-audit-logs-for-maximizing-security-and-enterprise-value)
+  - [I Built an AI Agent with Gmail Access and Discovered a Security Hole](https://news.ycombinator.com/item?id=44205881)
+- giorno 1 14:22 **Enea** web_search «bank automated decision audit trail AI regulation EU AI Act credit decisions logging requirements»
+  - [What the EU AI Act requires for AI agent logging - Help Net Security](https://www.helpnetsecurity.com/2026/04/16/eu-ai-act-logging-requirements/)
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [Article 12 and the Logging Mandate: What the EU AI Act Actually Requires - FireTail blog posts](https://www.firetail.ai/blog/article-12-and-the-logging-mandate-what-the-eu-ai-act-actually-requires)
+- giorno 1 14:34 **Dario** web_search «bank AI decision audit logs regulation explainability market demand 2025»
+  - [Audit Trails and Explainability for Compliance: Building the Transparency Layer Financial Services Cannot Ignore](https://lawrence-emenike.medium.com/audit-trails-and-explainability-for-compliance-building-the-transparency-layer-financial-services-d24961bad987)
+  - [AI Audit Trail Requirements: A 2026 Checklist for Finance, Healthcare, and Banking](https://www.kognitos.com/blog/ai-audit-trail-requirements-2026-checklist/)
+  - [Generative AI in Financial Institution: A Global Survey of Opportunities, Threats, and Regulation](https://arxiv.org/pdf/2504.21574)
+- giorno 1 15:01 **Dario** web_search «AI audit trail banking vendors compliance tools pricing»
+  - [AI for Compliance in Banking: 8 Best Tools for Banks and Credit Unions 2026](https://www.multimodal.dev/post/ai-tools-for-regulatory-compliance-in-banking)
+  - [6 Best AI Compliance Software for Financial Services in 2026](https://witness.ai/blog/best-ai-compliance-software-financial-services/)
+  - [AI Compliance Tools: Hidden Costs FinTech Buyers Must Check - GeekyAnts](https://geekyants.com/en-us/blog/the-hidden-cost-of-ai-powered-compliance-tools-what-fintech-buyers-should-actually-ask-vendors)
+- giorno 1 15:45 **Matteo** web_search «bank automated decision audit log volume explainability regulation 2025»
+  - [Governed Auditable Decisioning Under Uncertainty: Synthesis and Agentic Extension](https://arxiv.org/pdf/2604.19112)
+  - [Interpretable hybrid credit scoring for thin-file and underbanked populations](https://arxiv.org/pdf/2608.26837)
+  - [Audit Trails and Explainability for Compliance: Building the Transparency Layer Financial Services Cannot Ignore](https://lawrence-emenike.medium.com/audit-trails-and-explainability-for-compliance-building-the-transparency-layer-financial-services-d24961bad987)
+- giorno 1 15:47 **Irene** web_search «AI Act Article 12 record-keeping high-risk AI systems obligations 2 August 2026»
+  - [What the EU AI Act requires for AI agent logging - Help Net Security](https://www.helpnetsecurity.com/2026/04/16/eu-ai-act-logging-requirements/)
+  - [EU AI Act Article 12 & ISO 42001 Logging for AI Agents](https://www.permit.io/blog/eu-ai-act-article-12-iso-42001-agent-logging)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+- giorno 1 15:54 **Enea** cerca_discussioni «AI audit bank automated decisions regulation»
+  - [Queryable context graphs to audit AI decision-making](https://www.pylar.ai/blog/building-context-graphs-pylar-decision-traces)
+  - [Banks are already bumping up against the limits of AI in lending decisions](https://qz.com/1277305/ai-for-lending-decisions-us-bank-regulations-make-that-tough/)
+  - [Show HN: DashClaw – intercept and audit AI agent decisions before they execute](https://github.com/ucsandman/DashClaw)
+- giorno 1 17:06 **Irene** cerca_discussioni «AI audit trail bank automated decisions»
+  - [Show HN: Orchestro – Trello for Claude Code with Kanban Board](https://github.com/khaoss85/mcp-orchestro)
+  - [DarkMatter: Tamper-evident audit trail for AI agent decisions](https://darkmatterhub.ai)
+  - [Show HN: OmnAI – Sovereign AI infrastructure with multi-vault isolation](https://github.com/TadTanyaTalaTadenTadhgTaya/OmnAI-v3.5)
+- giorno 1 17:27 **Matteo** web_search «AI Act audit trail logging automated decisions banks credit scoring tool 2025»
+  - [EU AI Act Credit Scoring High-Risk System Guide (July 2026)](https://www.openlayer.com/blog/credit-scoring-eu-ai-act-compliance-guide)
+  - [The Future of Credit Underwriting and Insurance Under the EU AI Act: Implications for Europe and Beyond · Issue 7.3, Summer 2025](https://hdsr.mitpress.mit.edu/pub/19cwd6qx)
+  - [Bridging AI Risk Frameworks: Reconciling ISO/IEC 42001, the NIST AI Risk Management Framework, and the EU AI Act into a Uni ed Governance Taxonomy](https://arxiv.org/pdf/2608.07515)
+- giorno 1 17:28 **Matteo** cerca_discussioni «AI audit logs compliance bank»
+  - [Show HN: InferShield – open-source security proxy for LLM inference](https://github.com/InferShield/infershield)
+- giorno 1 18:29 **Enea** web_search «AI decision audit logs bank explainability Purview Securiti Dataiku comparison»
+  - [AI explainability in finance: auditable models, GenAI, and agents](https://www.dataiku.com/stories/blog/ai-explainability-for-financial-services)
+  - [Inside the box: building an explainable AI foundation](https://www.dataiku.com/stories/detail/explainable-ai/)
+  - [AI Governance Solutions for Regulated Industries: Top 10 Tools for 2026](https://www.kiteworks.com/cybersecurity-risk-management/ai-governance-solutions-regulated-industries/)
+- giorno 1 18:44 **Matteo** cerca_discussioni «AI audit trail decisions bank compliance logs»
+  - [Show HN: Lockbridge-Secure File Transfers with Multi-Cloud Support&Audit Trails](https://lockbridge.com/)
+  - [Show HN: Shadow VCS quarantines AI generated commits before they break your repo](https://github.com/AKIFQ/sav)
+  - [Show HN: Orchestro – Trello for Claude Code with Kanban Board](https://github.com/khaoss85/mcp-orchestro)
+- giorno 1 19:59 **Enea** cerca_progetti «model decision audit log explainability compliance»
+  - [MchtMzffr/explainability-audit-core](https://github.com/MchtMzffr/explainability-audit-core)
+  - [gupthaashishgoud/04.Project-Kubera-Business-Intelligence-system-](https://github.com/gupthaashishgoud/04.Project-Kubera-Business-Intelligence-system-)
+- giorno 1 20:01 **Enea** cerca_discussioni «bank AI credit decisions audit trail regulation»
+  - [Show HN: OmnAI – Sovereign AI infrastructure with multi-vault isolation](https://github.com/TadTanyaTalaTadenTadhgTaya/OmnAI-v3.5)
+  - [Show HN: Orchestro – Trello for Claude Code with Kanban Board](https://github.com/khaoss85/mcp-orchestro)
+  - [DarkMatter: Tamper-evident audit trail for AI agent decisions](https://darkmatterhub.ai)
+- giorno 1 20:56 **Irene** cerca_discussioni «AI Act audit logs bank decisions»
+  - [Show HN: I built an open protocol for Agent-to-agent commercial negotiation](https://a2cn.io/)
+  - [TamperAudit – Tamper-evident audit logs for AI agents (EU AI Act Article 12)](https://tamperaudit.com)
+  - [How to Prepare Your Agentic AI System for an EU AI Act Audit with ZizkaDB](https://medium.com/@MirArshadTalpur/how-to-prepare-your-agentic-ai-system-for-an-eu-ai-act-audit-with-zizkadb-7d7eb9d4c9f0)
+- giorno 1 21:03 **Enea** cerca_discussioni «AI audit bank automated decisions compliance»
+  - [Revolut’s clumsy automated bank compliance results in frozen accounts](https://www.zdnet.com/article/revoluts-clumsy-automated-fintech-bank-compliance-results-in-frozen-accounts-and-lack-of-customer-service/)
+  - [Queryable context graphs to audit AI decision-making](https://www.pylar.ai/blog/building-context-graphs-pylar-decision-traces)
+  - [Show HN: Traceprompt – open-source SDK for tamper-proof LLM audit trails](https://github.com/traceprompt/traceprompt-node)
+- giorno 1 21:39 **Matteo** cerca_discussioni «AI Act audit trail automated credit decisions bank»
+  - [Show HN: UAIP Protocol – Secure settlement layer for autonomous AI agents](https://github.com/jahanzaibahmad112-dotcom/UAIP-Protocol)
+  - [Show HN: Open-source EU AI Act compliance layer for AI agents (8/2026 deadline)](https://news.ycombinator.com/item?id=47141347)
+  - [Show HN: VerifyWise, an open-source governance platform for AI compliance](https://verifywise.ai/)
+- giorno 1 22:34 **Matteo** cerca_discussioni «AI Act logging automated decisions bank audit trail»
+  - [Show HN: Traceprompt – open-source SDK for tamper-proof LLM audit trails](https://github.com/traceprompt/traceprompt-node)
+  - [Show HN: Open-source scanner finds 97% of AI agent code non-compliant EU AI Act](https://news.ycombinator.com/item?id=47247314)
+  - [Show HN: Open-source SDK for AI agent audit trails](https://www.traceprompt.com/)
+- giorno 2 01:07 **Dario** web_search «AI Act audit trail banking automated credit decisions market size sanctions»
+  - [EU AI Act Credit Scoring High-Risk System Guide (July 2026)](https://www.openlayer.com/blog/credit-scoring-eu-ai-act-compliance-guide)
+  - [High-Risk by Default: Mapping the EU AI Act onto Financial Services Use Cases](https://pflefler.substack.com/p/high-risk-by-default-mapping-the)
+  - [Agent Security Meets Regulatory Reality -- A Practitioner Systematization of Autonomous-Agent Threats and Controls in Regulated Financial Systems](https://arxiv.org/pdf/2606.29142)
+- giorno 2 01:15 **Giulia** web_search «calo prezzi inferenza LLM per token 2025 fonte ufficiale»
+  - [Inference Unit Economics: The True Cost Per Million Tokens](https://introl.com/blog/inference-unit-economics-true-cost-per-million-tokens-guide)
+  - [Why AI Token Costs Are Falling: The LLM Price War, AI Agents, and the Future of Inference| KuCoin](https://www.kucoin.com/blog/why-ai-token-costs-are-falling)
+  - [The Price of Progress Price Performance and the Future of AI](https://arxiv.org/html/2511.23455v2)
+- giorno 2 01:16 **Irene** web_search «EU AI Act Article 12 record-keeping logging high-risk AI systems official text»
+  - [Article 12: Record-Keeping](https://artificialintelligenceact.eu/article/12/)
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [EU AI Act: AI system logging - VDE](https://www.vde.com/topics-en/artificial-intelligence/blog/eu-ai-act--ai-system-logging)
+- giorno 2 01:20 **Irene** cerca_discussioni «AI Act audit trail automated decisions bank»
+  - [Show HN: UAIP Protocol – Secure settlement layer for autonomous AI agents](https://github.com/jahanzaibahmad112-dotcom/UAIP-Protocol)
+  - [Show HN: Open-source EU AI Act compliance layer for AI agents (8/2026 deadline)](https://news.ycombinator.com/item?id=47141347)
+  - [Show HN: VerifyWise, an open-source governance platform for AI compliance](https://verifywise.ai/)
+- giorno 2 01:59 **Livia** web_search «AI Act Article 12 record-keeping logging high-risk AI systems creditworthiness banks»
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [Article 12: Record-keeping - AI Act](https://rgpd.com/ai-act/chapter-3-high-risk-ai-systems/article-12-record-keeping)
+  - [Article 12: Record-Keeping](https://artificialintelligenceact.eu/article/12/)
+- giorno 2 02:05 **Matteo** web_search «AI Act banks automated credit decisions audit traceability logging requirements statistics survey»
+  - [The Future of Credit Underwriting and Insurance Under the EU AI Act: Implications for Europe and Beyond · Issue 7.3, Summer 2025](https://hdsr.mitpress.mit.edu/pub/19cwd6qx)
+  - [EBA AI Act mapping: banking, payments and credit scoring ...](https://www.aiactblog.nl/en/posts/eba-ai-act-mapping-financiele-sector)
+  - [Agent Security Meets Regulatory Reality -- A Practitioner Systematization of Autonomous-Agent Threats and Controls in Regulated Financial Systems](https://arxiv.org/pdf/2606.29142)
+- giorno 2 02:09 **Enea** cerca_discussioni «bank automated decision audit AI compliance»
+  - [Affordable and automated EU AI Act compliance](https://scanara.io)
+  - [Revolut’s clumsy automated bank compliance results in frozen accounts](https://www.zdnet.com/article/revoluts-clumsy-automated-fintech-bank-compliance-results-in-frozen-accounts-and-lack-of-customer-service/)
+  - [Show HN: Compliant-LLM: Audit AI Agents for Compliance with NIST AI RMF](https://github.com/fiddlecube/compliant-llm)
+- giorno 2 02:28 **Dario** web_search «AI Act banks automated decision audit traceability high-risk credit scoring requirements»
+  - [Assessing High-Risk AI Systems under the EU AI Act: From Legal Requirements to Technical Verification](https://arxiv.org/pdf/2512.13907)
+  - [EU AI Act Credit Scoring High-Risk System Guide (July 2026)](https://www.openlayer.com/blog/credit-scoring-eu-ai-act-compliance-guide)
+  - [Causal Attribution for Agentic Decisions: Estimators, Coupling, and a Traceability Specification](https://arxiv.org/pdf/2609.06445)
+- giorno 2 02:52 **Dario** web_search «banks AI model audit trail survey percent compliance logging explainability decisions 2025»
+  - [AI explainability in finance: auditable models, GenAI, and agents](https://www.dataiku.com/blog/ai-explainability-for-financial-services)
+  - [AI Audit Trail Requirements: A 2026 Checklist for Finance, Healthcare, and Banking](https://www.kognitos.com/blog/ai-audit-trail-requirements-2026-checklist/)
+  - [AI Banking Compliance Frameworks: What Banks Need in 2026](https://www.backbase.com/blog/ai-banking-compliance-frameworks)
+- giorno 2 03:11 **Irene** web_search «AI Act Article 12 record-keeping high-risk Annex III application date 2 August 2026 EUR-Lex»
+  - [EU AI Act Deal: Digital Omnibus Now in Force](https://usercentrics.com/knowledge-hub/eu-ai-act-high-risk-delay-article-50-transparency-consent/)
+  - [Digital Omnibus on AI (Regulation 2026/1744): what changes](https://www.globalsuitesolutions.com/digital-omnibus-ai-regulation-2026-1744/)
+  - [Digital AI Omnibus Delays Key Deadlines, Introduces New Rules - cyber/data/privacy insights](https://cdp.cooley.com/digital-ai-omnibus-delays-key-deadlines-introduces-new-rules/)
+- giorno 2 04:18 **Giulia** web_search «AI Act Article 12 record-keeping high-risk Digital Omnibus 2026/1744 postponement EUR-Lex»
+  - [EU AI Act High-Risk Deadline Pushed to December 2027](https://labs.cloudsecurityalliance.org/research/csa-research-note-eu-ai-act-omnibus-vii-deadline-delay-20260/)
+  - [EU AI Act’s High-Risk Deadline: Deferred, Not Cancelled](https://labs.cloudsecurityalliance.org/research/csa-research-note-eu-ai-act-high-risk-deadline-omnibus-20260/)
+  - [EU AI Act Deal: Digital Omnibus Now in Force](https://usercentrics.com/knowledge-hub/eu-ai-act-high-risk-delay-article-50-transparency-consent/)
+- giorno 2 04:40 **Giulia** web_search «LLM inference price decline per year cost per token study»
+  - [Algorithmic Efficiency and the Falling Cost of AI Inference](https://arxiv.org/pdf/2511.23455)
+  - [LLM inference prices have fallen rapidly but unequally across tasks](https://epoch.ai/data-insights/llm-inference-price-trends)
+  - [Welcome to LLMflation - LLM inference cost is going down fast ⬇️](https://a16z.com/llmflation-llm-inference-cost/)
+- giorno 2 08:59 **Irene** cerca_discussioni «AI Act audit logging decision traceability bank»
+  - [Show HN: Open-Source Article 12 Logging Infrastructure for the EU AI Act](https://news.ycombinator.com/item?id=47230438)
+  - [Show HN: Open-source scanner finds 97% of AI agent code non-compliant EU AI Act](https://news.ycombinator.com/item?id=47247314)
+  - [How to Prepare Your Agentic AI System for an EU AI Act Audit with ZizkaDB](https://medium.com/@MirArshadTalpur/how-to-prepare-your-agentic-ai-system-for-an-eu-ai-act-audit-with-zizkadb-7d7eb9d4c9f0)
+- giorno 2 14:32 **Matteo** cerca_discussioni «on-premise LLM document processing legacy integration compliance»
+  - [Notes on Document Processing with LLMs](https://andrewpwheeler.com/2026/07/23/notes-on-document-processing-with-llms/)
+  - [Show HN: OCR Benchmark Focusing on Automation](https://nanonets.com/automation-benchmark)
+  - [Show HN: Building High-Performance AI Agents with SmartBuckets and MCP](https://news.ycombinator.com/item?id=44055479)
+- giorno 2 15:13 **Matteo** cerca_discussioni «legacy system integration AI document processing»
+  - [Launch HN: Trellis (YC W24) – AI-powered workflows for unstructured data](https://news.ycombinator.com/item?id=41236273)
+- giorno 2 16:06 **Matteo** cerca_discussioni «AI audit trail compliance on-premise»
+  - [Show HN: EnforceAuth GA Launch](https://enforceauth.com/contact?inquiry=waitlist)
+- giorno 2 19:40 **Irene** cerca_discussioni «AI audit trail bank automated decisions explainability»
+  - [Show HN: Orchestro – Trello for Claude Code with Kanban Board](https://github.com/khaoss85/mcp-orchestro)
+  - [DarkMatter: Tamper-evident audit trail for AI agent decisions](https://darkmatterhub.ai)
+  - [Show HN: OmnAI – Sovereign AI infrastructure with multi-vault isolation](https://github.com/TadTanyaTalaTadenTadhgTaya/OmnAI-v3.5)
+- giorno 3 00:05 **Matteo** cerca_discussioni «insurance claims unstructured documents LLM»
+  - [Show HN: Epstein-Search – Local, AI-Powered Search Engine for the Epstein Files](https://github.com/simulationship/epstein-search)
+- giorno 3 00:07 **Matteo** cerca_progetti «legacy system integration LLM agent»
+  - [VarunKesarwani/VarunKesarwani](https://github.com/VarunKesarwani/VarunKesarwani)
+- giorno 3 00:51 **Dario** cerca_discussioni «AI Act audit trail automated decisions»
+  - [Show HN: Verity – I got tired of debugging duplicate emails after job restarts](https://www.useverity.io/)
+- giorno 3 01:00 **Dario** cerca_progetti «AI decision audit log tamper-evident EU AI Act»
+  - [ZIZKA-AI-SL/ZizkaDB](https://github.com/ZIZKA-AI-SL/ZizkaDB)
+  - [hitcaff/decision_provenance](https://github.com/hitcaff/decision_provenance)
+  - [synthetic-data-news/ai-decision-logging-spec](https://github.com/synthetic-data-news/ai-decision-logging-spec)
+- giorno 3 01:18 **Matteo** web_search «AI Act banks credit scoring high-risk obligations logging traceability Article 12 deadline 2026»
+  - [EU AI Act Deal: Digital Omnibus Now in Force](https://usercentrics.com/knowledge-hub/eu-ai-act-high-risk-delay-article-50-transparency-consent/)
+  - [EU AI Act Omnibus Agreement — Postponed High-Risk Deadlines and Other Key Changes - Gibson Dunn](https://www.gibsondunn.com/eu-ai-act-omnibus-agreement-postponed-high-risk-deadlines-and-other-key-changes/)
+  - [The Digital AI Omnibus: Proposed deferral of high risk AI obligations under the AI Act (update) - DLA Piper GENIE](https://knowledge.dlapiper.com/dlapiperknowledge/globalemploymentlatestdevelopments/2026/The-Digital-AI-Omnibus-Proposed-deferral-of-high-risk-AI-obligations-under-the-AI-Act)
+- giorno 3 01:18 **Matteo** cerca_discussioni «insurance claims unstructured documents LLM»
+  - [Show HN: Epstein-Search – Local, AI-Powered Search Engine for the Epstein Files](https://github.com/simulationship/epstein-search)
+- giorno 3 02:23 **Dario** web_search «insurance claims unstructured documents AI automation 2025»
+  - [10 Best Insurance Claims Automation Tools Compared (2026)](https://www.kognitos.com/blog/ai-tools-for-insurance-claims-processing/)
+  - [Best Automated Claims Processing Software 2025](https://www.v7labs.com/blog/automated-insurance-claims-processing-software)
+  - [AI-Powered Automated Claims Processing Insurance: Complete Guide](https://www.abbyy.com/blog/automated-claims-processing-insurance/)
+- giorno 3 03:12 **Dario** cerca_discussioni «insurance claims unstructured documents AI»
+  - [Show HN: Epstein-Search – Local, AI-Powered Search Engine for the Epstein Files](https://github.com/simulationship/epstein-search)
+- giorno 3 03:15 **Dario** cerca_progetti «insurance claims document extraction»
+  - [lokeshch185/AI-driven-insurance-fraud-detection](https://github.com/lokeshch185/AI-driven-insurance-fraud-detection)
+  - [aws-samples/sample-agentic-insurance-claims-processing-demo](https://github.com/aws-samples/sample-agentic-insurance-claims-processing-demo)
+  - [techmedaddy/ClaimSense](https://github.com/techmedaddy/ClaimSense)
+- giorno 3 04:10 **Irene** web_search «AI Act Article 12 record-keeping logging high-risk AI systems»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://artificialintelligenceact.eu/article/12/)
+  - [EU AI Act: AI system logging - VDE](https://www.vde.com/topics-en/artificial-intelligence/blog/eu-ai-act--ai-system-logging)
+- giorno 3 05:09 **Irene** web_search «AI Act Article 12 record-keeping logging obligations high-risk AI systems text»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://artificialintelligenceact.eu/article/12/)
+  - [The EU AI Act: Best Practices for Monitoring and Logging](https://medium.com/@axel.schwanke/compliance-under-the-eu-ai-act-best-practices-for-monitoring-and-logging-e098a3d6fe9d)
+- giorno 3 05:29 **Matteo** cerca_discussioni «on-premise AI hospital data compliance»
+  - [IBM CEO says there is 'no way' spending on AI data centers will pay off](https://www.businessinsider.com/ibm-ceo-big-tech-ai-capex-data-center-spending-2025-12)
+  - [A neurology ICU nurse on AI in hospitals](https://www.codastory.com/stayonthestory/nursing-ai-hospitals-robots-capture/)
+  - [AI Weekly Warns Firms on Google AI Studio Data Retention Fraud](https://bitu79.substack.com/p/ai-weekly-issues-warning-on-google)
+- giorno 3 05:31 **Matteo** cerca_discussioni «legacy system integration AI logistics»
+  - [AI Orchestration Market Witnesses Surge in Use Across Healthcare and BFSI](https://news.ycombinator.com/item?id=45114189)
+- giorno 3 06:19 **Irene** web_search «AI Act articolo 12 registrazione log sistemi ad alto rischio testo EUR-Lex»
+  - [EU AI Act Article 12 & ISO 42001 Logging for AI Agents](https://www.permit.io/blog/eu-ai-act-article-12-iso-42001-agent-logging)
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [What the EU AI Act requires for AI agent logging - Help Net Security](https://www.helpnetsecurity.com/2026/04/16/eu-ai-act-logging-requirements/)
+- giorno 3 06:32 **Giulia** web_search «AI Act article 12 record-keeping logs high-risk AI systems text»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+  - [The EU AI Act: Best Practices for Monitoring and Logging](https://medium.com/@axel.schwanke/compliance-under-the-eu-ai-act-best-practices-for-monitoring-and-logging-e098a3d6fe9d)
+- giorno 3 09:24 **Livia** web_search «AI Act Article 12 record-keeping logging high-risk AI systems EUR-Lex»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://artificialintelligenceact.eu/article/12/)
+  - [Article 12: Record-keeping - AI Act](https://rgpd.com/ai-act/chapter-3-high-risk-ai-systems/article-12-record-keeping)
+- giorno 3 09:32 **Matteo** web_search «ospedale responsabile compliance dati sanitari on-premise decisioni AI tracciabilità»
+  - [Responsabilità professionale e tracciabilità decisionale alla luce della Legge italiana sull’Intelligenza Artificiale](https://www.quotidianosanita.it/lettere-al-direttore/responsabilit-professionale-e-tracciabilit-decisionale-alla-luce-della-legge-italiana-sull-intelligenza-artificiale/)
+  - [AI in sanità: perché il paziente ha diritto di capire - Agenda Digitale](https://www.agendadigitale.eu/sanita/ai-in-sanita-perche-il-paziente-ha-diritto-di-capire/)
+  - [Il pronto soccorso è ovunque: come l'IA ha abolito le mura dell'ospedale - Agenda Digitale](https://www.agendadigitale.eu/sanita/il-pronto-soccorso-e-ovunque-come-lia-ha-abolito-le-mura-dellospedale/)
+- giorno 3 09:37 **Enea** cerca_discussioni «on-premise AI hospital data privacy»
+  - [PDPL Saudi Arabia Comes to the Data Privacy Table](https://www.captaincompliance.com/education/saudi-arabia-pdpl-compliance-software-a-comprehensive-guide-to-on-premise-data-privacy-solutions/)
+  - [Edward Snowden and Ben Goertzel on the AI Explosion and Data Privacy](https://www.youtube.com/watch?v=4H_iWpWG_c0)
+  - [Show HN: I built a model agnostic AI RAG app with enterprise level tools](https://parallellabs.app)
+- giorno 3 09:54 **Matteo** web_search «assicurazione responsabile sinistri documenti non strutturati AI audit tracciabilità»
+  - [Enhancing Audit Defensibility: AI-Backed Traceability for Claim Decisions (Property & Homeowners, Workers Compensation, General Liability) — Claims Manager](https://www.nomad-data.com/doc-chat/enhancing-audit-defensibility-ai-backed-traceability-for-claim-decisions-property-homeowners-workers-compensation-general-liability-claims-manager)
+  - [Insurance Claims Processing (Claims Intake & Audit) with Reducto](https://llms.reducto.ai/insurance-claims-processing)
+  - [AI-Powered Automated Claims Processing Insurance: Complete Guide](https://www.abbyy.com/blog/automated-claims-processing-insurance/)
+- giorno 3 09:58 **Enea** web_search «insurance claims unstructured documents AI processing pain point»
+  - [(PDF) AI-driven intelligent document processing for healthcare and insurance](https://www.researchgate.net/publication/388353638_AI-driven_intelligent_document_processing_for_healthcare_and_insurance)
+  - [LLMs and Agentic AI in Insurance Decision-Making: Opportunities and Challenges For Africa](https://arxiv.org/pdf/2508.15110)
+  - [Insurance Claims Processing: Process, Challenges & AI Automation](https://www.kolena.com/blog/insurance-claims-processing-process-challenges-ai-automation/)
+- giorno 3 10:04 **Enea** cerca_paper «auditing automated credit decisions explainability bank compliance»
+  - (no results)
+- giorno 3 14:57 **Matteo** cerca_discussioni «AI Act explainability audit trail automated decisions»
+  - [Show HN: UAIP Protocol – Secure settlement layer for autonomous AI agents](https://github.com/jahanzaibahmad112-dotcom/UAIP-Protocol)
+  - [Show HN: Open-source EU AI Act compliance layer for AI agents (8/2026 deadline)](https://news.ycombinator.com/item?id=47141347)
+  - [Show HN: VerifyWise, an open-source governance platform for AI compliance](https://verifywise.ai/)
+- giorno 3 14:59 **Matteo** cerca_paper «audit trail automated decision making explainability regulation»
+  - (no results)
+- giorno 3 17:15 **Irene** web_search «AI Act Article 12 record-keeping logging high-risk AI systems EUR-Lex»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://artificialintelligenceact.eu/article/12/)
+  - [Article 12: Record-keeping - AI Act](https://rgpd.com/ai-act/chapter-3-high-risk-ai-systems/article-12-record-keeping)
+- giorno 4 00:22 **Giulia** web_search «AI Act Article 12 record-keeping logging high-risk EUR-Lex»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+  - [Article 12: Record-Keeping](https://artificialintelligenceact.eu/article/12/)
+- giorno 4 01:19 **Giulia** web_search «EUR-Lex AI Act Article 12 record-keeping high-risk AI systems Regulation (EU) 2024/1689 text»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+- giorno 4 01:23 **Giulia** cerca_discussioni «AI Act audit trail automated decisions banks»
+  - [Show HN: UAIP Protocol – Secure settlement layer for autonomous AI agents](https://github.com/jahanzaibahmad112-dotcom/UAIP-Protocol)
+  - [Show HN: Open-source EU AI Act compliance layer for AI agents (8/2026 deadline)](https://news.ycombinator.com/item?id=47141347)
+  - [Show HN: VerifyWise, an open-source governance platform for AI compliance](https://verifywise.ai/)
+- giorno 4 01:40 **Irene** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping logging high-risk»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+  - [The EU AI Act: Best Practices for Monitoring and Logging](https://medium.com/@axel.schwanke/compliance-under-the-eu-ai-act-best-practices-for-monitoring-and-logging-e098a3d6fe9d)
+- giorno 4 01:53 **Livia** web_search «EU AI Act Article 12 record-keeping logging EUR-Lex text»
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [Is Your AI Logging Article 12-Ready? Avoid EU Compliance Gaps Before It's Too Late](https://www.isms.online/iso-42001/eu-ai-act/article-12/)
+  - [EU AI Act: AI system logging - VDE](https://www.vde.com/topics-en/artificial-intelligence/blog/eu-ai-act--ai-system-logging)
+- giorno 4 03:03 **Giulia** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping text»
+  - [EU AI Act Article 12 & ISO 42001 Logging for AI Agents](https://www.permit.io/blog/eu-ai-act-article-12-iso-42001-agent-logging)
+  - [Article 12: Record-Keeping](https://artificialintelligenceact.eu/article/12/)
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+- giorno 4 03:03 **Irene** web_search «EUR-Lex Regulation (EU) 2024/1689 Article 12 record-keeping text official journal»
+  - [Regulation - EU - 2024/1689 - EN - EUR-Lex - European Union](https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng)
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [EU AI Act: Record-Keeping Obligations for High-Risk AI](https://ar.io/eu-ai-act/)
+- giorno 4 03:24 **Livia** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping text»
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [(PDF) AI. 2024. Art. 12 (Record-keeping) - Preliminary Comments on European Union’s Artificial Intelligence Act. In two versions](https://www.academia.edu/121556721/AI_2024_Art_12_Record_keeping_Preliminary_Comments_on_European_Union_s_Artificial_Intelligence_Act_In_two_versions_40_120_p)
+  - [Artificial Intelligence Act](https://en.wikipedia.org/wiki/Artificial_Intelligence_Act)
+- giorno 4 04:04 **Dario** web_search «EUR-Lex Regulation 2024/1689 Article 12 record-keeping text»
+  - [Regulation - EU - 2024/1689 - EN - EUR-Lex - European Union](https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng)
+  - [EU AI Act Record-Keeping: Article 12 Requirements Explained](https://truescreen.io/insights/ai-act-record-keeping-requirements/)
+  - [EU AI Act Article 12 Logging for AI Agents](https://agnys.net/eu-ai-act/article-12-ai-logging/)
+- giorno 4 04:44 **Irene** web_search «Regulation (EU) 2024/1689 Article 12 record-keeping EUR-Lex text»
+  - [Regulation - EU - 2024/1689 - EN - EUR-Lex - European Union](https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng)
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [EUR-Lex - 02024R1689-20260727 - EN - European Union](https://eur-lex.europa.eu/eli/reg/2024/1689/2026-07-27/eng)
+- giorno 4 05:08 **Matteo** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping logging high-risk»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+  - [The EU AI Act: Best Practices for Monitoring and Logging](https://medium.com/@axel.schwanke/compliance-under-the-eu-ai-act-best-practices-for-monitoring-and-logging-e098a3d6fe9d)
+- giorno 4 05:12 **Livia** web_search «Regolamento UE 2024/1689 articolo 12 registrazione log testo ufficiale EUR-Lex»
+  - [Regolamento (UE) 2024/1689](https://certifico.com/marcatura-ce/regolamento-ue-2024-1689)
+  - [REGOLAMENTO (UE) 2024/1689 DEL PARLAMENTO EUROPEO E DEL CONSIGLIO](https://eur-lex.europa.eu/legal-content/IT/TXT/PDF/?uri=OJ%3AL_202401689)
+  - [L_202401689IT.000101.fmx.xml](https://eur-lex.europa.eu/legal-content/IT/TXT/HTML/?uri=CELEX%3A32024R1689)
+- giorno 4 05:52 **Matteo** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping logging high-risk»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+  - [The EU AI Act: Best Practices for Monitoring and Logging](https://medium.com/@axel.schwanke/compliance-under-the-eu-ai-act-best-practices-for-monitoring-and-logging-e098a3d6fe9d)
+- giorno 4 06:44 **Irene** web_search «Regolamento UE 2024/1689 articolo 12 registrazione log testo ufficiale EUR-Lex»
+  - [Regolamento (UE) 2024/1689](https://certifico.com/marcatura-ce/regolamento-ue-2024-1689)
+  - [REGOLAMENTO (UE) 2024/1689 DEL PARLAMENTO EUROPEO E DEL CONSIGLIO](https://eur-lex.europa.eu/legal-content/IT/TXT/PDF/?uri=OJ%3AL_202401689)
+  - [L_202401689IT.000101.fmx.xml](https://eur-lex.europa.eu/legal-content/IT/TXT/HTML/?uri=CELEX%3A32024R1689)
+- giorno 4 07:49 **Giulia** cerca_discussioni «AI audit trail regulation compliance»
+  - [SAT-CHAIN – Cryptographic compliance for AI systems](https://news.ycombinator.com/item?id=45735588)
+  - [Show HN: Open-source SDK for AI agent audit trails](https://www.traceprompt.com/)
+  - [Show HN: Traceprompt – open-source SDK for tamper-proof LLM audit trails](https://github.com/traceprompt/traceprompt-node)
+- giorno 4 09:06 **Giulia** cerca_paper «AI audit trail logging automated credit decisions regulation compliance»
+  - (no results)
+- giorno 4 10:00 **Giulia** cerca_discussioni «AI audit decision traceability bank»
+  - [Queryable context graphs to audit AI decision-making](https://www.pylar.ai/blog/building-context-graphs-pylar-decision-traces)
+  - [Show HN: DashClaw – intercept and audit AI agent decisions before they execute](https://github.com/ucsandman/DashClaw)
+  - [Banks are already bumping up against the limits of AI in lending decisions](https://qz.com/1277305/ai-for-lending-decisions-us-bank-regulations-make-that-tough/)
+- giorno 4 10:02 **Giulia** cerca_progetti «AI Act audit logging decisions»
+  - [ZIZKA-AI-SL/ZizkaDB](https://github.com/ZIZKA-AI-SL/ZizkaDB)
+  - [frostbreath123/Hybrid_Suspicious_Activity_Report_Generator](https://github.com/frostbreath123/Hybrid_Suspicious_Activity_Report_Generator)
+  - [RLASAF12/agent-audit](https://github.com/RLASAF12/agent-audit)
+- giorno 4 12:04 **Giulia** cerca_discussioni «AI budget shift enterprise spending»
+  - [Anthropic Captures 73% of New Enterprise AI Spending, Outpacing OpenAI](https://thepolarisreport.com/brief/PR-xvZ14brd)
+  - [Enterprise AI customers pulling back from OpenAI and Anthropic as costs mount](https://qz.com/enterprise-ai-spending-openai-anthropic-roi-pullback-062626)
+  - [Why investors don't mind that AI is a money pit](https://www.theverge.com/2024/12/5/24313373/ai-spending-enterprise-profits-investment-menlo-ventures-openai-anthropic-decoder-podcast)
+- giorno 4 17:05 **Livia** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping logging high-risk»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+  - [The EU AI Act: Best Practices for Monitoring and Logging](https://medium.com/@axel.schwanke/compliance-under-the-eu-ai-act-best-practices-for-monitoring-and-logging-e098a3d6fe9d)
+- giorno 4 17:11 **Enea** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping text»
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [(PDF) AI. 2024. Art. 12 (Record-keeping) - Preliminary Comments on European Union’s Artificial Intelligence Act. In two versions](https://www.academia.edu/121556721/AI_2024_Art_12_Record_keeping_Preliminary_Comments_on_European_Union_s_Artificial_Intelligence_Act_In_two_versions_40_120_p)
+  - [Artificial Intelligence Act](https://en.wikipedia.org/wiki/Artificial_Intelligence_Act)
+- giorno 4 17:34 **Dario** cerca_progetti «AI Act audit trail decision logging»
+  - [ZIZKA-AI-SL/ZizkaDB](https://github.com/ZIZKA-AI-SL/ZizkaDB)
+  - [frostbreath123/Hybrid_Suspicious_Activity_Report_Generator](https://github.com/frostbreath123/Hybrid_Suspicious_Activity_Report_Generator)
+  - [synthetic-data-news/ai-decision-logging-spec](https://github.com/synthetic-data-news/ai-decision-logging-spec)
+- giorno 4 19:30 **Matteo** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping logging high-risk»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+  - [The EU AI Act: Best Practices for Monitoring and Logging](https://medium.com/@axel.schwanke/compliance-under-the-eu-ai-act-best-practices-for-monitoring-and-logging-e098a3d6fe9d)
+- giorno 4 20:04 **Dario** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping logging high-risk»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+  - [The EU AI Act: Best Practices for Monitoring and Logging](https://medium.com/@axel.schwanke/compliance-under-the-eu-ai-act-best-practices-for-monitoring-and-logging-e098a3d6fe9d)
+- giorno 4 20:12 **Irene** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping logging high-risk»
+  - [An AI Act Article a Day #12: Record-keeping for High-Risk AI Systems](https://commonlawyer.substack.com/p/an-ai-act-article-a-day-12-record)
+  - [Article 12: Record-Keeping](https://aiact.algolia.com/article-12/)
+  - [The EU AI Act: Best Practices for Monitoring and Logging](https://medium.com/@axel.schwanke/compliance-under-the-eu-ai-act-best-practices-for-monitoring-and-logging-e098a3d6fe9d)
+- giorno 5 00:31 **Matteo** web_search «EU AI Act Article 12 record-keeping Regulation (EU) 2024/1689 EUR-Lex»
+  - [Article 12: Record-Keeping](https://artificialintelligenceact.eu/article/12/)
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [EU AI Act: AI system logging - VDE](https://www.vde.com/topics-en/artificial-intelligence/blog/eu-ai-act--ai-system-logging)
+- giorno 5 00:48 **Giulia** web_search «EUR-Lex AI Act Regulation (EU) 2024/1689 Article 12 record-keeping text»
+  - [EU AI Act Article 12: Record-Keeping](https://www.euaiact.com/article/12)
+  - [(PDF) AI. 2024. Art. 12 (Record-keeping) - Preliminary Comments on European Union’s Artificial Intelligence Act. In two versions](https://www.academia.edu/121556721/AI_2024_Art_12_Record_keeping_Preliminary_Comments_on_European_Union_s_Artificial_Intelligence_Act_In_two_versions_40_120_p)
+  - [Artificial Intelligence Act](https://en.wikipedia.org/wiki/Artificial_Intelligence_Act)
+- giorno 5 01:14 **Matteo** web_search «EUR-Lex AI Act Article 12 record-keeping testo GUUE Regolamento 2024/1689»
+  - [Regulation - EU - 2024/1689 - EN - EUR-Lex - European Union](https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng)
+  - [EUR-Lex - 02024R1689-20260727 - EN - European Union](https://eur-lex.europa.eu/eli/reg/2024/1689/2026-07-27/eng)
+  - [Regulation 2024/1689 of the Eur. Parl. & Council of June 13, 2024 (EU Artificial Intelligence Act)](https://www.cambridge.org/core/journals/international-legal-materials/article/regulation-20241689-of-the-eur-parl-council-of-june-13-2024-eu-artificial-intelligence-act/64F1F6734F8C66CA3EEA149C9759194E)
+- giorno 5 01:22 **Giulia** web_search «eur-lex.europa.eu Regulation 2024/1689 official journal text high-risk Article 12 Record-keeping»
+  - [Regulation 2024/1689 of the Eur. Parl. & Council of June 13, 2024 (EU Artificial Intelligence Act)](https://www.cambridge.org/core/journals/international-legal-materials/article/regulation-20241689-of-the-eur-parl-council-of-june-13-2024-eu-artificial-intelligence-act/64F1F6734F8C66CA3EEA149C9759194E)
+  - [Regulation - EU - 2024/1689 - EN - EUR-Lex - European Union](https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng)
+  - [EUR-Lex - 02024R1689-20260727 - EN - European Union](https://eur-lex.europa.eu/eli/reg/2024/1689/2026-07-27/eng)
