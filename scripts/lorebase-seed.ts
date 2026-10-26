@@ -1,9 +1,8 @@
-// Creates the `world` Domain, applies lorebase/schema.yaml and loads lorebase/rules.seed.yaml
-// (rules and roles) and lorebase/economy.seed.yaml (resources and the recipes known from the
-// start) on a seed branch merged into `main` through a Proposal. Then rebuilds the hidden
-// branch (config/game.json `economy.hiddenBranch`) with the whole catalog: technologies not
-// yet discovered and their recipes, which agents cannot read. Safe to run again: existing
-// rules keep their current values unless --reset is passed.
+// Creates the Domain, applies lorebase/schema.yaml and loads lorebase/rules.seed.yaml (policies and
+// roles) and lorebase/economy.seed.yaml (resources, signals and the methods known from the start) on
+// a seed branch merged into `main` through a Proposal. Then rebuilds the hidden branch (config/game.json
+// `economy.hiddenBranch`) with the whole catalog: breakthroughs not yet made and their methods, which
+// agents cannot read. Safe to run again: existing policies keep their current values unless --reset.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseYaml } from 'reinloop';
@@ -21,7 +20,7 @@ const client = new LorebaseClient(url, domain);
 const schemaYaml = readFileSync(resolve(ROOT, 'lorebase/schema.yaml'), 'utf8');
 const eco = loadGameConfig().economy;
 type Row = Record<string, unknown>;
-const economy = parseYaml(readFileSync(resolve(ROOT, 'lorebase/economy.seed.yaml'), 'utf8')) as { resources: Row[]; recipes: Row[]; technologies: Array<Row & { recipes?: Row[] }> };
+const economy = parseYaml(readFileSync(resolve(ROOT, 'lorebase/economy.seed.yaml'), 'utf8')) as { resources: Row[]; signals?: Row[]; recipes: Row[]; breakthroughs: Array<Row & { recipes?: Row[] }> };
 const seed = parseYaml(readFileSync(resolve(ROOT, 'lorebase/rules.seed.yaml'), 'utf8')) as { rules: Array<Record<string, unknown>>; roles: Array<Record<string, unknown>> };
 
 await client.ready().catch(() => {
@@ -34,7 +33,7 @@ try {
   console.log(`domain "${domain}" exists`);
 } catch (err) {
   if (!(err instanceof LorebaseError) || err.status !== 404) throw err;
-  await client.createDomain('World laws', 'The rules a small colony of agents must live by.');
+  await client.createDomain('Innovation hub', 'Policies, roles, signals and the idea portfolio of an innovation hub of agents.');
   console.log(`created domain "${domain}"`);
 }
 
@@ -54,6 +53,8 @@ const haveCodes = async (kind: string) => new Set((await client.listRecords(kind
 const haveResources = await haveCodes(eco.kinds.resource);
 const haveRecipes = await haveCodes(eco.kinds.recipe);
 const resourceRows = economy.resources.filter((r) => reset || !haveResources.has(String(r.code))).map((r) => ({ kind: eco.kinds.resource, ...r }));
+const haveSignals = eco.kinds.signal ? await haveCodes(eco.kinds.signal) : new Set<string>();
+const signalRows = eco.kinds.signal ? (economy.signals ?? []).filter((r) => reset || !haveSignals.has(String(r.code))).map((r) => ({ kind: eco.kinds.signal, ...r })) : [];
 const baseRecipeRows = economy.recipes.filter((r) => reset || !haveRecipes.has(String(r.code))).map((r) => recipeRow(eco, recipeFrom(r)));
 
 const work = `seed/${Date.now().toString(36)}`;
@@ -69,9 +70,9 @@ for (const [kind, list] of [[ruleKind, rows], [roleKind, roleRows]] as const) {
   }
 }
 
-if (resourceRows.length || baseRecipeRows.length) {
+if (resourceRows.length || signalRows.length || baseRecipeRows.length) {
   // Resources first: recipes link to them.
-  for (const records of [resourceRows, baseRecipeRows]) {
+  for (const records of [resourceRows, signalRows, baseRecipeRows]) {
     if (!records.length) continue;
     const out = await client.execute(eco.importOperation, { records }, { branch: work, message: `Seed ${records.length} economy record(s)` });
     console.log(`economy: ${out.status}, ${out.edit_count} edit(s)`);
@@ -86,9 +87,9 @@ if (head.head === base.head) {
   console.log('nothing to merge');
   await client.deleteBranch(work).catch(() => undefined);
 } else {
-  const proposal = await client.createProposal(work, branch, 'Seed the laws of the world', 'Schema and default rules of the civilization demo.');
+  const proposal = await client.createProposal(work, branch, 'Seed the policies of the hub', 'Schema, default policies, roles and signals of the innovation hub.');
   await client.review(proposal.id, 'approve', 'Seed');
-  const merged = await client.merge(proposal.id, 'Seed the laws of the world');
+  const merged = await client.merge(proposal.id, 'Seed the policies of the hub');
   await client.deleteBranch(work).catch(() => undefined);
   console.log(`merged proposal ${proposal.id} into ${branch}: ${merged.result} @ ${merged.revision.slice(0, 12)}`);
 }
@@ -100,7 +101,7 @@ await client.createBranch(hidden, branch);
 const discoveredOnMain = await haveCodes(eco.kinds.technology);
 const techRows: Row[] = [];
 const lockedRows: Row[] = [];
-for (const t of economy.technologies) {
+for (const t of economy.breakthroughs) {
   const prerequisites = (t.prerequisites as string[] | undefined) ?? [];
   if (!discoveredOnMain.has(String(t.code))) {
     techRows.push({

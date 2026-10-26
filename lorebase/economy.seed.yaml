@@ -1,343 +1,656 @@
-# The economy of the real-time world, loaded into Lorebase by `npm run lorebase:seed`.
-# Resources and the recipes known from the start go to `main` through a Proposal; every
-# Technology and the recipes it unlocks go to the hidden branch (`economy.hiddenBranch` in
-# config/game.json), which agents cannot read. A discovery merges the Technology and its
-# recipes into `main`. Codes are identifiers; names and descriptions are what people read.
+# The work economy of the innovation hub, loaded into Lorebase by `npm run lorebase:seed`.
+# Resource records (base items and work artifacts) and the Signal records go to `main`, and so
+# do the recipes known from the start. Every Breakthrough and the recipes it unlocks go to the
+# hidden branch (`economy.hiddenBranch` in config/game.json). A recipe input may name a signal
+# category with `@<category>`: any carried signal of that category satisfies it.
 resources:
   - code: food
-    name: "Cibo"
+    name: "Caffè"
     category: food
     perishable: true
-    decay_per_day: 0.12
+    decay_per_day: 0.5
     nourish: 1
     source: tile
-    description: "Bacche, radici e frutti raccolti dalla terra. Si guasta in pochi giorni."
+    description: "Caffè preso dalle macchine della zona relax. Riduce lo stress ma si raffredda in fretta."
   - code: wood
-    name: "Legna"
+    name: "Materiale da lavagna"
     category: material
     perishable: false
     source: tile
-    description: "Rami e tronchi raccolti nei boschi."
-  - code: flint
-    name: "Selce"
-    category: material
-    perishable: false
-    source: biome
-    biomes: [sand]
-    gather_yield: 1
-    description: "Pietra dura e tagliente che si trova sulla sabbia."
-  - code: fiber
-    name: "Fibre vegetali"
-    category: material
-    perishable: false
-    source: biome
-    biomes: [grass]
-    gather_yield: 2
-    description: "Steli lunghi e resistenti strappati dai prati."
-  - code: herbs
-    name: "Erbe medicinali"
-    category: material
+    description: "Post-it, pennarelli e fogli lasciati sulle scrivanie degli uffici e delle sale riunioni. Serve per allestire lavagne e postazioni."
+  - code: insight
+    name: "Insight"
+    category: artifact
     perishable: true
-    decay_per_day: 0.25
-    source: biome
-    biomes: [forest]
-    gather_yield: 1
-    description: "Foglie e radici amare del sottobosco. Appassiscono presto."
-  - code: clay
-    name: "Argilla"
-    category: material
-    perishable: false
-    source: biome
-    biomes: [sand]
-    gather_yield: 2
-    min_distance: 9
-    description: "Terra grassa e plastica che si trova solo lontano dal cuore del mondo."
-  - code: seeds
-    name: "Semi selvatici"
-    category: material
-    perishable: false
-    source: biome
-    biomes: [grass, forest]
-    gather_yield: 1
-    min_distance: 9
-    description: "Piccoli semi di piante che crescono solo lontano dal cuore del mondo."
-  - code: rope
-    name: "Corda"
-    category: material
-    perishable: false
+    decay_per_day: 0.15
     source: craft
-    description: "Fibre intrecciate in una corda robusta."
-  - code: knife
-    name: "Coltello di selce"
-    category: tool
-    perishable: false
+    description: "Osservazione non ovvia che collega un'esigenza reale a un'opportunità di prodotto. È il punto di partenza di ogni idea."
+  - code: nota_fattibilita
+    name: "Nota di fattibilità"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
     source: craft
-    durability: 10
-    boosts: [food, fiber, herbs]
-    boost: 1.5
-    description: "Una lama di selce. Si consuma con l'uso."
-  - code: axe
-    name: "Ascia di selce"
-    category: tool
-    perishable: false
+    description: "Breve valutazione tecnica che indica cosa è realizzabile, con quali componenti e quali vincoli principali."
+  - code: mappa_utenti
+    name: "Mappa degli utenti"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
     source: craft
-    durability: 12
-    boosts: [wood, flint]
-    boost: 2
-    description: "Una pietra affilata legata a un manico. Si consuma con l'uso."
-  - code: basket
-    name: "Cesto"
-    category: tool
-    perishable: false
+    description: "Sintesi dei segmenti di utenti, dei loro compiti ricorrenti e dei punti di frizione. Orienta le scelte di esperienza d'uso."
+  - code: stima_dati
+    name: "Stima sui dati"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
     source: craft
-    durability: 15
-    boosts: [food, herbs, seeds]
-    boost: 2
-    description: "Un cesto di fibre per portare molto più raccolto. Si consuma con l'uso."
-  - code: hearth
-    name: "Focolare"
+    description: "Valutazione di quali dati servono, dove si trovano e quanto sono affidabili. Indica se l'idea regge su basi quantitative."
+  - code: analisi_rischio
+    name: "Analisi del rischio"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
+    source: craft
+    description: "Elenco ragionato dei rischi di sicurezza, privacy e conformità di un'idea, con le mitigazioni possibili."
+  - code: sizing_mercato
+    name: "Dimensionamento di mercato"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
+    source: craft
+    description: "Stima della dimensione del mercato raggiungibile e della disponibilità a pagare dei clienti individuati."
+  - code: concept
+    name: "Concept di prodotto"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
+    source: craft
+    description: "Descrizione strutturata di un'idea di prodotto: problema, utenti, proposta di valore e approccio tecnico di massima."
+  - code: stress_test
+    name: "Stress test"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
+    source: craft
+    description: "Verifica critica di un concept rispetto ai problemi reali: punti deboli, obiezioni e condizioni in cui l'idea fallisce."
+  - code: blueprint_agentico
+    name: "Blueprint agentico"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
+    source: craft
+    description: "Schema architetturale di un prodotto basato su agenti autonomi: ruoli, strumenti, controlli e limiti di autonomia."
+  - code: concept_sicuro
+    name: "Concept sicuro"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
+    source: craft
+    description: "Concept di prodotto rivisto con la protezione dei dati integrata fin dall'origine, insieme alle misure di sicurezza previste."
+  - code: modello_dati
+    name: "Modello dei dati"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
+    source: craft
+    description: "Progetto del ciclo dei dati di un prodotto, in cui l'uso genera dati che ne migliorano il valore nel tempo."
+  - code: kit_dx
+    name: "Kit developer experience"
+    category: artifact
+    perishable: true
+    decay_per_day: 0.15
+    source: craft
+    description: "Insieme di strumenti, guide ed esempi che rendono semplice per gli sviluppatori adottare e integrare un prodotto."
+  - code: lavagna_idee
+    name: "Lavagna delle idee"
     category: structure
     perishable: false
     source: craft
-    durability: 4
+    durability: 3
     decay_per_day: 1
-    description: "Un fuoco protetto da pietre, costruito su una casella. Col tempo si spegne e crolla."
-  - code: storehouse
-    name: "Magazzino"
-    category: structure
-    perishable: false
-    source: craft
-    durability: 8
-    decay_per_day: 1
-    description: "Un deposito asciutto costruito su una casella. Col tempo si degrada."
-  - code: medicine
-    name: "Medicina"
-    category: medicine
-    perishable: true
-    decay_per_day: 0.05
-    heal: 4
-    source: craft
-    description: "Un decotto di erbe che restituisce salute."
-  - code: dried_herbs
-    name: "Erbe essiccate"
-    category: material
-    perishable: false
-    source: craft
-    description: "Erbe seccate che non appassiscono più."
-  - code: dried_food
-    name: "Cibo essiccato"
-    category: food
-    perishable: true
-    decay_per_day: 0.02
-    nourish: 1
-    source: craft
-    description: "Cibo seccato al fuoco: dura molto più a lungo."
-  - code: pot
-    name: "Vaso di terracotta"
-    category: material
-    perishable: false
-    source: craft
-    description: "Un vaso di argilla cotta."
-  - code: preserved_food
-    name: "Cibo conservato"
-    category: food
-    perishable: false
-    nourish: 1
-    source: craft
-    description: "Cibo chiuso nei vasi: non si guasta."
-  - code: salve
-    name: "Unguento d'argilla"
-    category: medicine
-    perishable: false
-    heal: 6
-    source: craft
-    description: "Un impiastro di erbe e argilla che guarisce a fondo."
-  - code: cloak
-    name: "Mantello di fibre"
-    category: tool
-    perishable: false
-    source: craft
-    durability: 30
-    protection: 0.6
-    description: "Un mantello che ripara dal freddo e dai pericoli delle terre lontane. Si logora."
+    description: "Lavagna allestita su una casella per lavorare insieme alle idee. Si consuma in pochi giorni."
 
-# Known from the start (tech empty).
+# Signals: raw material of the hub, gathered in the rooms. Grouped by category.
+signals:
+  # research (lab)
+  - code: research_modelli_piccoli_nicchia
+    name: "Modelli piccoli alla pari dei grandi"
+    category: research
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Uno studio mostra che modelli di piccole dimensioni, adattati a compiti ristretti, eguagliano modelli molto più grandi con una frazione dei costi di esecuzione."
+  - code: research_retrieval_grafi
+    name: "Retrieval migliore con grafi strutturati"
+    category: research
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Un articolo riporta che il recupero di informazioni su grafi di conoscenza strutturati risponde meglio alle domande multi-passaggio rispetto alla sola ricerca per similarità."
+  - code: research_verifica_formale_codice
+    name: "Verifica formale del codice generato"
+    category: research
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Nuovi risultati mostrano che il codice prodotto da modelli generativi può essere verificato formalmente su proprietà semplici, riducendo i difetti che arrivano in produzione."
+  - code: research_costo_energetico_inferenza
+    name: "Costo energetico dell'inferenza"
+    category: research
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Una misurazione su carichi reali indica che l'inferenza pesa più dell'addestramento sul consumo energetico complessivo. Cresce l'interesse per tecniche di caching e batching."
+  - code: research_valutazione_agenti
+    name: "Valutare gli agenti sul lungo periodo"
+    category: research
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Un benchmark su compiti a più passaggi evidenzia che gli agenti falliscono per errori cumulativi, non per singole risposte sbagliate. Mancano strumenti di valutazione adeguati."
+  - code: research_dati_sintetici
+    name: "Dati sintetici per domini rari"
+    category: research
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Esperimenti indicano che dati sintetici ben filtrati migliorano i modelli nei domini con pochi esempi reali, ma amplificano i pregiudizi se non vengono controllati."
+  - code: research_prompt_injection
+    name: "Prompt injection negli strumenti"
+    category: research
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Uno studio mostra che istruzioni nascoste in pagine web e documenti inducono gli agenti con accesso a strumenti a eseguire azioni non richieste, aggirando le difese più comuni."
+  # trend (lab)
+  - code: trend_agenti_autonomi
+    name: "Agenti autonomi nei flussi di lavoro"
+    category: trend
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Le aziende passano dagli assistenti conversazionali ad agenti che eseguono attività complete, come aprire ticket, aggiornare sistemi e preparare report, con supervisione umana ridotta."
+  - code: trend_inferenza_edge
+    name: "Inferenza sul dispositivo"
+    category: trend
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Chip dedicati nei portatili e nei dispositivi industriali permettono di eseguire modelli localmente, con latenza minima e senza inviare dati all'esterno."
+  - code: trend_modelli_open_weight
+    name: "Modelli open-weight in produzione"
+    category: trend
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Molte aziende adottano modelli con pesi aperti, personalizzati e ospitati in proprio, per ridurre la dipendenza dai fornitori e controllare i costi."
+  - code: trend_webassembly_server
+    name: "WebAssembly lato server"
+    category: trend
+    source: biome
+    biomes: [lab]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "WebAssembly si diffonde come ambiente di esecuzione isolato e portabile per funzioni e plugin, con avvii quasi istantanei e un perimetro di sicurezza molto stretto."
+  # trend (lounge)
+  - code: trend_platform_engineering
+    name: "Platform engineering come prodotto interno"
+    category: trend
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Sempre più organizzazioni costruiscono piattaforme interne self-service e le trattano come prodotti, con roadmap e metriche di adozione tra i team di sviluppo."
+  - code: trend_passkey
+    name: "Passkey al posto delle password"
+    category: trend
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Le passkey diventano il metodo di accesso predefinito in molti servizi consumer. Le aziende iniziano a chiedere lo stesso livello di sicurezza per i sistemi interni."
+  - code: trend_osservabilita_llm
+    name: "Osservabilità per applicazioni LLM"
+    category: trend
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "I team che portano in produzione applicazioni basate su modelli linguistici cercano di tracciare prompt, costi, latenze e qualità delle risposte, ma gli strumenti classici non bastano."
+  - code: trend_data_contracts
+    name: "Data contract tra team"
+    category: trend
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "I team dati adottano contratti formali sulla struttura e sulla qualità dei dati scambiati, per evitare che una modifica a monte rompa silenziosamente analisi e modelli."
+  # pain (lounge)
+  - code: pain_onboarding_lento
+    name: "Onboarding troppo lento"
+    category: pain
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Un'ingegnere appena arrivata racconta che ha impiegato tre settimane per avere un ambiente funzionante e fare la prima modifica in produzione."
+  - code: pain_ci_instabile
+    name: "Pipeline di CI instabili"
+    category: pain
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Gli sviluppatori si lamentano di test intermittenti che falliscono a caso. Ormai rilanciano la pipeline senza leggere l'errore e perdono ore ogni settimana."
+  - code: pain_alert_fatigue
+    name: "Troppi alert, nessuna priorità"
+    category: pain
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Chi è di reperibilità riceve decine di notifiche a notte, in gran parte inutili. Alla fine silenzia i canali e rischia di perdere l'allarme che conta davvero."
+  - code: pain_costi_cloud_imprevisti
+    name: "Sorprese nella fattura cloud"
+    category: pain
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Il responsabile finanziario scopre a fine mese che la spesa cloud è raddoppiata e nessun team sa spiegare quale servizio abbia causato l'aumento."
+  - code: pain_troppe_dashboard
+    name: "Troppe dashboard, nessuna risposta"
+    category: pain
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Per capire se un rilascio è andato bene bisogna aprire sei dashboard diverse, con metriche che non coincidono. Ogni team si fida solo della propria."
+  - code: pain_docs_obsolete
+    name: "Documentazione di onboarding obsoleta"
+    category: pain
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Le guide per i nuovi arrivati descrivono strumenti dismessi da mesi. Si finisce per chiedere ai colleghi, che interrompono il proprio lavoro per rispondere."
+  - code: pain_colli_approvazione
+    name: "Approvazioni che bloccano le release"
+    category: pain
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Ogni modifica deve passare da quattro approvazioni manuali. Una correzione urgente resta ferma per giorni perché i revisori sono in ferie o sommersi di richieste."
+  - code: pain_segreti_nei_repo
+    name: "Segreti dimenticati nei repository"
+    category: pain
+    source: biome
+    biomes: [lounge]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Un audit interno trova chiavi di accesso e password in chiaro nella cronologia di decine di repository. Nessuno sa quali siano ancora valide."
+  # market (plaza)
+  - code: market_consolidamento_osservabilita
+    name: "Consolidamento tra fornitori di osservabilità"
+    category: market
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Diversi fornitori di strumenti di osservabilità si stanno fondendo o vengono acquisiti. I clienti temono rincari e cercano alternative aperte e interoperabili."
+  - code: market_calo_prezzi_inferenza
+    name: "Calo dei prezzi dell'inferenza"
+    category: market
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Il costo per milione di token è sceso di oltre la metà in un anno. Casi d'uso prima antieconomici, come l'analisi di interi archivi documentali, diventano sostenibili."
+  - code: market_budget_verso_ai
+    name: "Budget spostati verso l'AI"
+    category: market
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Le direzioni IT riducono la spesa in licenze tradizionali per finanziare progetti di intelligenza artificiale, ma pretendono un ritorno misurabile entro dodici mesi."
+  - code: market_cloud_sovrano_europa
+    name: "Domanda di cloud sovrano in Europa"
+    category: market
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Enti pubblici e aziende regolamentate europee chiedono infrastrutture gestite sotto giurisdizione locale. I grandi fornitori cloud rispondono con offerte dedicate, ancora poco mature."
+  - code: market_pmi_automazione
+    name: "Le PMI adottano l'automazione"
+    category: market
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Le piccole e medie imprese iniziano ad automatizzare fatturazione, assistenza e magazzino, ma non hanno personale tecnico e cercano soluzioni pronte da configurare."
+  - code: market_carenza_talenti_sicurezza
+    name: "Carenza di esperti di sicurezza"
+    category: market
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Le posizioni aperte per specialisti di sicurezza restano scoperte per mesi. Le aziende valutano strumenti che automatizzino triage e risposta ai primi livelli di incidente."
+  - code: market_acquisti_consolidati_saas
+    name: "Stop alla proliferazione di strumenti SaaS"
+    category: market
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Gli uffici acquisti stanno riducendo il numero di abbonamenti software e preferiscono piattaforme che ne sostituiscano più d'uno, anche a costo di rinunciare a qualche funzione."
+  # regulation (plaza)
+  - code: regulation_ai_act_obblighi
+    name: "Obblighi dell'AI Act per i sistemi ad alto rischio"
+    category: regulation
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "L'AI Act europeo richiede documentazione tecnica, gestione del rischio e supervisione umana per i sistemi ad alto rischio. I fornitori devono dimostrarlo con evidenze verificabili."
+  - code: regulation_nis2
+    name: "Requisiti della direttiva NIS2"
+    category: regulation
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "La direttiva NIS2 estende gli obblighi di sicurezza e di notifica degli incidenti a molti più settori, comprese le filiere di fornitura. Le sanzioni coinvolgono anche i vertici aziendali."
+  - code: regulation_residenza_dati
+    name: "Vincoli di residenza dei dati"
+    category: regulation
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Le autorità di controllo ribadiscono che i dati personali dei cittadini europei devono restare in aree con tutele adeguate. I trasferimenti verso fornitori extra-UE richiedono garanzie aggiuntive."
+  - code: regulation_accessibilita
+    name: "Atto europeo sull'accessibilità"
+    category: regulation
+    source: biome
+    biomes: [plaza]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "L'atto europeo sull'accessibilità impone che servizi digitali come e-commerce e banking siano utilizzabili da persone con disabilità. Molti siti esistenti non sono conformi."
+  # customer (meeting)
+  - code: customer_banca_audit_ai
+    name: "Banca: audit delle decisioni automatiche"
+    category: customer
+    source: biome
+    biomes: [meeting]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Una banca ci dice in call che per usare modelli nella valutazione del credito deve poter ricostruire e mostrare al regolatore ogni singola decisione automatica."
+  - code: customer_retail_previsioni_spiegabili
+    name: "Retail: previsioni di domanda spiegate"
+    category: customer
+    source: biome
+    biomes: [meeting]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Un distributore retail ha previsioni di domanda accurate, ma i responsabili di negozio non le usano perché non capiscono perché il sistema suggerisca certi ordini."
+  - code: customer_ospedale_on_prem
+    name: "Ospedale: tutto deve restare on-premise"
+    category: customer
+    source: biome
+    biomes: [meeting]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Una struttura sanitaria vuole sfruttare l'intelligenza artificiale sulle cartelle cliniche, ma i dati non possono lasciare la rete interna e non ha competenze per gestire modelli."
+  - code: customer_saas_billing_a_consumo
+    name: "SaaS: capire il consumo dei clienti"
+    category: customer
+    source: biome
+    biomes: [meeting]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Un'azienda SaaS passa alla fatturazione a consumo e chiede analisi che spieghino quali clienti usano cosa, per prevedere ricavi e individuare chi rischia di abbandonare."
+  - code: customer_logistica_integrazione_legacy
+    name: "Logistica: sistemi legacy da integrare"
+    category: customer
+    source: biome
+    biomes: [meeting]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Un operatore logistico gestisce le spedizioni con un sistema di vent'anni fa. Vuole nuove funzioni intelligenti senza sostituirlo e senza fermare le operazioni."
+  - code: customer_assicurazione_sinistri
+    name: "Assicurazione: sinistri su documenti non strutturati"
+    category: customer
+    source: biome
+    biomes: [meeting]
+    gather_yield: 1
+    perishable: true
+    decay_per_day: 0.3
+    description: "Una compagnia assicurativa riceve migliaia di pratiche con foto, moduli e referti. Gli addetti passano gran parte del tempo a ricopiare dati prima di valutare il sinistro."
+
+# Known from the start. A key like "@trend" accepts any carried signal of that category.
 recipes:
-  - code: rope
-    name: "Intrecciare una corda"
+  - code: sintesi_insight
+    name: "Sintetizzare un insight"
+    description: "Mettere in relazione una tendenza tecnologica con un problema reale per ricavarne un'osservazione utile."
     inputs:
-      fiber: 3
+      "@trend": 1
+      "@pain": 1
     outputs:
-      rope: 1
+      insight: 1
+    minutes: 20
+  - code: insight_da_ricerca
+    name: "Insight da una ricerca"
+    description: "Leggere un risultato di ricerca alla luce di un problema concreto per estrarne un'opportunità."
+    role: ricercatore
+    inputs:
+      "@research": 1
+      "@pain": 1
+    outputs:
+      insight: 1
     minutes: 15
-    description: "Chiunque può intrecciare fibre in una corda."
-  - code: knife
-    name: "Scheggiare un coltello"
-    role: crafter
+  - code: nota_fattibilita
+    name: "Scrivere una nota di fattibilità"
+    description: "Valutare se un insight è realizzabile, appoggiandosi a un risultato di ricerca."
+    role: architetto
     inputs:
-      flint: 2
+      insight: 1
+      "@research": 1
     outputs:
-      knife: 1
+      nota_fattibilita: 1
     minutes: 25
-    description: "Un coltello di selce."
-  - code: axe
-    name: "Fare un'ascia"
-    role: crafter
+  - code: mappa_utenti
+    name: "Costruire la mappa degli utenti"
+    description: "Incrociare un insight con quanto detto dai clienti per descrivere chi userebbe il prodotto e come."
+    role: ux_designer
     inputs:
-      flint: 2
-      wood: 1
-      rope: 1
+      insight: 1
+      "@customer": 1
     outputs:
-      axe: 1
-    minutes: 40
-    description: "Un'ascia di selce legata a un manico."
-  - code: basket
-    name: "Intrecciare un cesto"
-    role: crafter
+      mappa_utenti: 1
+    minutes: 25
+  - code: stima_dati
+    name: "Stimare i dati necessari"
+    description: "Verificare con i segnali di mercato quali dati servono a un'idea e se sono realmente disponibili."
+    role: data_scientist
     inputs:
-      fiber: 4
-      rope: 1
+      insight: 1
+      "@market": 1
     outputs:
-      basket: 1
-    minutes: 35
-    description: "Un cesto di fibre."
-  - code: hearth
-    name: "Costruire un focolare"
-    role: builder
+      stima_dati: 1
+    minutes: 25
+  - code: analisi_rischio
+    name: "Analizzare i rischi"
+    description: "Confrontare un insight con un cambiamento normativo per individuare rischi di conformità e sicurezza."
+    role: security
     inputs:
-      flint: 2
-      wood: 4
+      insight: 1
+      "@regulation": 1
     outputs:
-      hearth: 1
-    tools: [axe]
-    minutes: 40
-    description: "Un focolare sulla casella in cui ci si trova."
-  - code: storehouse
-    name: "Costruire un magazzino"
-    role: builder
+      analisi_rischio: 1
+    minutes: 25
+  - code: sizing_mercato
+    name: "Dimensionare il mercato"
+    description: "Combinare una notizia di mercato con le parole di un cliente per stimare l'ampiezza dell'opportunità."
+    role: venture_lead
     inputs:
-      wood: 10
-      rope: 2
+      "@market": 1
+      "@customer": 1
     outputs:
-      storehouse: 1
-    tools: [axe]
+      sizing_mercato: 1
+    minutes: 20
+  - code: tesi_prodotto
+    name: "Formulare la tesi di prodotto"
+    description: "Unire un insight e la mappa degli utenti in un concept con una proposta di valore chiara."
+    role: product_strategist
+    inputs:
+      insight: 1
+      mappa_utenti: 1
+    outputs:
+      concept: 1
+    minutes: 25
+  - code: concept
+    name: "Scrivere un concept"
+    description: "Trasformare un insight e la relativa nota di fattibilità in un concept di prodotto, lavorando in uno spazio riservato."
     station: shelter
-    minutes: 90
-    description: "Un magazzino accanto a un rifugio."
-  - code: medicine
-    name: "Preparare una medicina"
-    role: healer
     inputs:
-      herbs: 3
+      insight: 1
+      nota_fattibilita: 1
     outputs:
-      medicine: 1
-    station: hearth
-    minutes: 25
-    description: "Un decotto di erbe fresche cotto sul focolare."
-  - code: dried_herbs
-    name: "Essiccare le erbe"
-    role: healer
-    inputs:
-      herbs: 2
-    outputs:
-      dried_herbs: 2
-    station: storehouse
-    minutes: 15
-    description: "Erbe messe a seccare in un magazzino."
-  - code: medicine_dried
-    name: "Medicina dalle erbe secche"
-    role: healer
-    inputs:
-      dried_herbs: 3
-    outputs:
-      medicine: 1
-    station: hearth
-    minutes: 25
-    description: "Un decotto di erbe essiccate cotto sul focolare."
-  - code: dried_food
-    name: "Essiccare il cibo"
-    role: gatherer
-    inputs:
-      food: 3
-    outputs:
-      dried_food: 3
-    station: hearth
+      concept: 1
     minutes: 30
-    description: "Cibo seccato al focolare."
+  - code: stress_test
+    name: "Sottoporre un concept a stress test"
+    description: "Mettere alla prova un concept con un problema reale per scoprirne i punti deboli. Il concept resta disponibile."
+    role: critico
+    inputs:
+      concept: 1
+      "@pain": 1
+    outputs:
+      concept: 1
+      stress_test: 1
+    minutes: 20
+  - code: allestisci_lavagna
+    name: "Allestire una lavagna"
+    description: "Sistemare post-it, pennarelli e fogli su una casella per ottenere una lavagna delle idee."
+    inputs:
+      wood: 3
+    outputs:
+      lavagna_idee: 1
+    minutes: 10
 
-# Hidden until discovered: combining the inputs of one of its recipes (sperimenta) discovers it.
-technologies:
-  - code: farming
-    name: "Coltivazione"
-    description: "Seminare i semi selvatici per far crescere molto cibo."
+# Hidden until discovered: combining the inputs of one of its recipes discovers the Breakthrough.
+breakthroughs:
+  - code: agenti_autonomi
+    name: "Agenti autonomi"
+    description: "Apre il dominio delle idee su prodotti basati su agenti che pianificano ed eseguono attività complete con strumenti e controlli."
+    prerequisites: []
     recipes:
-      - code: sowing
-        name: "Seminare"
-        role: gatherer
+      - code: blueprint_agentico
+        name: "Disegnare un blueprint agentico"
+        description: "Definire ruoli, strumenti e limiti di autonomia di un prodotto basato su agenti, a partire da un concept e da una ricerca."
+        role: architetto
         inputs:
-          seeds: 2
-          food: 1
+          concept: 1
+          "@research": 1
         outputs:
-          food: 8
-        tools: [knife]
-        minutes: 60
-        description: "Semi piantati e curati fino al raccolto."
-  - code: pottery
-    name: "Ceramica"
-    description: "Cuocere l'argilla al fuoco per farne vasi."
+          blueprint_agentico: 1
+        minutes: 30
+  - code: privacy_by_design
+    name: "Privacy by design"
+    description: "Apre il dominio delle idee su prodotti che proteggono i dati personali fin dalla progettazione e dimostrano la conformità."
+    prerequisites: []
     recipes:
-      - code: pot
-        name: "Modellare un vaso"
-        role: crafter
+      - code: concept_sicuro
+        name: "Rendere sicuro un concept"
+        description: "Rivedere un concept alla luce dell'analisi del rischio, integrando le misure di protezione dei dati."
+        role: security
         inputs:
-          clay: 3
-          wood: 1
+          concept: 1
+          analisi_rischio: 1
         outputs:
-          pot: 1
-        station: hearth
-        minutes: 40
-        description: "Un vaso di argilla cotto sul focolare."
-  - code: preserving
-    name: "Conservazione"
-    description: "Chiudere il cibo nei vasi perché non si guasti."
-    prerequisites: [pottery]
+          concept_sicuro: 1
+        minutes: 30
+  - code: data_flywheel
+    name: "Ciclo virtuoso dei dati"
+    description: "Apre il dominio delle idee su prodotti il cui uso genera dati che ne migliorano continuamente le prestazioni."
+    prerequisites: []
     recipes:
-      - code: preserve
-        name: "Conservare il cibo"
-        role: gatherer
+      - code: modello_dati
+        name: "Progettare il modello dei dati"
+        description: "Disegnare come l'uso del prodotto produce dati utili, a partire dalla stima sui dati e da un insight."
+        role: data_scientist
         inputs:
-          food: 4
-          pot: 1
+          stima_dati: 1
+          insight: 1
         outputs:
-          preserved_food: 4
-        station: storehouse
-        minutes: 20
-        description: "Cibo chiuso in un vaso e riposto in magazzino."
-  - code: poultice
-    name: "Unguenti"
-    description: "Impastare erbe e argilla in un impiastro che guarisce."
+          modello_dati: 1
+        minutes: 25
+  - code: developer_experience
+    name: "Developer experience"
+    description: "Apre il dominio delle idee su strumenti e piattaforme per sviluppatori, dove contano adozione rapida e attrito minimo."
+    prerequisites: [agenti_autonomi]
     recipes:
-      - code: salve
-        name: "Preparare un unguento"
-        role: healer
+      - code: kit_dx
+        name: "Preparare un kit developer experience"
+        description: "Mettere insieme guide, esempi e strumenti che facilitano l'adozione di un prodotto da parte degli sviluppatori."
+        role: ux_designer
         inputs:
-          herbs: 2
-          clay: 1
+          mappa_utenti: 1
+          nota_fattibilita: 1
         outputs:
-          salve: 1
-        minutes: 20
-        description: "Un impiastro di erbe e argilla."
-  - code: weaving
-    name: "Tessitura"
-    description: "Intrecciare fibre e corde in stoffa."
-    recipes:
-      - code: cloak
-        name: "Tessere un mantello"
-        role: crafter
-        inputs:
-          fiber: 4
-          rope: 2
-        outputs:
-          cloak: 1
-        minutes: 40
-        description: "Un mantello di fibre intrecciate."
+          kit_dx: 1
+        minutes: 30

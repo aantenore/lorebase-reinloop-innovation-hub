@@ -15,6 +15,55 @@
     "timeScale": 1
   },
   "map": {
+    "layout": "campus",
+    "campus": {
+      "border": 1,
+      "borderBiome": "garden",
+      "corridor": 2,
+      "corridorBiome": "plaza",
+      "centerBiome": "plaza",
+      "wallBiome": "wall",
+      "doorWidth": 2,
+      "zones": [
+        "lab",
+        "meeting",
+        "office",
+        "lounge",
+        "office",
+        "meeting",
+        "lab",
+        "lounge"
+      ],
+      "split": [
+        "meeting"
+      ],
+      "fixtures": {
+        "office": {
+          "every": 3,
+          "level": 1
+        },
+        "lab": {
+          "every": 4,
+          "level": 1
+        },
+        "meeting": {
+          "center": 2
+        },
+        "lounge": {
+          "every": 6,
+          "level": 1
+        }
+      },
+      "elev": {
+        "wall": 2,
+        "garden": 1,
+        "plaza": 1,
+        "office": 1,
+        "meeting": 1,
+        "lab": 1,
+        "lounge": 1
+      }
+    },
     "width": 40,
     "height": 30,
     "noiseScale": 6,
@@ -24,6 +73,34 @@
     "forestAbove": 0.56,
     "elevationSteps": 4,
     "capacity": {
+      "office": {
+        "food": 0,
+        "wood": 4
+      },
+      "meeting": {
+        "food": 0,
+        "wood": 3
+      },
+      "lab": {
+        "food": 0,
+        "wood": 2
+      },
+      "lounge": {
+        "food": 8,
+        "wood": 0
+      },
+      "plaza": {
+        "food": 2,
+        "wood": 0
+      },
+      "garden": {
+        "food": 1,
+        "wood": 0
+      },
+      "wall": {
+        "food": 0,
+        "wood": 0
+      },
       "grass": {
         "food": 6,
         "wood": 0
@@ -46,53 +123,19 @@
       }
     },
     "blocked": [
+      "wall",
       "water",
       "rock"
     ],
     "initialFill": [
-      0.5,
+      0.6,
       1
     ],
     "spawnRadius": 3,
     "spawnFood": {
-      "radius": 6,
+      "radius": 4,
       "fill": 1,
-      "minFood": 3
-    },
-    "regions": {
-      "coreRadius": 5,
-      "minTiles": 6,
-      "rotations": 24,
-      "sectors": [
-        {
-          "name": "sabbie",
-          "items": [
-            "flint",
-            "clay"
-          ]
-        },
-        {
-          "name": "prati",
-          "items": [
-            "fiber",
-            "seeds"
-          ]
-        },
-        {
-          "name": "boschi",
-          "items": [
-            "herbs",
-            "seeds"
-          ]
-        },
-        {
-          "name": "rive",
-          "items": [
-            "herbs",
-            "clay"
-          ]
-        }
-      ]
+      "minFood": 2
     },
     "maxPopulation": 40
   },
@@ -155,7 +198,9 @@
       "seasonChange": true,
       "rulesChanged": true,
       "offer": true,
-      "offerAnswered": true
+      "offerAnswered": true,
+      "ideaNews": true,
+      "quarter": true
     },
     "startStaggerMs": 400,
     "offersMax": 5,
@@ -211,22 +256,25 @@
     ],
     "seeded": [
       {
-        "name": "Consiglio degli Anziani",
+        "name": "Comitato Investimenti",
         "pattern": "council",
         "members": [
-          "Ilse",
-          "Mara"
+          "Livia",
+          "Matteo",
+          "Dario"
         ],
-        "leader": "Ilse"
+        "leader": "Livia",
+        "jointPlans": false
       },
       {
-        "name": "Assemblea dei Raccoglitori",
-        "pattern": "assembly",
+        "name": "Squadra Esplorazione",
+        "pattern": "orchestrator",
         "members": [
-          "Okon",
-          "Pell"
+          "Enea",
+          "Sara",
+          "Bruno"
         ],
-        "leader": null
+        "leader": "Enea"
       }
     ],
     "proseMaxOutputTokens": 1500,
@@ -236,24 +284,23 @@
     "minGameMinutesBetweenDecisions": 60
   },
   "crowd": {
-    "count": 4,
+    "count": 3,
     "tier": "haiku",
-    "groupName": "Folla",
+    "groupName": "Stagisti",
     "names": [
-      "Abe",
-      "Bru",
-      "Cira",
-      "Duma",
-      "Elio",
-      "Fosca",
-      "Gaia",
-      "Ugo"
+      "Tea",
+      "Ugo",
+      "Nadia",
+      "Pietro",
+      "Lia",
+      "Oscar"
     ],
     "roles": [
-      "gatherer",
-      "builder"
+      "ricercatore",
+      "ux_designer",
+      "data_scientist"
     ],
-    "personality": "Gente semplice del villaggio."
+    "personality": "Stagista appena arrivato: curioso, impara guardando gli altri."
   },
   "chronicle": {
     "enabled": true,
@@ -274,8 +321,14 @@
     "eatAtHunger": 1,
     "offerChance": 0.35,
     "judgeChance": 0.5,
-    "lawChance": 0.1,
-    "askChance": 0.35
+    "lawChance": 0.03,
+    "askChance": 0.35,
+    "ideaChance": 0.3,
+    "reviewChance": 0.7,
+    "enrichChance": 0.6,
+    "ideaSeeds": 12,
+    "committeeApproveAt": 6,
+    "committeeKillBelow": 4.5
   },
   "brain": {
     "mcpUrl": "http://127.0.0.1:8290/mcp",
@@ -303,7 +356,7 @@
     "kind": "Insight",
     "operation": "share_insight",
     "updateOperation": "update_insight",
-    "branchPrefix": "role/",
+    "branchPrefix": "playbook/",
     "autoAcceptMinutes": 120,
     "maxPendingPerRole": 10,
     "textMaxChars": 400,
@@ -315,12 +368,13 @@
   },
   "economy": {
     "enabled": true,
-    "hiddenBranch": "nature/hidden",
-    "discoveryBranchPrefix": "tech/",
+    "hiddenBranch": "catalog/hidden",
+    "discoveryBranchPrefix": "breakthrough/",
     "kinds": {
       "resource": "Resource",
       "recipe": "Recipe",
-      "technology": "Technology"
+      "technology": "Breakthrough",
+      "signal": "Signal"
     },
     "relations": {
       "unlockedBy": "unlocked_by",
@@ -414,6 +468,18 @@
       "offer": {
         "importance": 0.4,
         "emotion": 0.2
+      },
+      "idea": {
+        "importance": 0.7,
+        "emotion": 0.4
+      },
+      "review": {
+        "importance": 0.5,
+        "emotion": 0.2
+      },
+      "committee": {
+        "importance": 0.85,
+        "emotion": 0.6
       }
     },
     "retries": 4,
@@ -442,18 +508,22 @@
       "Role",
       "Insight",
       "Chronicle",
+      "Team",
       "Resource",
+      "Signal",
       "Recipe",
-      "Technology"
+      "Breakthrough",
+      "Idea",
+      "Review"
     ]
   },
   "god": {
     "recentMax": 20
   },
   "births": {
-    "maxAgentMinds": 15,
+    "maxAgentMinds": 10,
     "childTier": "random-parent",
-    "atCap": "block"
+    "atCap": "crowd"
   },
   "death": {
     "forgetMemories": true,
@@ -477,14 +547,14 @@
       "famousAbove": 3
     },
     "lawProposals": {
-      "branchPrefix": "law/agent-",
+      "branchPrefix": "policy/agent-",
       "textMaxChars": 400,
       "pollMs": 15000,
       "maxOpen": 5,
       "defaultValue": 1
     },
     "families": {
-      "kind": "Family",
+      "kind": "Team",
       "flushMs": 10000,
       "colors": [
         "#e8b04a",
@@ -511,11 +581,67 @@
   },
   "reflex": {
     "enabled": true,
-    "eatAtHunger": 2,
-    "searchRadius": 8,
+    "eatAtHunger": 4,
+    "searchRadius": 14,
     "checkMs": 500
   },
   "budget": {
-    "maxUsd": 0
+    "maxUsd": 2
+  },
+  "ideas": {
+    "enabled": true,
+    "kind": "Idea",
+    "reviewKind": "Review",
+    "writeOperation": "import_records",
+    "branchPrefix": "idea/",
+    "titleMaxChars": 90,
+    "textMaxChars": 500,
+    "tagsMax": 6,
+    "tagMaxChars": 30,
+    "historyMax": 30,
+    "commentMaxChars": 280,
+    "perceiveMax": 6,
+    "signalsMax": 3,
+    "attachCategories": [
+      "trend",
+      "pain",
+      "market",
+      "research",
+      "regulation",
+      "customer",
+      "artifact"
+    ],
+    "retries": 6,
+    "retryBaseMs": 1000,
+    "committee": {
+      "groupName": "Comitato Investimenti",
+      "maxPerSession": 3
+    }
+  },
+  "company": {
+    "name": "Hub Innovazione",
+    "themeCategory": "strategy",
+    "careers": [
+      {
+        "code": "junior"
+      },
+      {
+        "code": "senior",
+        "rule": "promotion_senior_fame"
+      },
+      {
+        "code": "principal",
+        "rule": "promotion_principal_fame"
+      },
+      {
+        "code": "fellow",
+        "rule": "promotion_fellow_fame"
+      }
+    ],
+    "startCareer": {
+      "agent": "senior",
+      "crowd": "junior",
+      "player": "junior"
+    }
   }
 }

@@ -8,7 +8,10 @@
     "port": 4500,
     "maxBodyBytes": 65536,
     "corsOrigins": [],
-    "devOriginPorts": [5183, 5189],
+    "devOriginPorts": [
+      5183,
+      5189
+    ],
     "staticDir": "web/dist"
   },
   "lorebase": {
@@ -21,14 +24,25 @@
     "updateOperation": "update_rule",
     "enactOperation": "enact_rule",
     "createOperation": "create_rule",
-    "proposalBranchPrefix": "law/",
+    "proposalBranchPrefix": "policy/",
     "pollMs": 5000,
     "reconnectMs": 3000,
     "repealOperation": "repeal_rule",
     "amendOperation": "amend_rule",
     "deleteOperation": "delete_rule",
     "bulkDeleteOperation": "delete_records",
-    "maxBulkDeleteKeys": 1000
+    "maxBulkDeleteKeys": 1000,
+    "ruleCategories": [
+      "survival",
+      "economy",
+      "climate",
+      "society",
+      "time",
+      "company",
+      "ideas",
+      "strategy",
+      "wellbeing"
+    ]
   },
   "models": {
     "opus": "anthropic/claude-opus-5-5",
@@ -51,52 +65,52 @@
   },
   "roster": [
     {
-      "name": "Ilse",
-      "role": "elder",
+      "name": "Livia",
+      "role": "venture_lead",
       "tier": "opus",
-      "personality": "Calma, lungimirante; parla poco ma con chiarezza."
+      "personality": "Lucida e diretta; vede in fretta dove un prodotto può crescere e dove no."
     },
     {
-      "name": "Tomas",
-      "role": "builder",
-      "tier": "haiku",
-      "personality": "Pratico e testardo; detesta gli sprechi."
-    },
-    {
-      "name": "Mara",
-      "role": "healer",
+      "name": "Matteo",
+      "role": "product_strategist",
       "tier": "sonnet",
-      "personality": "Affettuosa, si preoccupa per i più deboli."
+      "personality": "Metodico, ama le domande scomode sul perché di un prodotto."
     },
     {
-      "name": "Okon",
-      "role": "gatherer",
-      "tier": "haiku",
-      "personality": "Gran lavoratore, un po' avido."
-    },
-    {
-      "name": "Vera",
-      "role": "crafter",
+      "name": "Giulia",
+      "role": "architetto",
       "tier": "sonnet",
-      "personality": "Paziente e precisa; ama le cose fatte bene."
+      "personality": "Pragmatica, diffida delle architetture eleganti che nessuno sa gestire."
     },
     {
-      "name": "Pell",
-      "role": "gatherer",
+      "name": "Enea",
+      "role": "ricercatore",
       "tier": "haiku",
-      "personality": "Allegro, vive alla giornata."
+      "personality": "Curioso e veloce, legge tutto e collega cose lontane."
     },
     {
-      "name": "Rudi",
-      "role": "builder",
+      "name": "Sara",
+      "role": "ux_designer",
       "tier": "haiku",
-      "personality": "Entusiasta, impaziente."
+      "personality": "Empatica, parte sempre da chi userà davvero il prodotto."
     },
     {
-      "name": "Nia",
-      "role": "explorer",
+      "name": "Bruno",
+      "role": "data_scientist",
       "tier": "haiku",
-      "personality": "Audace, raramente si volta indietro."
+      "personality": "Scettico, chiede numeri prima di entusiasmarsi."
+    },
+    {
+      "name": "Irene",
+      "role": "security",
+      "tier": "haiku",
+      "personality": "Prudente ma non paralizzante; pensa a come le cose si rompono."
+    },
+    {
+      "name": "Dario",
+      "role": "critico",
+      "tier": "haiku",
+      "personality": "Ironico e franco; smonta le idee per vedere se reggono."
     }
   ],
   "world": {
@@ -131,26 +145,24 @@
     "spawnRadius": 2,
     "maxPopulation": 16,
     "namePool": [
-      "Ari",
-      "Bex",
-      "Cato",
-      "Dila",
-      "Eno",
-      "Fen",
-      "Gia",
-      "Hob",
+      "Alba",
+      "Bianca",
+      "Carlo",
+      "Davide",
+      "Elena",
+      "Fabio",
+      "Greta",
       "Ivo",
-      "Juno",
-      "Kit",
-      "Lio",
-      "Mo",
-      "Nell",
-      "Oz",
-      "Pia",
-      "Quin",
-      "Rhea",
-      "Sol",
-      "Tam"
+      "Laura",
+      "Marco",
+      "Noemi",
+      "Ottavio",
+      "Paola",
+      "Rocco",
+      "Silvia",
+      "Tommaso",
+      "Vera",
+      "Zeno"
     ]
   },
   "mock": {

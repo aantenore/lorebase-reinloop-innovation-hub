@@ -1,41 +1,42 @@
 {
-  "long-winter": {
-    "title": "Il lungo inverno",
-    "description": "Gli inverni durano di più, d'inverno la terra dà poco e il freddo morde di più.",
+  "crunch": {
+    "title": "Crunch di fine anno",
+    "description": "Il freeze dura di più e chi lavora lontano da una postazione si consuma più in fretta.",
     "changes": {
-      "winter_length_ticks": 6,
-      "winter_food_yield_multiplier": 0.25,
-      "cold_damage_unsheltered": 1.5
+      "winter_length_ticks": 4,
+      "cold_damage_unsheltered": 0.8,
+      "winter_food_yield_multiplier": 0.5
     }
   },
-  "drought": {
-    "title": "Siccità",
-    "description": "La terra ricresce lentamente e la raccolta dà meno cibo.",
+  "budget-ridotto": {
+    "title": "Budget ridotto",
+    "description": "Un solo slot di approvazione per trimestre e un comitato più esigente.",
     "changes": {
-      "regrowth_per_tick": 0.02,
-      "gather_food_yield": 1
+      "quarter_idea_slots": 1,
+      "min_idea_reviewers": 3
     }
   },
-  "abundance": {
-    "title": "L'età dell'abbondanza",
-    "description": "Terra fertile, inverni miti, rifugi che costano poco.",
+  "innovazione-aperta": {
+    "title": "Innovazione aperta",
+    "description": "Più slot, nessun blocco nel freeze, più impatto per le idee approvate.",
     "changes": {
-      "regrowth_per_tick": 0.15,
-      "gather_food_yield": 3,
-      "winter_food_yield_multiplier": 0.8,
-      "shelter_wood_cost": 4
+      "quarter_idea_slots": 6,
+      "freeze_blocks_approvals": 0,
+      "fame_idea_approved": 8
     }
   },
-  "no-sharing": {
-    "title": "Ognuno per sé",
-    "description": "È vietato dare cibo o legna agli altri.",
+  "rischio-zero": {
+    "title": "Rischio zero",
+    "description": "Il rischio pesa molto nel punteggio delle idee e il comitato ne tollera poco.",
     "changes": {
-      "sharing_allowed": 0
+      "weight_risk": 0.4,
+      "weight_novelty": 0.1,
+      "risk_appetite": 3
     }
   },
   "defaults": {
-    "title": "Le leggi antiche",
-    "description": "Ripristina il valore originale di ogni legge.",
+    "title": "Le policy di partenza",
+    "description": "Ripristina il valore originale di ogni policy.",
     "changes": "seed"
   }
 }

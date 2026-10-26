@@ -2,7 +2,7 @@
   "http": {
     "host": "127.0.0.1",
     "port": 4510,
-    "maxBodyBytes": 65536
+    "maxBodyBytes": 1048576
   },
   "lifecycle": {
     "parentCheckMs": 2000

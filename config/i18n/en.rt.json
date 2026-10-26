@@ -1,7 +1,9 @@
 {
   "instructions": [
-    "You are {name}. Your character: {personality}",
-    "Your role in society: {roleTitle} ({role}).",
+    "You are {name}, one of the brightest minds of the agentic world. Your character: {personality}",
+    "You work in the innovation hub of an IT company: here people generate and evaluate product ideas (software, AI, infrastructure, developer tools, security, data); they do not build them.",
+    "Your role in the company: {roleTitle} ({role}).",
+    "Your mind is connected to Lorebase (lorebase_* tools): there you find the company policies, your role's shared playbook, the company newsletter and the portfolio of approved ideas. You also have a private memory (remember/recall).",
     "Time flows without pause. When you stop to think you fix with commit_plan what you will do for about {horizon} minutes; while you think you keep doing what you were doing.",
     "You think and speak in English."
   ],
@@ -11,7 +13,14 @@
     "forest": "forest",
     "water": "water",
     "rock": "rock",
-    "sand": "sand"
+    "sand": "sand",
+    "office": "open space",
+    "meeting": "meeting room",
+    "lab": "lab",
+    "lounge": "lounge",
+    "wall": "wall",
+    "garden": "garden",
+    "plaza": "central plaza"
   },
   "daypart": {
     "day": "day",
@@ -27,7 +36,7 @@
     "crowd": "crowd: a single mind guides many people"
   },
   "observation": {
-    "header": "DAY {day}, HOUR {clock} ({daypart}). Season: {season}; {winter}.",
+    "header": "DAY {day}, {clock} ({daypart}). Quarter {quarter}; {winter}.",
     "winterNow": "it is winter",
     "winterIn": "winter arrives in {minutes} minutes",
     "noWinter": "under the current laws there is no winter",
@@ -63,7 +72,17 @@
     "hearsay": "WHAT PEOPLE SAY:\n{lines}",
     "hearsayLine": "- {from} said of {about}: \"{text}\"",
     "askForYou": "- {id}: {from} asks you for {want}, offering nothing in return",
-    "askByYou": "- {id}: you asked {to} for {want}"
+    "askByYou": "- {id}: you asked {to} for {want}",
+    "anyLine": "{amount} {category} of any kind ({code})",
+    "company": "COMPANY: {name}; quarter {quarter}; approval slots left this quarter: {slots} of {total}; {freeze}. Your career: {career}.",
+    "freezeOn": "a budget freeze is on",
+    "freezeOff": "no freeze",
+    "ideas": "IDEAS IN THE COMPANY:\n{lines}",
+    "noIdeas": "- none",
+    "ideaLine": "- {code}: \"{title}\" ({stage}); champion {champion}; authors {authors}; reviews {reviews}{mine}{missing}",
+    "ideaMine": "; it is yours",
+    "ideaReviewed": "; you reviewed it",
+    "ideaMissing": "; missing: {fields}"
   },
   "why": {
     "start": "you look around for the first time",
@@ -80,7 +99,16 @@
     "conversation": "you have just spoken with {name}",
     "offer": "{name} offers you an exchange",
     "offerAnswered": "your exchange offer to {name} was {status}",
-    "ask": "{name} asks you for something"
+    "ask": "{name} asks you for something",
+    "quarter": "quarter {ended} closed, {began} begins",
+    "idea": {
+      "reviewed": "{name} reviewed the idea \"{title}\"",
+      "approved": "the investment committee approved the idea \"{title}\": {summary}",
+      "killed": "the investment committee killed the idea \"{title}\": {summary}",
+      "deferred": "the investment committee deferred the idea \"{title}\"",
+      "pitch": "the idea \"{title}\" was submitted to the committee",
+      "waiting": "more ideas wait for the committee"
+    }
   },
   "reason": {
     "unreachable": "that place cannot be reached",
@@ -222,7 +250,32 @@
     "askAmount": "amount",
     "testify": "Tell what you saw: whether a person kept or broke a law of the community (not a law of nature). Whoever is near you hears what you say.",
     "testifyLaw": "code of the law",
-    "testifyKept": "true if it was kept, false if it was broken"
+    "testifyKept": "true if it was kept, false if it was broken",
+    "idea": {
+      "propose": "Propose a product idea: it is born on its own Lorebase branch, with you as champion. Others can enrich and review it. Items you carry and name in signals (signals, work artifacts) go into the idea and you no longer carry them.",
+      "enrich": "Add or rewrite fields of an idea still open, also others': you become a co-author.",
+      "review": "Review an idea you did not author, 0-10, on impact, feasibility, novelty, fit with the strategy and risk, with a comment. One review per person: a new one replaces the old.",
+      "submit": "Submit an idea you authored to the investment committee: it approves it (portfolio), kills it or defers it.",
+      "read": "Read an idea in full: fields, authors, reviews, history.",
+      "code": "code of the idea",
+      "title": "short title",
+      "problem": "the problem, for whom and why it matters",
+      "users": "who the users are",
+      "solution": "the proposed solution",
+      "differentiation": "what sets it apart",
+      "feasibility": "how and how much it can be built",
+      "risks": "the main risks",
+      "tags": "domains or themes (short words)",
+      "signals": "codes of carried items to bring into the idea",
+      "comment": "your comment, one or two sentences",
+      "score": {
+        "impact": "impact, 0-10",
+        "feasibility": "feasibility, 0-10",
+        "novelty": "novelty, 0-10",
+        "fit": "fit with the strategy, 0-10",
+        "risk": "risk, 0 (none) to 10 (very high)"
+      }
+    }
   },
   "act": {
     "planned": "plan fixed ({n} steps)",
@@ -264,7 +317,13 @@
     "askFailed": "request not made: {reason}",
     "askGiven": "you gave {name} what they asked for",
     "testified": "what you saw of {name} has been told",
-    "testifyFailed": "not told: {reason}"
+    "testifyFailed": "not told: {reason}",
+    "ideaProposed": "idea proposed ({code}), stage: {stage}",
+    "ideaEnriched": "idea {code} enriched, stage: {stage}",
+    "ideaReviewed": "review recorded for {code}",
+    "ideaSubmitted": "idea {code} submitted to the investment committee",
+    "ideaFailed": "it did not work: {reason}",
+    "groupClosed": "{name} is appointed by the company: nobody joins it by themselves"
   },
   "group": {
     "header": "YOU ARE THE GROUP {name} ({pattern}). Now decide together what each of you will do in the next {horizon} minutes.",
@@ -332,7 +391,18 @@
     "lawMerged": "The law proposed by {name} enters the law book: {key}",
     "lawRejected": "The law proposed by {name} is rejected: {key}",
     "lawBreach": "{name} broke the law {law}: so say {witnesses}",
-    "budget": "Time to think is over: {spent} $ spent of {max} $, every mind stops"
+    "budget": "Time to think is over: {spent} $ spent of {max} $, every mind stops",
+    "promotion": "{name} is promoted: now {career}",
+    "quarter": "Quarter {ended} closed (OKR): {proposed} ideas proposed, {submitted} submitted, {approved} approved, {killed} killed. {began} begins.",
+    "idea": {
+      "created": "{name} proposes the idea \"{title}\"",
+      "updated": "{name} enriches the idea \"{title}\" ({stage})",
+      "reviewed": "{name} reviews the idea \"{title}\"",
+      "submitted": "{name} submits the idea \"{title}\" to the investment committee",
+      "approved": "The investment committee approves \"{title}\": it enters the portfolio",
+      "killed": "The investment committee kills \"{title}\"",
+      "stage": "The idea \"{title}\" moves to: {stage}"
+    }
   },
   "memory": {
     "planned": "I decided: {reason}",
@@ -357,7 +427,13 @@
     "offerClosed": "My exchange offer to {name} was {status}",
     "asked": "I asked {name} for {want}",
     "testifiedKept": "I told that {name} kept the law {law}: {reason}",
-    "testifiedBroken": "I told that {name} broke the law {law}: {reason}"
+    "testifiedBroken": "I told that {name} broke the law {law}: {reason}",
+    "ideaProposed": "I proposed the idea \"{title}\" ({code})",
+    "ideaEnriched": "I enriched the idea \"{title}\" ({code})",
+    "ideaReviewed": "I reviewed the idea \"{title}\" ({code})",
+    "ideaSubmitted": "I submitted the idea \"{title}\" to the committee",
+    "committee": "The committee decided on \"{title}\": {decision}. {summary}",
+    "promoted": "I was promoted: I am now {career}"
   },
   "mock": {
     "reason": {
@@ -421,7 +497,140 @@
       "good": "{name} works well and helps others.",
       "bad": "{name} only thinks of themselves."
     },
-    "law": "Whoever has extra food shares it with the hungry."
+    "law": "Whoever has extra food shares it with the hungry.",
+    "ideas": [
+      {
+        "title": "Audit trail per decisioni AI",
+        "problem": "Banche e assicurazioni non sanno ricostruire perché un modello ha preso una decisione, e i regolatori lo chiedono.",
+        "users": "Team compliance e risk di banche e assicurazioni.",
+        "solution": "Un registro immutabile che collega ogni decisione del modello a dati, versione e prompt usati, interrogabile dagli auditor.",
+        "differentiation": "I prodotti esistenti tracciano i modelli, non le singole decisioni in produzione.",
+        "feasibility": "Fattibile in un trimestre con un collettore di eventi e uno storage append-only.",
+        "risks": "Volumi elevati di log; dati personali nei prompt da mascherare.",
+        "tags": "ai,compliance,dati"
+      },
+      {
+        "title": "CI senza test instabili",
+        "problem": "I team perdono ore a rilanciare pipeline per test che falliscono a caso.",
+        "users": "Team di sviluppo con pipeline lunghe.",
+        "solution": "Un servizio che riconosce i test instabili dalla storia delle esecuzioni, li mette in quarantena e apre una segnalazione con la causa probabile.",
+        "differentiation": "Lavora sulla storia di tutte le pipeline, non su una sola esecuzione.",
+        "feasibility": "Si integra con i sistemi di CI tramite webhook; modello statistico semplice.",
+        "risks": "Falsi positivi che nascondono bug veri.",
+        "tags": "devex,ci,qualità"
+      },
+      {
+        "title": "Agente di onboarding per sviluppatori",
+        "problem": "I nuovi sviluppatori impiegano settimane a orientarsi tra repository e documentazione obsoleta.",
+        "users": "Sviluppatori appena assunti e i loro mentori.",
+        "solution": "Un agente che risponde sulle basi di codice interne citando file e decisioni, e segnala la documentazione superata.",
+        "differentiation": "Collega codice, ticket e decisioni architetturali invece della sola documentazione.",
+        "feasibility": "Indicizzazione dei repository e recupero con citazioni: tecnologia matura.",
+        "risks": "Risposte sbagliate date con sicurezza; accesso a codice riservato.",
+        "tags": "ai,devex,agenti"
+      },
+      {
+        "title": "Bollette cloud senza sorprese",
+        "problem": "Le aziende scoprono a fine mese costi cloud inattesi.",
+        "users": "FinOps e responsabili di piattaforma.",
+        "solution": "Previsioni giornaliere dei costi con avvisi quando un servizio devia dalla norma e la modifica che l'ha causato.",
+        "differentiation": "Collega ogni anomalia di costo al rilascio che l'ha introdotta.",
+        "feasibility": "Dati di fatturazione e di deploy già disponibili via API.",
+        "risks": "Ritardi nei dati di fatturazione dei fornitori.",
+        "tags": "finops,cloud,dati"
+      },
+      {
+        "title": "Segreti fuori dai repository",
+        "problem": "Chiavi e token finiscono nei repository e restano lì per mesi.",
+        "users": "Team di sicurezza e sviluppatori.",
+        "solution": "Un controllo che blocca i segreti prima del commit, li ruota in automatico e ripulisce la storia.",
+        "differentiation": "Ruota il segreto esposto invece di limitarsi a segnalarlo.",
+        "feasibility": "Hook locali e integrazione con i gestori di segreti esistenti.",
+        "risks": "Attrito per gli sviluppatori se i falsi positivi sono molti.",
+        "tags": "security,devex"
+      },
+      {
+        "title": "Allarmi che contano",
+        "problem": "I reperibili ricevono centinaia di allarmi e ignorano quelli importanti.",
+        "users": "Team SRE e di reperibilità.",
+        "solution": "Raggruppa gli allarmi per causa comune e ne propone uno solo con il contesto per risolverlo.",
+        "differentiation": "Impara dalle risoluzioni passate del team, non da regole statiche.",
+        "feasibility": "Fattibile con i dati degli strumenti di osservabilità esistenti.",
+        "risks": "Raggruppamenti sbagliati che nascondono un incidente.",
+        "tags": "sre,ai,osservabilità"
+      },
+      {
+        "title": "Contratti sui dati tra team",
+        "problem": "Le pipeline dati si rompono quando un team cambia uno schema senza avvisare.",
+        "users": "Data engineer e team di prodotto.",
+        "solution": "Contratti versionati sugli schemi, verificati a ogni modifica, con notifica ai consumatori.",
+        "differentiation": "Mette d'accordo produttori e consumatori prima del rilascio, non dopo il guasto.",
+        "feasibility": "Si appoggia ai registri di schema esistenti.",
+        "risks": "Adozione: serve che i team li mantengano.",
+        "tags": "dati,qualità"
+      },
+      {
+        "title": "Valutazione continua degli agenti",
+        "problem": "Chi mette in produzione agenti AI non sa se una modifica li ha peggiorati.",
+        "users": "Team che sviluppano applicazioni con agenti.",
+        "solution": "Una suite di valutazioni che gira a ogni modifica di prompt o modello e confronta comportamento, costi e sicurezza.",
+        "differentiation": "Valuta traiettorie complete degli agenti, non singole risposte.",
+        "feasibility": "Richiede scenari di test e un giudice automatico tarato.",
+        "risks": "Valutazioni che non rappresentano l'uso reale.",
+        "tags": "ai,agenti,qualità"
+      },
+      {
+        "title": "Conformità accessibilità continua",
+        "problem": "Molti siti non rispettano i nuovi obblighi di accessibilità e lo scoprono tardi.",
+        "users": "Team web di aziende soggette all'obbligo.",
+        "solution": "Controlli automatici a ogni rilascio con correzioni proposte nel codice.",
+        "differentiation": "Propone la correzione nel codice, non solo il rapporto.",
+        "feasibility": "Analisi statica e test nel browser: tecnologie note.",
+        "risks": "Molti problemi richiedono comunque giudizio umano.",
+        "tags": "compliance,web"
+      },
+      {
+        "title": "Inferenza on-prem per ospedali",
+        "problem": "Gli ospedali non possono mandare dati clinici a servizi esterni.",
+        "users": "Reparti IT ospedalieri.",
+        "solution": "Un'appliance con modelli piccoli ottimizzati per testi clinici, gestita da remoto senza accesso ai dati.",
+        "differentiation": "Modelli piccoli addestrati sul dominio, gestione senza vedere i dati.",
+        "feasibility": "Hardware standard; modelli open-weight adattati.",
+        "risks": "Certificazioni sanitarie lunghe.",
+        "tags": "ai,sanità,infrastruttura"
+      },
+      {
+        "title": "Approvazioni senza colli di bottiglia",
+        "problem": "Le richieste di accesso e di spesa restano ferme in attesa di approvazione per giorni.",
+        "users": "Responsabili di team e uffici acquisti.",
+        "solution": "Un sistema che instrada le richieste al decisore giusto con il contesto già raccolto e approva da solo i casi a basso rischio.",
+        "differentiation": "Regole di rischio esplicite e verificabili, non approvazioni opache.",
+        "feasibility": "Integrazione con i sistemi di identità e di acquisto.",
+        "risks": "Approvazioni automatiche sbagliate.",
+        "tags": "processi,automazione"
+      },
+      {
+        "title": "Previsioni della domanda spiegate",
+        "problem": "I retailer non si fidano delle previsioni perché non ne capiscono le ragioni.",
+        "users": "Pianificatori della domanda nel retail.",
+        "solution": "Previsioni accompagnate dai fattori che le muovono, in linguaggio semplice e con scenari alternativi.",
+        "differentiation": "Spiega le previsioni invece di dare solo un numero.",
+        "feasibility": "Modelli di previsione noti più un livello di spiegazione.",
+        "risks": "Spiegazioni semplificate che ingannano.",
+        "tags": "dati,retail,ai"
+      }
+    ],
+    "ideaVersion": "{title} (version {n})",
+    "review": {
+      "good": "Real problem and credible solution: I would push it.",
+      "mixed": "Interesting, but the value for users must be shown better.",
+      "bad": "Weak problem; the risks outweigh the value."
+    },
+    "committee": {
+      "approve": "Solid reviews (weighted score {score}): into the portfolio.",
+      "kill": "Weighted score {score}: the value does not justify the investment.",
+      "defer": "Weighted score {score}: more work needed before deciding."
+    }
   },
   "reflex": {
     "reason": "reflex: hunger drives them to eat",
@@ -492,6 +701,136 @@
     "tools": "tools: {list}",
     "station": "done where there is {name} ({code})",
     "lack": "you lack: {list}",
-    "ready": "you have what it consumes"
+    "ready": "you have what it consumes",
+    "shelter": "a desk"
+  },
+  "committee": {
+    "voteTask": "{brief}\n\nYou are {name} (id {id}), member of {group}. Vote on the idea: approve (portfolio), kill or defer (back to the authors). Answer only with JSON: {\"vote\": \"approve\" | \"kill\" | \"defer\", \"reason\": \"why, in one sentence\"}.",
+    "chairTask": "{brief}\n\nThe members' votes:\n{votes}\n\nYou are {name} (id {id}) and chair {group}. Decide for the committee: approve, kill or defer, and write the committee's reasons in summary, one or two sentences. Answer only with JSON: {\"decision\": \"approve\" | \"kill\" | \"defer\", \"summary\": \"...\"}.",
+    "voteLine": "- {name}: {vote} ({reason})",
+    "noVotes": "- no valid vote",
+    "vote": {
+      "approve": "approve",
+      "kill": "kill",
+      "defer": "defer"
+    },
+    "idea": "IDEA \"{title}\" ({code}), stage: {stage}\nChampion: {champion}; authors: {authors}; tags: {tags}\nProblem: {problem}\nUsers: {users}\nSolution: {solution}\nDifferentiation: {differentiation}\nFeasibility: {feasibility}\nRisks: {risks}\nSignals and artifacts: {signals}\nREVIEWS ({n}):\n{reviews}\nMean: {scores}; score weighted by the evaluation policies: {weighted}\nRecent history: {history}",
+    "reviewLine": "- {by}: impact {impact}, feasibility {feasibility}, novelty {novelty}, fit {fit}, risk {risk}: \"{comment}\"",
+    "noReviews": "- none",
+    "company": "COMPANY: quarter {quarter}; approval slots left: {slots} of {total}; {freeze}.",
+    "noSlots": "(No approval slot left this quarter: the idea is deferred.)",
+    "freeze": "(Budget freeze on: the idea is deferred.)"
+  },
+  "ideaStage": {
+    "signal": "signal",
+    "insight": "insight",
+    "concept": "concept",
+    "proposal": "complete proposal",
+    "pitch": "before the committee",
+    "approved": "approved, in the portfolio",
+    "killed": "killed"
+  },
+  "ideaField": {
+    "problem": "problem",
+    "users": "users",
+    "solution": "solution",
+    "differentiation": "differentiation",
+    "feasibility": "feasibility",
+    "risks": "risks"
+  },
+  "score": {
+    "impact": "impact",
+    "feasibility": "feasibility",
+    "novelty": "novelty",
+    "fit": "fit",
+    "risk": "risk"
+  },
+  "ideaAction": {
+    "created": "proposed it",
+    "updated": "enriched it",
+    "reviewed": "reviewed it",
+    "submitted": "submitted it",
+    "approved": "approved",
+    "killed": "killed",
+    "deferred": "deferred",
+    "stage": "moved to a new stage"
+  },
+  "ideaReason": {
+    "disabled": "not available",
+    "empty_title": "the title is missing",
+    "empty_problem": "the problem is missing",
+    "too_many_ideas": "you already champion too many open ideas",
+    "duplicate_idea": "an idea with this title already exists",
+    "unknown_idea": "no idea with that code",
+    "idea_closed": "the idea can no longer change: it is before the committee or decided",
+    "nothing_changed": "no new field",
+    "own_idea": "you cannot review an idea you authored",
+    "missing_scores": "all five scores are needed, 0-10",
+    "already_submitted": "already before the committee",
+    "not_complete": "not complete: problem, users, solution, differentiation, feasibility and risks are needed",
+    "not_author": "only its authors can submit it",
+    "few_reviews": "not enough reviews yet",
+    "not_submitted": "not before the committee",
+    "unchanged_since_deferral": "the committee deferred it and nothing changed since"
+  },
+  "career": {
+    "junior": "Junior",
+    "senior": "Senior",
+    "principal": "Principal",
+    "fellow": "Fellow"
+  },
+  "category": {
+    "trend": "trend signal",
+    "pain": "user pain",
+    "market": "market news",
+    "research": "research result",
+    "regulation": "regulatory change",
+    "customer": "customer voice",
+    "artifact": "work artifact"
+  },
+  "export": {
+    "title": "# Idea portfolio - {name} ({quarter})",
+    "stage": "Stage",
+    "champion": "Champion",
+    "authors": "Authors",
+    "quarter": "Quarter",
+    "tags": "Tags",
+    "fields": {
+      "problem": "Problem",
+      "users": "Users",
+      "solution": "Solution",
+      "differentiation": "Differentiation",
+      "feasibility": "Feasibility",
+      "risks": "Risks"
+    },
+    "scores": "Scores",
+    "score": {
+      "impact": "impact",
+      "feasibility": "feasibility",
+      "novelty": "novelty",
+      "fit": "fit",
+      "risk": "risk"
+    },
+    "weighted": "weighted",
+    "reviews": "{n} reviews",
+    "decision": "Committee decision",
+    "decisions": {
+      "approve": "approved",
+      "kill": "killed",
+      "defer": "deferred"
+    },
+    "approved": "Approved",
+    "pipeline": "In the pipeline",
+    "killed": "Killed",
+    "none": "None.",
+    "stages": {
+      "signal": "signal",
+      "insight": "insight",
+      "concept": "concept",
+      "proposal": "complete proposal",
+      "pitch": "before the committee",
+      "approved": "approved, in the portfolio",
+      "killed": "killed"
+    }
   }
 }

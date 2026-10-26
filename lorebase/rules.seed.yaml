@@ -1,387 +1,523 @@
-# Default laws and social roles of the world, loaded into Lorebase by `npm run lorebase:seed`.
-# This file is the only place where gameplay numbers have defaults; the simulation reads the
-# live values from Lorebase. Texts are what the people of the world read (Italian).
+# Default company policies and roles of the innovation hub, loaded into Lorebase by `npm run lorebase:seed`.
+# Kind Rule holds every policy: numbers the world reads (engine keys, see RT_RULE_KEYS in server/src/rt/world.ts)
+# and policies people read and may follow or break (strategic themes in category `strategy`, conduct rules).
+# This file is the only place where they have defaults; the simulation reads the live values from Lorebase.
+# Texts are what the people of the hub read (Italian).
 rules:
   - code: max_hp
     value: 10
-    unit: salute
+    unit: "energia"
     category: survival
-    text: "Ogni persona ha al massimo questa salute. Con la salute a zero si muore."
+    text: "Ogni persona ha al massimo questa energia. Con l'energia a zero si lascia l'azienda per burnout."
   - code: food_per_tick
-    value: 1
-    unit: fame/turno
+    value: 0.4
+    unit: "stress/turno"
     category: survival
-    text: "A ogni turno la fame di ogni persona cresce di questa quantità. Mangiare un cibo toglie uno di fame."
+    text: "A ogni turno lo stress di ogni persona cresce di questa quantità. Un caffè toglie uno di stress."
   - code: starvation_threshold
-    value: 4
-    unit: fame
+    value: 8
+    unit: "stress"
     category: survival
-    text: "Quando la fame supera questo livello si comincia a morire di fame."
+    text: "Oltre questo livello di stress l'energia comincia a calare."
   - code: starvation_damage
-    value: 2
-    unit: salute/turno
+    value: 1
+    unit: "energia/turno"
     category: survival
-    text: "Chi muore di fame perde questa salute a ogni turno."
+    text: "Chi è oltre il limite di stress perde questa energia a ogni turno."
   - code: rest_heal
     value: 1
-    unit: salute
+    unit: "energia"
     category: survival
-    text: "Riposare restituisce questa salute, ma solo a chi non sta morendo di fame."
+    text: "Una pausa restituisce questa energia, ma solo a chi non è oltre il limite di stress."
   - code: actions_per_tick
     value: 2
-    unit: azioni
+    unit: "azioni"
     category: society
-    text: "A ogni turno una persona può compiere questo numero di azioni (muoversi, raccogliere, costruire, dare, riposare). Guardare, mangiare e parlare non costano azioni."
+    text: "Nella simulazione a turni una persona compie questo numero di azioni per turno."
   - code: gather_food_yield
     value: 2
-    unit: cibo
+    unit: "caffè"
     category: economy
-    text: "Raccogliere cibo prende fino a questa quantità di cibo dalla casella su cui ci si trova."
+    text: "Prendere caffè ne dà fino a questa quantità dalla casella su cui ci si trova."
   - code: gather_wood_yield
     value: 2
-    unit: legna
+    unit: "materiale"
     category: economy
-    text: "Raccogliere legna prende fino a questa quantità di legna dalla casella su cui ci si trova."
+    text: "Prendere materiale da lavagna ne dà fino a questa quantità dalla casella su cui ci si trova."
   - code: regrowth_per_tick
-    value: 0.08
-    unit: quota/turno
+    value: 0.25
+    unit: "quota/turno"
     category: economy
-    text: "A ogni turno la terra ricresce di questa quota del cibo e della legna che può naturalmente portare."
+    text: "A ogni turno le macchine del caffè e le scorte di materiale si riforniscono di questa quota di ciò che possono contenere."
   - code: shelter_wood_cost
-    value: 6
-    unit: legna
+    value: 4
+    unit: "materiale"
     category: economy
-    text: "Costruire un rifugio sulla propria casella costa questa legna. Chiunque stia su una casella con un rifugio è al riparo."
+    text: "Allestire o migliorare una postazione sulla propria casella costa questo materiale da lavagna. Chi sta su una postazione lavora al riparo dal crunch."
   - code: winter_every_ticks
     value: 16
-    unit: turni
+    unit: "periodi"
     category: climate
-    text: "Un anno dura questo numero di turni; l'ultima parte di ogni anno è inverno."
+    text: "Un anno aziendale dura questo numero di periodi; diviso in quattro parti uguali dà i trimestri, e l'ultima parte dell'anno è il freeze."
   - code: winter_length_ticks
-    value: 4
-    unit: turni
+    value: 2
+    unit: "periodi"
     category: climate
-    text: "L'inverno dura questo numero di turni alla fine di ogni anno."
+    text: "Il freeze di fine anno dura questo numero di periodi."
   - code: winter_food_yield_multiplier
-    value: 0.5
-    unit: x
+    value: 0.75
+    unit: "x"
     category: climate
-    text: "D'inverno la raccolta e la ricrescita sono moltiplicate per questo fattore."
+    text: "Durante il freeze le scorte di caffè e di materiale si riforniscono moltiplicate per questo fattore."
   - code: cold_damage_unsheltered
-    value: 1
-    unit: salute/turno
+    value: 0.3
+    unit: "energia/turno"
     category: climate
-    text: "D'inverno chi non sta su un rifugio perde questa salute a ogni turno."
+    text: "Durante il freeze chi non sta a una postazione perde questa energia a ogni turno (il crunch)."
   - code: birth_food_cost
-    value: 6
-    unit: cibo
+    value: 8
+    unit: "caffè"
     category: society
-    text: "Due persone sazie sulla stessa casella con rifugio che insieme portano questo cibo mettono al mondo un figlio, consumando quel cibo (al massimo una volta all'anno ciascuna)."
+    text: "Due colleghi poco stressati alla stessa postazione che insieme portano questo caffè fanno entrare in azienda una nuova persona che seguono come mentori (al massimo una volta all'anno ciascuno)."
   - code: sharing_allowed
     value: 1
-    unit: 0/1
+    unit: "0/1"
     category: society
-    text: "Se vale 1, si può dare cibo e legna a chi sta sulla stessa casella o su una adiacente. Se vale 0, dare è vietato."
+    text: "Se vale 1 si possono dare cose a un collega vicino. Se vale 0, dare è vietato."
   - code: vision_radius
-    value: 3
-    unit: caselle
+    value: 7
+    unit: "caselle"
     category: society
-    text: "Una persona vede caselle e persone entro questo numero di caselle."
-  # Real-time world (npm run game). The tick-based dashboard ignores these.
+    text: "Una persona vede caselle e colleghi entro questo numero di caselle."
   - code: game_minutes_per_real_second
     value: 1
-    unit: minuti/secondo
+    unit: "minuti/secondo"
     category: time
-    text: "Per ogni secondo che passa fuori dal mondo, nel mondo passano questi minuti."
+    text: "Per ogni secondo che passa fuori dall'azienda, dentro passano questi minuti."
   - code: turn_minutes
     value: 30
-    unit: minuti
+    unit: "minuti"
     category: time
-    text: "Un turno dura questi minuti. Le leggi espresse per turno (fame, freddo, guarigione, ricrescita, stagioni) valgono per ogni turno."
+    text: "Un turno dura questi minuti. Le policy espresse per turno (stress, crunch, pause, rifornimenti) valgono per ogni turno."
   - code: dawn_minute
-    value: 360
-    unit: minuto del giorno
+    value: 480
+    unit: "minuto del giorno"
     category: time
-    text: "Il giorno ha 1440 minuti; a questo minuto sorge il sole."
+    text: "Il giorno ha 1440 minuti; a questo minuto comincia l'orario di lavoro."
   - code: dusk_minute
-    value: 1260
-    unit: minuto del giorno
+    value: 1140
+    unit: "minuto del giorno"
     category: time
-    text: "A questo minuto del giorno cala la notte."
+    text: "A questo minuto del giorno finisce l'orario di lavoro."
   - code: plan_horizon_minutes
-    value: 30
-    unit: minuti
+    value: 60
+    unit: "minuti"
     category: time
     text: "Chi decide cosa fare immagina circa questi minuti del proprio futuro."
   - code: replan_cooldown_minutes
     value: 20
-    unit: minuti
+    unit: "minuti"
     category: time
-    text: "Dopo aver deciso, una persona ci ripensa al più presto dopo questi minuti, salvo imprevisti gravi."
+    text: "Dopo aver deciso, una persona ci ripensa al più presto dopo questi minuti, salvo imprevisti seri."
   - code: base_move_speed
-    value: 1.5
-    unit: caselle/minuto
+    value: 2
+    unit: "caselle/minuto"
     category: society
-    text: "Una persona in salute cammina di queste caselle al minuto; il ruolo può renderla più rapida o più lenta. Acqua e roccia non si attraversano."
+    text: "Una persona piena di energia cammina di queste caselle al minuto; il ruolo può renderla più rapida o più lenta. I muri non si attraversano."
   - code: base_work_speed
     value: 1
-    unit: x
+    unit: "x"
     category: economy
-    text: "Rapidità di base del lavoro (raccogliere, costruire); il ruolo può renderla maggiore o minore."
+    text: "Rapidità di base del lavoro; il ruolo può renderla maggiore o minore."
   - code: gather_minutes
-    value: 4
-    unit: minuti
+    value: 3
+    unit: "minuti"
     category: economy
-    text: "Raccogliere una volta richiede questi minuti di lavoro a rapidità di base."
+    text: "Cogliere un segnale o prendere caffè o materiale richiede questi minuti."
   - code: build_minutes
-    value: 20
-    unit: minuti
+    value: 15
+    unit: "minuti"
     category: economy
-    text: "Costruire o ampliare un rifugio richiede questi minuti di lavoro a rapidità di base."
+    text: "Allestire o migliorare una postazione richiede questi minuti di lavoro a rapidità di base."
   - code: eat_minutes
-    value: 1
-    unit: minuti
+    value: 2
+    unit: "minuti"
     category: survival
-    text: "Mangiare richiede questi minuti."
+    text: "Bere un caffè richiede questi minuti."
   - code: weak_speed_factor
     value: 0.5
-    unit: x
+    unit: "x"
     category: survival
-    text: "Chi ha poca salute è più lento: con la salute quasi a zero si muove e lavora a questa frazione della propria rapidità."
+    text: "Chi ha poca energia è più lento: con l'energia quasi a zero si muove e lavora a questa frazione della propria rapidità."
   - code: critical_hunger
-    value: 3
-    unit: fame
+    value: 6
+    unit: "stress"
     category: survival
-    text: "Quando la fame raggiunge questo livello la si sente forte."
+    text: "Quando lo stress raggiunge questo livello lo si sente forte."
   - code: critical_hp_fraction
     value: 0.3
-    unit: quota
+    unit: "quota"
     category: survival
-    text: "Quando la salute scende sotto questa quota del massimo ci si sente in pericolo."
+    text: "Quando l'energia scende sotto questa quota del massimo ci si sente vicini al burnout."
   - code: speech_radius
-    value: 4
-    unit: caselle
+    value: 5
+    unit: "caselle"
     category: society
     text: "Le parole si sentono fino a questo numero di caselle di distanza."
   - code: max_shelter_level
     value: 2
-    unit: livelli
+    unit: "livelli"
     category: economy
-    text: "Un rifugio può essere ampliato fino a questo livello; ogni livello costa la legna di un rifugio."
+    text: "Una postazione può essere migliorata fino a questo livello (1 scrivania o lavagna, 2 sala allestita)."
   - code: shelter_decay_per_day
-    value: 0.25
-    unit: livelli/giorno
+    value: 0
+    unit: "livelli/giorno"
     category: economy
-    text: "I rifugi si degradano: ogni giorno perdono questa parte di un livello, finché qualcuno non li ripara costruendo di nuovo."
+    text: "Le postazioni si degradano di questa parte di un livello al giorno."
   - code: wild_distance
-    value: 9
-    unit: caselle
+    value: 99
+    unit: "caselle"
     category: survival
-    text: "Oltre questa distanza dal cuore del mondo cominciano le terre selvagge."
+    text: "Oltre questa distanza dal centro del campus si è fuori dal campus."
   - code: wild_damage
-    value: 0.5
-    unit: salute/turno
+    value: 0
+    unit: "energia/turno"
     category: survival
-    text: "Nelle terre selvagge chi non sta su un rifugio perde questa salute a ogni turno."
+    text: "Fuori dal campus chi non sta a una postazione perde questa energia a ogni turno."
   - code: experiment_minutes
     value: 15
-    unit: minuti
+    unit: "minuti"
     category: economy
-    text: "Sperimentare combinando delle cose richiede questo tempo di lavoro; le cose combinate si consumano, una per tipo."
+    text: "Combinare delle cose per tentare una svolta richiede questo tempo di lavoro; le cose combinate si consumano, una per tipo."
   - code: use_minutes
     value: 2
-    unit: minuti
+    unit: "minuti"
     category: survival
-    text: "Usare una medicina o un oggetto simile richiede questo tempo."
+    text: "Usare una cosa richiede questo tempo."
   - code: offer_minutes
     value: 60
-    unit: minuti
+    unit: "minuti"
     category: society
     text: "Una proposta di scambio resta valida per questo tempo, poi decade."
   - code: season_turn_minutes
-    value: 1440
-    unit: minuti
+    value: 45
+    unit: "minuti"
     category: time
-    text: "Nel mondo che scorre senza pause le stagioni contano i turni dell'anno in giorni: un turno dell'anno dura questi minuti."
+    text: "Un periodo dell'anno aziendale dura questi minuti."
   - code: tool_wear_per_use
     value: 1
-    unit: usi
+    unit: "usi"
     category: economy
     text: "Ogni volta che un attrezzo viene usato perde questa durata; a zero si rompe."
   - code: trade_trust_esteem
     value: 1
-    unit: x
+    unit: "x"
     category: society
-    text: "Una proposta di scambio di chi è molto stimato resta valida più a lungo, di chi è poco stimato meno: la sua durata cresce o cala in proporzione a questo fattore."
+    text: "La proposta di scambio di chi è molto stimato resta valida più a lungo, di chi è poco stimato meno, in proporzione a questo fattore."
   - code: age_child_days
-    value: 4
-    unit: giorni
-    category: time
-    text: "Chi nasce è bambino fino a questa età in giorni; poi è adulto."
-  - code: age_elder_days
-    value: 40
-    unit: giorni
-    category: time
-    text: "Da questa età in giorni si è anziani."
-  - code: founder_age_days
-    value: 18
-    unit: giorni
-    category: time
-    text: "Chi arriva nel mondo senza esservi nato ha questa età in giorni; chi ha il ruolo di anziano arriva già anziano."
-  - code: child_work_factor
     value: 0.5
-    unit: x
+    unit: "giorni"
+    category: time
+    text: "Chi entra in azienda tramite i suoi mentori è neoassunto per questi giorni; poi è nel pieno della carriera."
+  - code: age_elder_days
+    value: 60
+    unit: "giorni"
+    category: time
+    text: "Da questa anzianità in giorni si è veterani."
+  - code: founder_age_days
+    value: 20
+    unit: "giorni"
+    category: time
+    text: "Chi c'era all'apertura dell'hub ha questa anzianità in giorni."
+  - code: child_work_factor
+    value: 0.7
+    unit: "x"
     category: society
-    text: "Un bambino lavora a questa rapidità rispetto a un adulto."
+    text: "Un neoassunto lavora a questa rapidità rispetto a un collega esperto."
   - code: child_move_factor
-    value: 0.8
-    unit: x
+    value: 1
+    unit: "x"
     category: society
-    text: "Un bambino cammina a questa velocità rispetto a un adulto."
+    text: "Un neoassunto cammina a questa velocità rispetto a un collega esperto."
   - code: child_max_recipe_inputs
     value: 2
-    unit: cose
+    unit: "cose"
     category: economy
-    text: "Un bambino sa seguire solo ricette senza attrezzi né stazioni e con al massimo questo numero di cose da consumare."
+    text: "Un neoassunto sa seguire solo metodi senza attrezzi né postazioni e con al massimo questo numero di cose da consumare."
   - code: elder_work_factor
-    value: 0.8
-    unit: x
+    value: 0.9
+    unit: "x"
     category: society
-    text: "Un anziano lavora a questa rapidità rispetto a un adulto."
+    text: "Un veterano lavora a questa rapidità rispetto a un collega nel pieno della carriera."
   - code: elder_move_factor
-    value: 0.8
-    unit: x
+    value: 0.9
+    unit: "x"
     category: society
-    text: "Un anziano cammina a questa velocità rispetto a un adulto."
+    text: "Un veterano cammina a questa velocità rispetto a un collega nel pieno della carriera."
   - code: elder_esteem_weight
     value: 1.5
-    unit: x
+    unit: "x"
     category: society
-    text: "Il giudizio di un anziano su un'altra persona pesa questo numero di volte quello di un adulto."
+    text: "Il giudizio di un veterano su un collega pesa questo numero di volte quello degli altri."
   - code: skill_gain_per_practice
     value: 0.1
-    unit: x
+    unit: "x"
     category: economy
-    text: "Ogni volta che una persona segue una ricetta ci prende la mano: il tempo di quella ricetta si divide per uno più questa quota per ogni volta (fino al massimo della pratica)."
+    text: "Ogni volta che una persona segue un metodo ci prende la mano: il tempo di quel metodo si divide per uno più questa quota per ogni volta (fino al massimo della pratica)."
   - code: skill_max_level
     value: 10
-    unit: volte
+    unit: "volte"
     category: economy
-    text: "La pratica in una ricetta smette di accorciarne il tempo dopo questo numero di volte."
+    text: "La pratica in un metodo smette di accorciarne il tempo dopo questo numero di volte."
   - code: esteem_prior
     value: 0.5
-    unit: quota
+    unit: "quota"
     category: society
-    text: "La stima di chi arriva nel mondo, prima che qualcuno lo giudichi."
+    text: "La reputazione di chi arriva, prima che qualcuno lo giudichi."
   - code: esteem_prior_weight
     value: 2
-    unit: giudizi
+    unit: "giudizi"
     category: society
-    text: "La prima impressione su una persona vale questo numero di giudizi."
+    text: "La prima impressione su un collega vale questo numero di giudizi."
   - code: opinion_half_life_days
     value: 3
-    unit: giorni
+    unit: "giorni"
     category: society
-    text: "Il peso di un giudizio su una persona si dimezza dopo questi giorni."
+    text: "Il peso di un giudizio su un collega si dimezza dopo questi giorni."
   - code: esteem_judge_weight
     value: 1
-    unit: x
+    unit: "x"
     category: society
-    text: "Il giudizio di chi è stimato pesa di più: il peso cresce con la stima di chi giudica, in proporzione a questo fattore."
+    text: "Il giudizio di chi ha buona reputazione pesa di più, in proporzione a questo fattore."
   - code: reputation_inheritance
     value: 0.3
-    unit: quota
+    unit: "quota"
     category: society
-    text: "Chi nasce comincia con una stima pari a questa quota della stima media dei genitori."
+    text: "Chi entra in azienda tramite dei mentori comincia con una reputazione pari a questa quota della reputazione media dei mentori."
   - code: fame_gift
-    value: 1
-    unit: fama
+    value: 0.5
+    unit: "impatto"
     category: society
-    text: "Fama che si guadagna a ogni dono fatto a un'altra persona."
+    text: "Impatto che si guadagna a ogni cosa data a un collega."
   - code: fame_recipe_supply
-    value: 2
-    unit: fama
+    value: 1
+    unit: "impatto"
     category: society
-    text: "Fama che si guadagna dando a una persona di un altro ruolo una cosa che le sue ricette consumano."
+    text: "Impatto che si guadagna dando a un collega di un altro ruolo una cosa che i suoi metodi usano (per esempio un segnale)."
   - code: fame_insight_accepted
-    value: 3
-    unit: fama
+    value: 2
+    unit: "impatto"
     category: society
-    text: "Fama che si guadagna quando un'idea condivisa entra nella coscienza del ruolo."
+    text: "Impatto che si guadagna quando una voce proposta entra nel playbook del ruolo."
   - code: fame_discovery
-    value: 5
-    unit: fama
-    category: society
-    text: "Fama che si guadagna scoprendo una tecnologia."
-  - code: fame_law_enacted
     value: 4
-    unit: fama
+    unit: "impatto"
     category: society
-    text: "Fama che si guadagna quando una legge che si è proposta entra nel libro delle leggi."
+    text: "Impatto che si guadagna facendo una svolta."
+  - code: fame_law_enacted
+    value: 3
+    unit: "impatto"
+    category: society
+    text: "Impatto che si guadagna quando una policy proposta entra in vigore."
   - code: fame_law_respected
     value: 0.5
-    unit: fama
+    unit: "impatto"
     category: society
-    text: "Fama che si guadagna quando qualcuno racconta di aver visto rispettare una legge della comunità."
+    text: "Impatto che si guadagna quando un collega racconta di aver visto rispettare una policy di comportamento."
   - code: fame_law_breached
     value: -1.5
-    unit: fama
+    unit: "impatto"
     category: society
-    text: "Fama che si perde quando qualcuno racconta di aver visto violare una legge della comunità."
+    text: "Impatto che si perde quando un collega racconta di aver visto violare una policy di comportamento."
   - code: fame_half_life_days
     value: 10
-    unit: giorni
+    unit: "giorni"
     category: society
-    text: "La fama di un'azione si dimezza dopo questi giorni."
+    text: "L'impatto di un'azione si dimezza dopo questi giorni."
   - code: esteem_vote_weight
     value: 1
-    unit: x
+    unit: "x"
     category: society
-    text: "Nei voti e nella scelta di chi guida un gruppo pesa la stima: il peso del voto cresce con la stima in proporzione a questo fattore."
+    text: "Nei voti e nella scelta di chi guida un gruppo pesa la reputazione, in proporzione a questo fattore."
   - code: insight_review_esteem_factor
     value: 2
-    unit: x
+    unit: "x"
     category: society
-    text: "Il giudizio su un'idea condivisa pesa la stima di chi la giudica per questo fattore; un'idea entra nella coscienza del ruolo quando le approvazioni pesano almeno uno."
+    text: "Il giudizio su una voce di playbook pesa la reputazione di chi giudica per questo fattore; la voce entra nel playbook quando le approvazioni pesano almeno uno."
   - code: insight_solo_approve_esteem
     value: 0.8
-    unit: quota
+    unit: "quota"
     category: society
-    text: "Chi ha almeno questa stima approva da solo un'idea condivisa del suo ruolo."
+    text: "Chi ha almeno questa reputazione approva da solo una voce del playbook del suo ruolo."
   - code: law_proposal_min_esteem
     value: 0.7
-    unit: quota
+    unit: "quota"
     category: society
-    text: "Chi ha almeno questa stima può proporre una legge; la proposta entra nel libro delle leggi solo se viene approvata."
+    text: "Chi ha almeno questa reputazione può proporre una policy; entra in vigore solo se il board la approva."
+  - code: quarter_idea_slots
+    value: 3
+    unit: "idee"
+    category: ideas
+    text: "In ogni trimestre il comitato investimenti può approvare al massimo questo numero di idee."
+  - code: min_idea_reviewers
+    value: 2
+    unit: "valutazioni"
+    category: ideas
+    text: "Un'idea può essere candidata al comitato solo dopo almeno questo numero di valutazioni di colleghi che non ne sono autori."
+  - code: committee_quorum
+    value: 2
+    unit: "membri"
+    category: ideas
+    text: "Il comitato investimenti decide solo se sono presenti almeno questi membri."
+  - code: weight_impact
+    value: 0.3
+    unit: "peso"
+    category: ideas
+    text: "Peso dell'impatto nel punteggio complessivo di un'idea."
+  - code: weight_feasibility
+    value: 0.2
+    unit: "peso"
+    category: ideas
+    text: "Peso della fattibilità nel punteggio complessivo di un'idea."
+  - code: weight_novelty
+    value: 0.2
+    unit: "peso"
+    category: ideas
+    text: "Peso della novità nel punteggio complessivo di un'idea."
+  - code: weight_fit
+    value: 0.2
+    unit: "peso"
+    category: ideas
+    text: "Peso della coerenza con i temi strategici nel punteggio complessivo di un'idea."
+  - code: weight_risk
+    value: 0.1
+    unit: "peso"
+    category: ideas
+    text: "Peso del rischio nel punteggio complessivo di un'idea (conta al contrario: più rischio, meno punteggio)."
+  - code: freeze_blocks_approvals
+    value: 1
+    unit: "0/1"
+    category: ideas
+    text: "Se vale 1, durante il freeze di fine anno il comitato non può approvare idee: le rimanda."
+  - code: max_open_ideas_per_person
+    value: 3
+    unit: "idee"
+    category: ideas
+    text: "Una persona può essere champion al massimo di questo numero di idee aperte."
+  - code: fame_idea_proposed
+    value: 0.5
+    unit: "impatto"
+    category: ideas
+    text: "Impatto che si guadagna proponendo un'idea."
+  - code: fame_idea_approved
+    value: 5
+    unit: "impatto"
+    category: ideas
+    text: "Impatto che guadagna ogni autore di un'idea approvata dal comitato."
+  - code: fame_review_given
+    value: 0.5
+    unit: "impatto"
+    category: ideas
+    text: "Impatto che si guadagna valutando l'idea di un collega."
+  - code: promotion_senior_fame
+    value: 2
+    unit: "impatto"
+    category: company
+    text: "Chi raggiunge questo impatto diventa Senior."
+  - code: promotion_principal_fame
+    value: 6
+    unit: "impatto"
+    category: company
+    text: "Chi raggiunge questo impatto diventa Principal."
+  - code: promotion_fellow_fame
+    value: 12
+    unit: "impatto"
+    category: company
+    text: "Chi raggiunge questo impatto diventa Fellow."
+  - code: risk_appetite
+    value: 6
+    unit: "rischio 0-10"
+    category: ideas
+    text: "Il comitato investimenti accetta idee con rischio medio fino a questo valore; oltre servono ragioni eccezionali."
+  - code: tema_agenti_ai
+    value: 1
+    unit: "tema"
+    category: strategy
+    text: "Agenti AI che svolgono in autonomia processi aziendali dei clienti, con controllo umano dove serve."
+  - code: tema_developer_experience
+    value: 1
+    unit: "tema"
+    category: strategy
+    text: "Developer experience: strumenti che tolgono attrito al lavoro quotidiano degli sviluppatori."
+  - code: tema_sicurezza
+    value: 1
+    unit: "tema"
+    category: strategy
+    text: "Sicurezza e conformità: prodotti che aiutano i clienti a rispettare le nuove norme europee."
+  - code: orario_di_lavoro
+    value: 1
+    unit: "policy"
+    category: company
+    text: "L'orario di lavoro va dalle 8 alle 19; fuori orario non si fissano riunioni."
+  - code: regole_riunioni
+    value: 1
+    unit: "policy"
+    category: company
+    text: "Ogni riunione ha un ordine del giorno scritto e dura al massimo trenta minuti."
+  - code: giorni_remoti
+    value: 2
+    unit: "giorni/settimana"
+    category: wellbeing
+    text: "Ogni persona può lavorare da remoto questo numero di giorni a settimana."
+  - code: zona_relax
+    value: 1
+    unit: "policy"
+    category: wellbeing
+    text: "La zona relax è aperta a tutti in ogni momento e il caffè è gratuito."
+  - code: codice_valutazione
+    value: 1
+    unit: "policy"
+    category: ideas
+    text: "Le valutazioni giudicano le idee, mai le persone; ogni punteggio è motivato da un commento."
 
 roles:
-  - code: gatherer
-    move_factor: 1.0
-    work_factor: 1.25
-    title: Raccoglitore
-    description: "Nella società sei chi conosce la terra: dove cresce il cibo e come trovarlo."
-  - code: builder
-    move_factor: 0.9
-    work_factor: 1.3
-    title: Costruttore
-    description: "Nella società sei chi sa costruire: la legna, i rifugi, le cose che durano."
-  - code: explorer
-    move_factor: 1.35
-    work_factor: 0.9
-    title: Esploratore
-    description: "Nella società sei chi si spinge lontano e vede ciò che gli altri non vedono."
-  - code: elder
-    move_factor: 0.8
-    work_factor: 0.9
-    title: Anziano
-    description: "Nella società sei chi ha visto molti inverni; quando parli, gli altri ascoltano."
-  - code: healer
+  - code: ricercatore
+    move_factor: 1.1
+    work_factor: 1.2
+    title: "Ricercatore"
+    description: "Nell'azienda sei chi legge la ricerca e i trend tecnologici prima degli altri e li collega ai problemi reali."
+  - code: product_strategist
     move_factor: 1.0
     work_factor: 1.0
-    title: Guaritore
-    description: "Nella società sei chi si prende cura degli altri e si accorge di chi è debole, affamato o ferito."
-  - code: crafter
+    title: "Product strategist"
+    description: "Nell'azienda sei chi tiene insieme utenti, mercato e strategia per capire quali prodotti meritano di esistere."
+  - code: architetto
     move_factor: 0.95
-    work_factor: 1.3
-    title: Artigiano
-    description: "Nella società sei chi sa trasformare la pietra, le fibre e il legno in oggetti e attrezzi."
+    work_factor: 1.1
+    title: "Architetto"
+    description: "Nell'azienda sei chi sa come si costruiscono i sistemi e valuta quanto un'idea è davvero realizzabile."
+  - code: ux_designer
+    move_factor: 1.0
+    work_factor: 1.1
+    title: "UX designer"
+    description: "Nell'azienda sei chi conosce gli utenti, i loro gesti e le loro frustrazioni."
+  - code: data_scientist
+    move_factor: 0.95
+    work_factor: 1.1
+    title: "Data scientist"
+    description: "Nell'azienda sei chi legge i dati e dimensiona problemi e opportunità con i numeri."
+  - code: security
+    move_factor: 1.0
+    work_factor: 1.0
+    title: "Security engineer"
+    description: "Nell'azienda sei chi vede come le cose si rompono, si attaccano o violano le norme."
+  - code: critico
+    move_factor: 1.05
+    work_factor: 1.0
+    title: "Critico"
+    description: "Nell'azienda sei chi mette alla prova le idee cercandone i punti deboli."
+  - code: venture_lead
+    move_factor: 1.1
+    work_factor: 0.9
+    title: "Venture lead"
+    description: "Nell'azienda sei chi giudica il potenziale di mercato di un'idea e decide dove investire."

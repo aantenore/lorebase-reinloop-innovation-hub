@@ -1,17 +1,19 @@
-# Domain `hub`: the laws and the social roles of a small simulated civilization. Every
-# gameplay number of the simulation is a Rule Record here; roles are Role Records. The
-# simulation reads both from the `main` branch and follows its change feed.
+# Domain `hub`: the company policies and the roles of an innovation hub where LLM agents generate
+# and evaluate IT product ideas. Every number of the simulation is a policy (Kind Rule, kept under
+# its historical name); roles are Role Records; signals, work artifacts, methods (Recipe) and
+# breakthroughs make the work economy; ideas live on their own `idea/` branches (Kind Idea, with
+# Review Records) and reach `main`, the portfolio, only when the investment committee approves them.
 format: lorebase.schema/v1
 
 domain:
   id: hub
-  display_name: World laws
-  description: The rules a small colony of agents must live by.
+  display_name: Innovation hub
+  description: Policies, roles, signals and the idea portfolio of an innovation hub of agents.
   default_branch: main
 
 kinds:
   Rule:
-    description: One law of the world, read by the simulation every tick and shown to the agents.
+    description: One company policy (a law of the simulation), read by the world and consulted by the agents.
     primary_key: [code]
     title_attribute: code
     attributes:
@@ -32,7 +34,7 @@ kinds:
         searchable: true
       category:
         description: Area of life the rule governs.
-        type: {enum: [survival, economy, climate, society, time]}
+        type: {enum: [survival, economy, climate, society, time, company, ideas, strategy, wellbeing]}
         required: true
         indexed: true
       unit:
@@ -40,7 +42,7 @@ kinds:
         type: string
 
   Role:
-    description: A role a person can hold in society, with the description the person reads about it.
+    description: A role a person can hold in the company, with the description the person reads about it.
     primary_key: [code]
     title_attribute: title
     attributes:
@@ -66,7 +68,7 @@ kinds:
         type: decimal(6,3)
 
   Chronicle:
-    description: One notable event in the history of the civilization (deaths, births, groups, laws), appended by the real-time world.
+    description: One entry of the company newsletter (hires, departures, groups, policies, ideas, promotions, quarterly reviews), appended by the real-time world.
     primary_key: [code]
     title_attribute: text
     attributes:
@@ -89,7 +91,7 @@ kinds:
         required: true
       event:
         description: What kind of event this is.
-        type: {enum: [birth, death, arrival, departure, group_formed, group_dissolved, laws_changed, discovery, family_founded, law_proposed, law_breach]}
+        type: {enum: [birth, death, arrival, departure, group_formed, group_dissolved, laws_changed, discovery, family_founded, law_proposed, law_breach, idea_proposed, idea_submitted, idea_approved, idea_killed, promotion, quarter_review]}
         required: true
         indexed: true
       text:
@@ -101,8 +103,8 @@ kinds:
         description: Names of the people involved, comma separated.
         type: string
 
-  Family:
-    description: A family (dynasty) of the civilization, founded at the first birth of parents who had none. Lineage (who was born of whom) is told by the Chronicle's birth entries.
+  Team:
+    description: A team of the company, founded at the first hire mentored by people who had none. Who joined thanks to whom is told by the newsletter's hiring entries.
     primary_key: [code]
     title_attribute: name
     attributes:
@@ -130,7 +132,7 @@ kinds:
         indexed: true
 
   Insight:
-    description: A piece of the shared consciousness of a social role - something people holding that role came to believe about the world, accepted by a peer of the same role.
+    description: An entry of a role's playbook - something people holding that role came to believe about the work, accepted by a peer of the same role.
     primary_key: [code]
     title_attribute: text
     attributes:
@@ -174,7 +176,7 @@ kinds:
         indexed: true
 
   Resource:
-    description: Something people can carry, gather, craft, use or build (the economy of the real-time world).
+    description: Something people can carry, take, make, use or set up (coffee, whiteboard material, work artifacts, structures).
     primary_key: [code]
     title_attribute: name
     attributes:
@@ -195,7 +197,7 @@ kinds:
         searchable: true
       category:
         description: What sort of thing it is.
-        type: {enum: [food, material, tool, medicine, structure]}
+        type: {enum: [food, material, tool, medicine, structure, artifact]}
         required: true
         indexed: true
       perishable:
@@ -237,8 +239,186 @@ kinds:
         description: Fewest tiles from the centre of the world at which it is found.
         type: decimal(6,2)
 
+  Signal:
+    description: A signal people pick up in the campus (a trend, a user pain, market news, a research result, a regulatory change, what a customer said); carried, it can go into an idea or a work method.
+    primary_key: [code]
+    title_attribute: name
+    attributes:
+      code:
+        description: Stable signal code used in inventories, snake_case.
+        type: string
+        required: true
+        constraints:
+          pattern: '^[a-z][a-z0-9_]*$'
+      name:
+        description: Short title of the signal as people read it.
+        type: string
+        required: true
+        searchable: true
+      description:
+        description: The signal itself, as people read it.
+        type: text
+        required: true
+        searchable: true
+      category:
+        description: What sort of signal it is.
+        type: {enum: [trend, pain, market, research, regulation, customer]}
+        required: true
+        indexed: true
+      perishable:
+        description: Whether the signal gets stale while carried.
+        type: boolean
+        required: true
+      decay_per_day:
+        description: Share of a carried signal lost per day of the world.
+        type: decimal(8,4)
+      source:
+        description: Always biome - picked up in the rooms listed in biomes.
+        type: {enum: [biome]}
+        required: true
+      biomes:
+        description: Rooms (tile biomes) where it can be picked up.
+        type: json
+      gather_yield:
+        description: Units picked up at once.
+        type: decimal(6,2)
+      min_distance:
+        description: Fewest tiles from the centre of the campus at which it is found.
+        type: decimal(6,2)
+
+  Idea:
+    description: An IT product idea of the hub. It lives on its own idea/ branch while people enrich and review it; it reaches main (the portfolio) only when the investment committee approves it.
+    primary_key: [code]
+    title_attribute: title
+    attributes:
+      code:
+        description: Unique id of the idea, minted by the world (slug of the title and a suffix).
+        type: string
+        required: true
+      title:
+        description: Title of the idea.
+        type: string
+        required: true
+        searchable: true
+      problem:
+        description: The problem, for whom and why it matters.
+        type: text
+        searchable: true
+      users:
+        description: Who the users are.
+        type: text
+        searchable: true
+      solution:
+        description: The proposed solution.
+        type: text
+        searchable: true
+      differentiation:
+        description: What sets it apart from what exists.
+        type: text
+        searchable: true
+      feasibility:
+        description: How and how much it can be built.
+        type: text
+        searchable: true
+      risks:
+        description: The main risks.
+        type: text
+        searchable: true
+      tags:
+        description: Domains and themes (list of short words).
+        type: json
+      stage:
+        description: Where the idea is in the pipeline.
+        type: {enum: [signal, insight, concept, proposal, pitch, approved, killed]}
+        required: true
+        indexed: true
+      champion:
+        description: Name of the person who proposed it and carries it.
+        type: string
+        indexed: true
+      authors:
+        description: Names of the people who wrote it (list).
+        type: json
+      scores:
+        description: Mean of the reviews per dimension (impact, feasibility, novelty, fit, risk; 0-10).
+        type: json
+      branch:
+        description: The idea/ branch it lives on.
+        type: string
+      proposal_id:
+        description: The Proposal into main opened when it was submitted to the committee.
+        type: string
+      quarter:
+        description: Quarter in which it was proposed (Q1-Q4).
+        type: string
+        indexed: true
+      signals:
+        description: Codes of the signals and work artifacts its authors brought in (list).
+        type: json
+      history:
+        description: What happened to it (list of {at, by, action, note}).
+        type: json
+      decision:
+        description: The committee's last decision ({decision, summary, at, votes}).
+        type: json
+      day:
+        description: Day of the world on which it was proposed.
+        type: integer
+      session:
+        description: Id of the world run in which it was proposed.
+        type: string
+
+  Review:
+    description: A peer review of an idea (one per reviewer), written on the idea's branch.
+    primary_key: [code]
+    title_attribute: code
+    attributes:
+      code:
+        description: Idea code and reviewer, minted by the world.
+        type: string
+        required: true
+      idea:
+        description: Code of the idea reviewed.
+        type: string
+        required: true
+        indexed: true
+      reviewer:
+        description: Name of the reviewer.
+        type: string
+        required: true
+      impact:
+        description: Impact, 0-10.
+        type: integer
+        required: true
+      feasibility:
+        description: Feasibility, 0-10.
+        type: integer
+        required: true
+      novelty:
+        description: Novelty, 0-10.
+        type: integer
+        required: true
+      fit:
+        description: Fit with the strategic themes, 0-10.
+        type: integer
+        required: true
+      risk:
+        description: Risk, 0 (none) to 10 (very high).
+        type: integer
+        required: true
+      comment:
+        description: The reviewer's comment.
+        type: text
+        searchable: true
+      day:
+        description: Day of the world.
+        type: integer
+      minute:
+        description: Minute of the day.
+        type: integer
+
   Recipe:
-    description: A way to turn some items into others; known to the world only once its technology is discovered.
+    description: A work method that turns signals and artifacts into other artifacts; known only once its breakthrough is made (when it has one).
     primary_key: [code]
     title_attribute: name
     attributes:
@@ -272,7 +452,7 @@ kinds:
         type: string
         indexed: true
       tech:
-        description: Code of the technology that unlocks it; empty when known from the start.
+        description: Code of the breakthrough that unlocks it; empty when known from the start.
         type: string
         indexed: true
       station:
@@ -283,8 +463,8 @@ kinds:
         type: decimal(8,2)
         required: true
 
-  Technology:
-    description: A body of knowledge of the civilization; discovering it makes its recipes known.
+  Breakthrough:
+    description: A breakthrough of the hub that opens a new idea domain; making it makes its methods known.
     primary_key: [code]
     title_attribute: name
     attributes:
@@ -304,10 +484,10 @@ kinds:
         required: true
         searchable: true
       prerequisites:
-        description: Codes of the technologies that must be known first.
+        description: Codes of the breakthroughs that must be made first.
         type: json
       discovered:
-        description: Whether the civilization knows it.
+        description: Whether the hub has made it.
         type: boolean
         required: true
         indexed: true
@@ -330,13 +510,13 @@ kinds:
 relations:
   unlocked_by:
     inverse_api_name: unlocks
-    description: The technology whose discovery makes a recipe known.
+    description: The breakthrough that makes a method known.
     from_kind: Recipe
-    to_kind: Technology
+    to_kind: Breakthrough
     cardinality: many_to_one
   known_by:
     inverse_api_name: recipes
-    description: The social role whose people know how to follow a recipe.
+    description: The role whose people know a work method.
     from_kind: Recipe
     to_kind: Role
     cardinality: many_to_one
@@ -354,20 +534,20 @@ relations:
     cardinality: many_to_many
   requires:
     inverse_api_name: required_by
-    description: Technologies that must be known before this one can be discovered.
-    from_kind: Technology
-    to_kind: Technology
+    description: Breakthroughs that must be made before this one.
+    from_kind: Breakthrough
+    to_kind: Breakthrough
     cardinality: many_to_many
   held_by_role:
     inverse_api_name: insights
-    description: The social role whose shared consciousness an insight belongs to.
+    description: The role whose playbook an entry belongs to.
     from_kind: Insight
     to_kind: Role
     cardinality: many_to_one
 
 operations:
   enact_rule:
-    description: Enact a brand-new law directly on the live branch (no review).
+    description: Enact a brand-new policy directly on the live branch (no review).
     parameters:
       - name: code
         type: string
@@ -382,7 +562,7 @@ operations:
         required: true
         description: Wording of the law as people read it.
       - name: category
-        type: {enum: [survival, economy, climate, society, time]}
+        type: {enum: [survival, economy, climate, society, time, company, ideas, strategy, wellbeing]}
         required: true
         description: Area of life the law governs.
       - name: unit
@@ -481,7 +661,7 @@ operations:
         required: true
         description: The new wording.
       - name: category
-        type: {enum: [survival, economy, climate, society, time]}
+        type: {enum: [survival, economy, climate, society, time, company, ideas, strategy, wellbeing]}
         required: true
         description: The area of life it governs.
       - name: unit

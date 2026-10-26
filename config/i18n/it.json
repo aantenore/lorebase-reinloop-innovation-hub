@@ -18,10 +18,10 @@
     "wood": "legna"
   },
   "season": {
-    "spring": "primavera",
-    "summer": "estate",
-    "autumn": "autunno",
-    "winter": "inverno"
+    "spring": "avvio dell'anno",
+    "summer": "pieno regime",
+    "autumn": "chiusura dei budget",
+    "winter": "freeze di fine anno"
   },
   "observation": {
     "header": "TURNO {tick}. Stagione: {season}; {winter}.",
