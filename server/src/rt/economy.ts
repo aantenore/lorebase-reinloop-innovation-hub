@@ -57,6 +57,8 @@ export interface ResourceDef {
   biomes: string[];
   gatherYield: number;
   minDistance: number;
+  /** Signals: the official source (a public page), readable with web_fetch by whoever carries or has read the signal. */
+  url?: string;
 }
 
 export interface RecipeDef {
@@ -149,6 +151,7 @@ export function resourceFrom(v: Record<string, unknown>): ResourceDef {
     biomes: list(typeof v.biomes === 'string' ? safeJson(v.biomes) ?? v.biomes : v.biomes),
     gatherYield: num(v.gather_yield),
     minDistance: num(v.min_distance),
+    ...(str(v.url) ? { url: str(v.url)! } : {}),
   };
 }
 

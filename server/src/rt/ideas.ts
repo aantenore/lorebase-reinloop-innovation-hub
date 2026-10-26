@@ -162,6 +162,8 @@ export interface IdeasConfig {
     deferralCost: string;
     /** Approved ideas (concepts explored) the company expects from the portfolio in a quarter. */
     portfolioTarget: string;
+    /** Game hours between committee sessions, on a fixed grid from day 1 00:00 (0: a session as soon as an idea is submitted). */
+    sessionCadence?: string;
   };
 }
 
@@ -369,6 +371,11 @@ export class IdeaBook {
 
   openBy(name: string): Idea[] {
     return [...this.ideas.values()].filter((i) => !isClosed(i) && i.champion === name);
+  }
+
+  /** Game clock at which a pitch was submitted (0 when it predates this run), undefined when it is not waiting. */
+  submittedClock(code: string): number | undefined {
+    return this.submittedAt.get(code);
   }
 
   /** Ideas waiting for the committee, oldest submission first. */

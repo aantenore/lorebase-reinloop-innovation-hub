@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { defineTool } from 'reinloop';
-import { domainsIn, excluded, hostedSearchCost, normalizeFetchUrl, type ResearchConfig, ResearchDesk, type ResearchEvent } from './research.ts';
+import { domainsIn, excluded, hostedFetchText, hostedSearchCost, normalizeFetchUrl, type ResearchConfig, ResearchDesk, type ResearchEvent } from './research.ts';
 
 const cfg: ResearchConfig = {
   provider: 'tavily', maxResults: 5, maxResultsCap: 8, maxChars: 600, maxFetchChars: 6000, fetch: { mode: 'search-results-only', allowTtlMs: 60_000, allowMax: 3, maxUrlChars: 100 }, cacheTtlMs: 60_000, cacheMax: 10, anthropicTier: 'haiku',
   policies: { perPerson: 'per_person', total: 'total', excludedDomains: 'domains' }, eventSnippetChars: 20, recentMax: 5, logMax: 50,
 };
 
-function fixture(policies: Record<string, { value: unknown; text: string }>) {
+function fixture(policies: Record<string, { value: unknown; text: string }>, official: string[] = [], c: ResearchConfig = cfg) {
   let backend = 0;
   const events: ResearchEvent[] = [];
   const web = {
@@ -30,7 +30,7 @@ function fixture(policies: Record<string, { value: unknown; text: string }>) {
       },
     }),
   };
-  const desk = new ResearchDesk(cfg, { policy: (k) => policies[k], day: () => 1, researched: (_w, ev) => events.push(ev) }, (k, v) => (v ? `${k} ${JSON.stringify(v)}` : k), web);
+  const desk = new ResearchDesk(c, { policy: (k) => policies[k], day: () => 1, researched: (_w, ev) => events.push(ev), officialUrls: (who) => (who.id === 'a1' ? official : []) }, (k, v) => (v ? `${k} ${JSON.stringify(v)}` : k), web);
   const [search, fetch] = desk.tools({ id: 'a1', name: 'Enea' });
   const ctx = { signal: new AbortController().signal } as Parameters<typeof search.run>[1];
   return { desk, search: search!, fetch: fetch!, ctx, events, calls: () => backend };
@@ -114,4 +114,32 @@ test('research: a hosted search costs its tokens plus the per-search fee', () =>
   const fee = hostedSearchCost('anthropic/claude-haiku-5-5', { inputTokens: 0, outputTokens: 0, serverToolUse: { webSearchRequests: 2 } });
   assert.ok(Math.abs(fee - 0.02) < 1e-9, String(fee));
   assert.ok(hostedSearchCost('anthropic/claude-haiku-5-5', { inputTokens: 1_000_000, outputTokens: 0, serverToolUse: { webSearchRequests: 1 } }) > 0.01);
+});
+
+test('research: reads have their own quotas when configured; refusals are counted by tool and cause', async () => {
+  const c: ResearchConfig = { ...cfg, policies: { ...cfg.policies, readsPerPerson: 'reads_pp', readsTotal: 'reads_total' } };
+  const f = fixture({ per_person: { value: 1, text: '' }, total: { value: 9, text: '' }, reads_pp: { value: 2, text: '' }, reads_total: { value: 9, text: '' }, domains: { value: 1, text: 'pinterest.com' } }, [], c);
+  await f.search.run({ query: 'agent ops' }, f.ctx);
+  assert.match((await f.search.run({ query: 'other' }, f.ctx) as { content: string }).content, /person_quota/);
+  // The search quota is used up, reads still go through on their own quota (cache keys differ by URL).
+  assert.equal(JSON.parse(String(await f.fetch.run({ url: 'https://a.example.org/x' }, f.ctx))).title, 'Page');
+  assert.match((await f.fetch.run({ url: 'https://pinterest.com/x' }, f.ctx) as { content: string }).content, /excluded_domain/);
+  assert.match((await f.fetch.run({ url: 'https://b.example.org/' }, f.ctx) as { content: string }).content, /not_from_search/);
+  assert.deepEqual(f.desk.stats.refusals, { 'web_search:person_quota': 1, 'web_fetch:excluded_domain': 1, 'web_fetch:not_from_search': 1 });
+  assert.equal(f.desk.stats.fetches, 1);
+});
+
+test('research: the official source of a signal the person holds is readable, normalized and still checked', async () => {
+  const f = fixture({ per_person: { value: 5, text: '' }, total: { value: 9, text: '' }, domains: { value: 1, text: 'pinterest.com' } }, ['https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art12', 'http://127.0.0.1/admin', 'https://pinterest.com/p']);
+  assert.equal(JSON.parse(String(await f.fetch.run({ url: 'https://eur-lex.europa.eu/eli/reg/2024/1689/oj' }, f.ctx))).title, 'Page');
+  assert.match((await f.fetch.run({ url: 'http://127.0.0.1/admin' }, f.ctx) as { content: string }).content, /not_from_search/);
+  assert.match((await f.fetch.run({ url: 'https://pinterest.com/p' }, f.ctx) as { content: string }).content, /excluded_domain/);
+  const other = f.desk.tools({ id: 'a2', name: 'Bruno' })[1]!;
+  assert.match((await other.run({ url: 'https://eur-lex.europa.eu/eli/reg/2024/1689/oj' }, f.ctx) as { content: string }).content, /not_from_search/);
+});
+
+test('research: a hosted web_fetch result gives the page text, or an error code', () => {
+  assert.deepEqual(hostedFetchText({ type: 'web_fetch_result', url: 'https://x.example.org/', content: { type: 'document', title: 'T', source: { type: 'text', media_type: 'text/plain', data: 'body' } } }), { url: 'https://x.example.org/', title: 'T', text: 'body' });
+  assert.deepEqual(hostedFetchText({ type: 'web_fetch_tool_error', error_code: 'url_not_accessible' }), { error: 'url_not_accessible' });
+  assert.deepEqual(hostedFetchText({ type: 'web_fetch_result', url: 'u', content: { source: { type: 'base64', media_type: 'application/pdf', data: 'x' } } }), { error: 'unsupported_application/pdf' });
 });

@@ -53,8 +53,13 @@ const haveCodes = async (kind: string) => new Set((await client.listRecords(kind
 const haveResources = await haveCodes(eco.kinds.resource);
 const haveRecipes = await haveCodes(eco.kinds.recipe);
 const resourceRows = economy.resources.filter((r) => reset || !haveResources.has(String(r.code))).map((r) => ({ kind: eco.kinds.resource, ...r }));
-const haveSignals = eco.kinds.signal ? await haveCodes(eco.kinds.signal) : new Set<string>();
-const signalRows = eco.kinds.signal ? (economy.signals ?? []).filter((r) => reset || !haveSignals.has(String(r.code))).map((r) => ({ kind: eco.kinds.signal, ...r })) : [];
+// A signal is (re)written when missing, or when the seed gives it an official source (`url`) the stored record lacks.
+const haveSignals = eco.kinds.signal ? new Map((await client.listRecords(eco.kinds.signal, branch).catch(() => ({ items: [] as Array<{ values: Row }> }))).items.map((r) => [String(r.values.code), r.values])) : new Map<string, Row>();
+const signalOutdated = (r: Row) => {
+  const have = haveSignals.get(String(r.code));
+  return !have || (r.url !== undefined && have.url !== r.url);
+};
+const signalRows = eco.kinds.signal ? (economy.signals ?? []).filter((r) => reset || signalOutdated(r)).map((r) => ({ kind: eco.kinds.signal, ...r })) : [];
 const baseRecipeRows = economy.recipes.filter((r) => reset || !haveRecipes.has(String(r.code))).map((r) => recipeRow(eco, recipeFrom(r)));
 
 const work = `seed/${Date.now().toString(36)}`;

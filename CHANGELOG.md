@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Page reads have their own quotas: policies `letture_web_per_persona_al_giorno` (12) and `letture_web_totali_al_giorno`
+  (60), apart from the search quotas (`research.policies.readsPerPerson`, `readsTotal`). With `anthropic-native`,
+  `web_fetch` now reads pages through Anthropic's hosted fetch tool (`research.anthropicFetch`; one call per page,
+  restricted to its host, booked as `web_fetch`).
+- Refusals split by tool and cause: `reinloop.webRefusals` and `reinloop.signalRefusals` in
+  `/api/observatory/summary` (`<tool>:<reason>`: person quota, hub quota, per-decision cap, `not_from_search`,
+  excluded domain, ...).
+- Committee sessions on a grid: policy `cadenza_sedute_comitato_ore` (2 game hours; 0 keeps a session per
+  submission). Perception of each idea adds how long a submitted idea has waited and the day and hour of the next
+  session, and how long an unsubmitted idea has met the candidacy requirements.
+- Official sources: `Signal` records take an optional `url` (schema); the regulatory seed signals carry their
+  EUR-Lex text (AI Act, NIS2, GDPR, European Accessibility Act); the seed rewrites stored signals whose `url`
+  differs. `web_fetch` also accepts the `url` of a signal the person carries, has read on an idea or brought into
+  an idea of theirs (same normalization and checks); carried signals and `leggi_idea` show the URL.
 - Live run 5 recorded: `docs/run-report.md` (Run 5, with the diagnosis of run 4's plan runs), `docs/evidence/run5/`,
   `docs/portfolio-run5.md`.
 - Committee ballots include every seated member (`ideas.committee.maxVoters`, default 0 = all); in run 4

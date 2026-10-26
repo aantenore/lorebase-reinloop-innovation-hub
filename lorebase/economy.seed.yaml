@@ -398,6 +398,7 @@ signals:
     perishable: true
     decay_per_day: 0.3
     description: "L'AI Act europeo richiede documentazione tecnica, gestione del rischio e supervisione umana per i sistemi ad alto rischio. I fornitori devono dimostrarlo con evidenze verificabili."
+    url: "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
   - code: regulation_nis2
     name: "Requisiti della direttiva NIS2"
     category: regulation
@@ -407,6 +408,7 @@ signals:
     perishable: true
     decay_per_day: 0.3
     description: "La direttiva NIS2 estende gli obblighi di sicurezza e di notifica degli incidenti a molti più settori, comprese le filiere di fornitura. Le sanzioni coinvolgono anche i vertici aziendali."
+    url: "https://eur-lex.europa.eu/eli/dir/2022/2555/oj"
   - code: regulation_residenza_dati
     name: "Vincoli di residenza dei dati"
     category: regulation
@@ -416,6 +418,7 @@ signals:
     perishable: true
     decay_per_day: 0.3
     description: "Le autorità di controllo ribadiscono che i dati personali dei cittadini europei devono restare in aree con tutele adeguate. I trasferimenti verso fornitori extra-UE richiedono garanzie aggiuntive."
+    url: "https://eur-lex.europa.eu/eli/reg/2016/679/oj"
   - code: regulation_accessibilita
     name: "Atto europeo sull'accessibilità"
     category: regulation
@@ -425,6 +428,7 @@ signals:
     perishable: true
     decay_per_day: 0.3
     description: "L'atto europeo sull'accessibilità impone che servizi digitali come e-commerce e banking siano utilizzabili da persone con disabilità. Molti siti esistenti non sono conformi."
+    url: "https://eur-lex.europa.eu/eli/dir/2019/882/oj"
   # customer (meeting)
   - code: customer_banca_audit_ai
     name: "Banca: audit delle decisioni automatiche"

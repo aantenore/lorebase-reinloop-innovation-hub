@@ -166,7 +166,10 @@ export function timeLine(t: Translate, w: RtWorld): string {
 export function carried(t: Translate, w: RtWorld, e: RtEntity): { items: string; tools: string } {
   const name = (code: string) => w.catalog.resources.get(code)?.name ?? code;
   const toolCodes = new Set(e.tools.map((x) => x.item));
-  const items = Object.entries(e.inventory).filter(([k, n]) => n >= 1 && !toolCodes.has(k)).map(([code, n]) => t('rt.observation.itemLine', { amount: Math.floor(n), name: name(code), code }));
+  const items = Object.entries(e.inventory).filter(([k, n]) => n >= 1 && !toolCodes.has(k)).map(([code, n]) => {
+    const url = w.catalog.resources.get(code)?.url;
+    return t(url ? 'rt.observation.itemLineUrl' : 'rt.observation.itemLine', { amount: Math.floor(n), name: name(code), code, ...(url ? { url } : {}) });
+  });
   const tools = e.tools.map((x) => t('rt.observation.toolLine', { name: name(x.item), code: x.item, durability: round1(x.durability), max: x.max }));
   return { items: items.join(', ') || t('rt.observation.nothingCarried'), tools: tools.join(', ') || t('rt.observation.noTools') };
 }

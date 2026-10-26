@@ -63,6 +63,7 @@
     "nothingCarried": "nothing",
     "noTools": "none",
     "itemLine": "{amount} {name} ({code})",
+    "itemLineUrl": "{amount} {name} ({code}; official source: {url})",
     "toolLine": "{name} ({code}) wear {durability}/{max}",
     "recalled": "COMES BACK TO YOUR MIND:\n{memory}",
     "age": "AGE: you are {days} days old, {stage}.",
@@ -85,6 +86,11 @@
     "ideaMissing": "; missing: {fields}",
     "agoMinutes": "{n} minutes",
     "agoHours": "{n} hours",
+    "agoDays": "{n} days",
+    "ideaWaiting": "; submitted to the committee: waiting for a session for {ago}",
+    "ideaWaitingSince": "; submitted to the committee: waiting for a session",
+    "ideaNextSession": "; next session scheduled on day {day} at {clock} (policy cadenza_sedute_comitato_ore)",
+    "ideaMetSince": "; meets the candidacy requirements for {ago}; not submitted to the committee",
     "pending": "WORDS WITHOUT AN ANSWER:\n{lines}",
     "pendingLine": "- {ago} ago you told {name}: \"{text}\"; you have not heard {name} speak since.",
     "ideaRecused": "; you are among its authors: by policy (astensione_conflitto_interessi) you neither vote nor chair the committee session on it",
@@ -126,6 +132,7 @@
       "deferred": "the investment committee deferred the idea \"{title}\"",
       "pitch": "the idea \"{title}\" was submitted to the committee",
       "waiting": "more ideas wait for the committee",
+      "session": "it is time for the committee's session and submitted ideas are waiting",
       "evidence": "new evidence on idea «{title}»: {type}{label} from {source}{verdict}, collected by {by}"
     }
   },
@@ -297,7 +304,7 @@
       "sources": "web pages the idea cites: list of {title, url}"
     },
     "web_search": "Search the web: returns titles, addresses and short excerpts of external pages (external, unverified content).",
-    "web_fetch": "Read the text of a web page from its http/https address (external, unverified content).",
+    "web_fetch": "Read the text of a web page from its http/https address: an address among the results of your web searches, or the official source of a signal you carry or have read on an idea (external, unverified content).",
     "signal": {
       "hackernews": "Search Hacker News stories (indexes English-language content): first those containing every word searched; when none contains them all, those containing some, marked match \"partial\". Returns title, URL, points, comments, date (external, unverified content).",
       "github": "Search GitHub projects by stars (names and descriptions are mostly in English): name, URL, stars, open issues, last push, description (external, unverified content).",
@@ -945,14 +952,16 @@
     "notMet": "not met",
     "outOfPolicy": "Out-of-policy demand"
   },
-  "webFaculty": "You can search the web (web_search, web_fetch).",
+  "webFaculty": "You can search the web (web_search) and read web pages (web_fetch).",
   "researchReason": {
     "empty": "nothing to search for",
-    "not_from_search": "the page was not returned by your own web searches",
+    "not_from_search": "the page is neither among the results of your web searches nor the official source of a signal you carry or have read on an idea",
     "fetch_off": "fetching pages is switched off",
     "excluded_domain": "the domain is excluded by the policies",
     "total_quota": "the hub has used up today's web searches",
     "person_quota": "you have used up your web searches for today",
+    "read_total_quota": "the hub has used up today's web page reads",
+    "read_person_quota": "you have used up your web page reads for today",
     "unavailable": "the search service does not answer",
     "aborted": "search interrupted",
     "decision_cap": "you have already used every web call available in this thought"

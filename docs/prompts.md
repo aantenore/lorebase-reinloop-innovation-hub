@@ -10,7 +10,7 @@ consulted with the `lorebase_*` tools.
 
 | Part | Source |
 |------|--------|
-| Instructions (system) | `rt.instructions`: name and personality, the hub (people here generate and evaluate IT product ideas, they do not build them), role code and title (Lorebase `Role`), the faculties (a mind connected to Lorebase: policies, the role's playbook, the newsletter, the portfolio of approved ideas; a private memory `remember`/`recall`; when research is on, `rt.webFaculty`: "Puoi cercare sul web (web_search, web_fetch)."; when evidence is on, `rt.evidenceFaculty`: the signal tools, `allega_prova` and `intervista_simulata`, whose answers are generated hypotheses) and the plan interface; the first line is the working language (`Lingua di lavoro: italiano...`) (`commit_plan`, horizon of the tier) |
+| Instructions (system) | `rt.instructions`: name and personality, the hub (people here generate and evaluate IT product ideas, they do not build them), role code and title (Lorebase `Role`), the faculties (a mind connected to Lorebase: policies, the role's playbook, the newsletter, the portfolio of approved ideas; a private memory `remember`/`recall`; when research is on, `rt.webFaculty`: "Puoi cercare sul web (web_search) e leggere pagine web (web_fetch)."; when evidence is on, `rt.evidenceFaculty`: the signal tools, `allega_prova` and `intervista_simulata`, whose answers are generated hypotheses) and the plan interface; the first line is the working language (`Lingua di lavoro: italiano...`) (`commit_plan`, horizon of the tier) |
 | Observation (user message, at each decision) | `rt.observation.*`, `rt.look.*`, `rt.recipes.*`, `rt.body.*`: day, hour, quarter and freeze; energy, stress, what the person carries (codes and names) and where; body changes since it last thought; group; current step; why it thinks again (a fact); what it sees within `vision_radius` (rooms, coffee, whiteboard material, desks, colleagues, signals to pick up); the work methods it knows and what it lacks; seniority; exchange offers; hearsay; the company line; the ideas block; what was said to it; what it lived; which policies changed |
 | Tools | `commit_plan`, `say`, `form_group`, `join_group`, `leave_group`, `scambia`, `chiedi`, `rispondi_scambio`, `giudica`, `testimonia`, `proponi_legge` (a policy proposal), `share_insight` / `review_insights` / `judge_insight` (role playbook), the idea tools below; Lorebase read tools from Herald; private memory `remember` / `recall`; `web_search` / `web_fetch` (`rt.tools.web_search`, `rt.tools.web_fetch`: what they return, nothing on when); the evidence tools below |
 | Spoken reply | same instructions + `rt.replyInstructions`; short observation; optional `rethink` |
@@ -46,8 +46,13 @@ member proposing an idea under `comitato_non_coautore` is refused with "per poli
 del comitato investimenti non propongono idee".
 
 Web research refusals are facts too (`rt.researchReason.*`): "hai esaurito le tue ricerche web di oggi",
-"il dominio è escluso dalle policy", "la pagina non è tra i risultati delle tue ricerche web" (`web_fetch` only reads URLs
-returned by the agent's own searches; `research.fetch.mode`). Results come back as reinloop marks them (`untrusted: true` and a note);
+"hai esaurito le tue letture di pagine web di oggi" (reads have their own quotas, `letture_web_*`), "il dominio è
+escluso dalle policy", "la pagina non è tra i risultati delle tue ricerche web né è la fonte ufficiale di un segnale che
+porti con te o che hai letto in un'idea" (`web_fetch` only reads URLs returned by the agent's own searches or the `url`
+of a Signal record the person carries, has read with `leggi_idea` or brought into an idea of theirs;
+`research.fetch.mode`). A carried signal with an official source reads "1 Obblighi dell'AI Act ...
+(regulation_ai_act_obblighi; fonte ufficiale: https://eur-lex.europa.eu/eli/reg/2024/1689/oj)"
+(`rt.observation.itemLineUrl`); the signals of an idea in `leggi_idea` carry the URL in parentheses. Results come back as reinloop marks them (`untrusted: true` and a note);
 they are only text for the model and never feed a write.
 
 Refusals are facts (`rt.ideaReason.*`): "l'idea non è completa", "non ha ancora abbastanza valutazioni",
@@ -80,6 +85,11 @@ Two blocks, facts only:
   soddisfatti per policy (prove reali 4, ne servono 3; fonti distinte 2, ne servono 2): l'idea può essere candidata
   al comitato"). Human validation appears only as the alternative path, never as a count next to the others: in
   run 3 "validazioni umane 0" next to "soddisfatti" was read as a missing requirement.
+- Where an idea stands towards the committee, as time facts: a submitted idea "candidata al comitato: in attesa di
+  seduta da 3 ore; prossima seduta prevista il giorno 2 alle 14:00 (policy cadenza_sedute_comitato_ore)"
+  (`rt.observation.ideaWaiting`, `ideaNextSession`: the next point of the policy's grid); an open idea meeting the
+  candidacy requirements "soddisfa i requisiti di candidatura da 2 giorni; non è candidata al comitato"
+  (`rt.observation.ideaMetSince`, since the first time the world saw the requirements met in this run).
 - New evidence is news for the authors and, for a player's validation, for the people within earshot
   (`rt.why.idea.evidence`).
 
@@ -106,7 +116,7 @@ Il tuo ruolo nell'azienda: Architetto (architetto).
 La tua mente è collegata a Lorebase (strumenti lorebase_*): lì trovi le policy dell'azienda, il playbook condiviso del tuo ruolo, la newsletter aziendale e il portafoglio delle idee approvate. Hai anche una memoria privata (remember/recall).
 Il tempo scorre senza pause. Quando ti fermi a pensare fissi con commit_plan ciò che farai per circa 60 minuti; mentre pensi continui a fare ciò che stavi facendo.
 Lavori in italiano: pensi, scrivi e parli in italiano.
-Puoi cercare sul web (web_search, web_fetch).
+Puoi cercare sul web (web_search) e leggere pagine web (web_fetch).
 ```
 
 ```text

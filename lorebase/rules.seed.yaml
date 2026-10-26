@@ -443,12 +443,22 @@ rules:
     value: 3
     unit: "ricerche"
     category: ideas
-    text: "Ricerche e letture sul web che una persona può fare in un giorno."
+    text: "Ricerche sul web che una persona può fare in un giorno."
   - code: ricerche_web_totali_al_giorno
     value: 10
     unit: "ricerche"
     category: ideas
-    text: "Ricerche e letture sul web che l'intero hub può fare in un giorno."
+    text: "Ricerche sul web che l'intero hub può fare in un giorno."
+  - code: letture_web_per_persona_al_giorno
+    value: 12
+    unit: "letture"
+    category: ideas
+    text: "Pagine web che una persona può leggere per intero in un giorno (web_fetch)."
+  - code: letture_web_totali_al_giorno
+    value: 60
+    unit: "letture"
+    category: ideas
+    text: "Pagine web che l'intero hub può leggere per intero in un giorno (web_fetch)."
   - code: domini_esclusi
     value: 1
     unit: "elenco"
@@ -559,6 +569,11 @@ rules:
     unit: "slot"
     category: ideas
     text: "Slot di approvazione del trimestre che consuma ogni rinvio (defer) di un'idea che soddisfa i requisiti di candidatura: la sessione del comitato su di essa usa la capacità del trimestre. Con 0 il rinvio non consuma slot."
+  - code: cadenza_sedute_comitato_ore
+    value: 2
+    unit: "ore"
+    category: ideas
+    text: "Ore di gioco tra una seduta del comitato investimenti e la successiva: le sedute cadono a intervalli fissi dalla mezzanotte del primo giorno e decidono sulle idee candidate in attesa. Con 0 il comitato si riunisce appena un'idea è candidata."
   - code: obiettivo_portfolio_trimestre
     value: 3
     unit: "concept"

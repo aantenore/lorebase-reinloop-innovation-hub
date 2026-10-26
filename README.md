@@ -76,7 +76,7 @@ Live runs (budget-capped, real models, web research on): [docs/run-report.md](do
 | Death | Leaving the company (`entity_removed.reason` `burnout` or `left`) | |
 | Seasons, winter | Quarters Q1-Q4, year-end freeze | rule `winter_every_ticks` split in four; `freeze_blocks_approvals` |
 | Food, wood | Coffee (`food`), whiteboard material (`wood`) | tile stocks |
-| Resources found in biomes | 40 `Signal` records (trends, user pains, market news, research, regulation, customer calls) picked up in the rooms | `gather {resource}` |
+| Resources found in biomes | 40 `Signal` records (trends, user pains, market news, research, regulation, customer calls) picked up in the rooms; regulatory ones carry their official source (`url`, e.g. the AI Act on EUR-Lex), readable with `web_fetch` by whoever carries or has read them | `gather {resource}` |
 | Recipes | Work methods, role-gated, inputs may be `@<category>` (any signal of it) | e.g. trend + pain -> insight, insight + research -> feasibility note |
 | Technologies | Breakthroughs (`Breakthrough`), hidden until found by combining items | `sperimenta` |
 | Esteem, fame, rank | Reputation, impact, career ladder Junior / Senior / Principal / Fellow | rules `promotion_*_fame`, never demoted |
@@ -177,14 +177,18 @@ share one mind (crowd "Stagisti").
 - **Web research.** `research` in `config/game.json`: `provider`: `anthropic-native` (default: Anthropic's hosted
   web search run by a small model call on the `anthropicTier` model, only the Anthropic key needed, about $0.01 per
   search plus the call's tokens, booked in the run's cost and budget under `<person>/web_search`, tier `research`;
-  search only, so no `web_fetch`), `tavily` (needs `TAVILY_API_KEY`; search and page reads) or `off`;
+  page reads through Anthropic's hosted `web_fetch` tool when `anthropicFetch` is set (`type`, `beta`,
+  `maxContentTokens`, `maxOutputTokens`: one small call per page restricted to the page's host, tokens only, booked
+  under `<person>/web_fetch`)), `tavily` (needs `TAVILY_API_KEY`; search and page reads) or `off`;
   `maxResults`, `maxResultsCap`, `maxChars` (per snippet), `maxFetchChars`, `cacheTtlMs` / `cacheMax` (server-side
   cache), `anthropicTier` (the model of `anthropic-native`), `fetch` (see below), `policies` (the keys of the quota and domain
   policies), `eventSnippetChars`, `recentMax`, `logMax`. Offline (`game:mock`) research is off.
   **Security:** `web_fetch` is not a free-form browser (a prompt-injected page could make it call an attacker URL
   carrying memory or conversations in the query string). With `research.fetch.mode` = `search-results-only`
   (default) it reads only URLs that came back, exactly, from the same agent's own `web_search` (kept server-side
-  for `allowTtlMs`, at most `allowMax` per agent); anything else is refused as `not_from_search`. URLs must be
+  for `allowTtlMs`, at most `allowMax` per agent), or the official source (`url`) of a `Signal` record the person
+  carries, has read on an idea (`leggi_idea`) or brought into an idea of theirs (the same normalization and checks,
+  excluded domains included); anything else is refused as `not_from_search`. URLs must be
   http(s), without credentials, not an IP literal, not localhost / `.local` / `.internal` / single-label hosts, at
   most `maxUrlChars` long; fragments are dropped. `mode: "off"` refuses every fetch. Hostnames that resolve to
   private addresses are not detected (no DNS check).
@@ -211,8 +215,10 @@ share one mind (crowd "Stagisti").
   `promptCache` (`enabled`, `ttl`, `groupTtl`: `5m` or `1h`). `/api/observatory/summary` reports
   `reinloop.cache` (`readTokens`, `writeTokens`, `hitRatio` = read share of all input tokens, `savedUsd` against
   the same calls uncached, also `byModel` and `byTier`), spend per tool in `reinloop.costUsd.byTool` (`minds`,
-  `web_search`, `intervista_simulata`, `segnali_pubblici`: runs, USD, share; public signals are free APIs) and the
-  research counters in `reinloop` (`webSearches`, `webFetches`, `webCached`, `webRefused`, `webErrors`). Research
+  `web_search`, `web_fetch`, `intervista_simulata`, `segnali_pubblici`: runs, USD, share; public signals are free
+  APIs) and the research counters in `reinloop` (`webSearches`, `webFetches`, `webCached`, `webRefused`, `webErrors`,
+  `signalSearches`, `signalRefused`, `signalErrors`), with every refusal split by tool and cause in `webRefusals` and
+  `signalRefusals` (`{"web_fetch:read_person_quota": 3, "web_search:decision_cap": 2, "cerca_discussioni:signal_total_quota": 4, ...}`). Research
   and signal caches keep answers for a day (`cacheTtlMs` 86400000).
 - **Cost profiles.** `GAME_PROFILE=<name>` applies `config/profiles/<name>.json` over the config files (`game`
   into `config/game.json`, `sim` into `config/sim.json`, `rosterTiers` by name, `"*"` for the rest). `economy`:
@@ -253,8 +259,10 @@ Seeded from `lorebase/rules.seed.yaml` (Kind `Rule`). The ones about ideas and t
 | `fame_idea_proposed`, `fame_idea_approved`, `fame_review_given` | 0.5, 5, 0.5 | impact of each deed |
 | `promotion_senior_fame`, `promotion_principal_fame`, `promotion_fellow_fame` | 2, 6, 12 | career steps |
 | `risk_appetite` | 6 | read by people; not enforced by the world |
-| `ricerche_web_per_persona_al_giorno` | 3 | web searches and page reads one person may do per game day (a cached answer is free) |
+| `ricerche_web_per_persona_al_giorno` | 3 | web searches one person may do per game day (a cached answer is free) |
 | `ricerche_web_totali_al_giorno` | 10 | the same for the whole hub (hosted search was the largest cost of run 3; public signals are free) |
+| `letture_web_per_persona_al_giorno`, `letture_web_totali_al_giorno` | 12, 60 | page reads (`web_fetch`) per person and for the hub per game day, counted apart from searches (`research.policies.readsPerPerson`, `readsTotal`; without them reads count against the search quotas) |
+| `cadenza_sedute_comitato_ore` | 2 | game hours between committee sessions, on a fixed grid from day 1 00:00; a session decides on the ideas waiting (`ideas.committee.maxPerSession`); perception says how long a submitted idea has waited and when the next session is (0: a session follows each submission) |
 | `astensione_conflitto_interessi` | 1 | the champion and authors of an idea neither vote nor chair its committee session; a conflicted chair is replaced by the eligible member with the highest career step (then vote weight); quorum counts eligible members (enforced by the server) |
 | `comitato_non_coautore` | 1 | members of the investment committee never become authors: they cannot propose ideas, and an edit of theirs is recorded as a reviewer's contribution (`contributed` in the idea's history), not co-authorship |
 | `supplenti_comitato_per_anzianita` | 1 | when fewer committee members than the quorum may decide on an idea, people of the hub with no conflict on it sit as alternates by career step, then esteem, up to the quorum (0: the idea waits) |

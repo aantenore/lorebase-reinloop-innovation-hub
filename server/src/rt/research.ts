@@ -1,9 +1,9 @@
 // Web research for the people of the hub: reinloop's `web_search` / `web_fetch` behind a desk that applies the
-// company policies (daily searches per person and in total, excluded domains), caches results server-side and
-// reports every call as a `research` event. Web content is untrusted: it is only text handed back to the model,
+// company policies (daily searches and daily page reads, each per person and in total; excluded domains), caches
+// results server-side and reports every call as a `research` event. Web content is untrusted: it is only text handed back to the model,
 // never an input to any write.
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { ANTHROPIC_SERVER_TOOL_USD, costOf, defineTool, type ModelRef, pricingFor, resolveModel, type Tool, type Usage, webTools } from 'reinloop';
+import { ANTHROPIC_SERVER_TOOL_USD, anthropicWebProvider, costOf, defineTool, hostedTool, type ModelRef, pricingFor, resolveModel, type Tool, type Usage, userMessage, type WebProvider, webTools } from 'reinloop';
 import type { Translate } from '../i18n.ts';
 
 export type ResearchProvider = 'tavily' | 'anthropic-native' | 'off';
@@ -20,9 +20,17 @@ export interface ResearchConfig {
   /** Server-side cache of results: lifetime and size. A cached answer does not count against the quotas. */
   cacheTtlMs: number;
   cacheMax: number;
-  /** `anthropic-native` only: the model tier that runs the hosted search (resolved through sim.json `models`). */
+  /** `anthropic-native` only: the model tier that runs the hosted search and page reads (resolved through sim.json `models`). */
   anthropicTier: string;
-  /** `web_fetch` hardening: pages may only be read when they came back from the same agent's own searches. */
+  /**
+   * `anthropic-native` only: page reads through Anthropic's hosted `web_fetch` (`type`, `beta` header, longest page
+   * in tokens, output tokens of the call). Absent: no `web_fetch` with that provider.
+   */
+  anthropicFetch?: { type: string; beta: string; maxContentTokens: number; maxOutputTokens: number };
+  /**
+   * `web_fetch` hardening: pages may only be read when they came back from the same agent's own searches, or when
+   * they are the official source (`url`) of a Signal record the person carries or has read on an idea.
+   */
   fetch: {
     /** `search-results-only` (default) | `off` (the tool refuses every call). */
     mode: 'search-results-only' | 'off';
@@ -31,8 +39,11 @@ export interface ResearchConfig {
     allowMax: number;
     maxUrlChars: number;
   };
-  /** Policy keys (Lorebase `Rule` records) behind the quotas and the excluded domains. */
-  policies: { perPerson: string; total: string; excludedDomains: string };
+  /**
+   * Policy keys (Lorebase `Rule` records) behind the quotas and the excluded domains: `perPerson` / `total` count
+   * searches, `readsPerPerson` / `readsTotal` page reads (without them, reads count against the search quotas).
+   */
+  policies: { perPerson: string; total: string; readsPerPerson?: string; readsTotal?: string; excludedDomains: string };
   /** Snippets carried by an event (privileged clients only) and their length. */
   eventSnippetChars: number;
   /** Research kept per person for the inspector, and in the run's log (GET /api/research). */
@@ -61,13 +72,15 @@ export interface ResearchHost {
   /** Day of the world (quotas are per day). */
   day(): number;
   researched(who: { id: string; name: string }, ev: ResearchEvent): void;
+  /** Official source URLs of the Signal records a person carries or has read on an idea (readable with web_fetch). */
+  officialUrls?(who: { id: string; name: string }): string[];
   /** The results a person's search returned (title, URL, snippet): they may become evidence. */
   found?(who: { id: string; name: string }, results: Array<{ title: string; url: string; snippet: string }>): void;
   /**
-   * `anthropic-native` only: the hosted search's own model call (tokens and per-search fee), booked to the person
-   * who searched; its cost is not part of that person's run.
+   * `anthropic-native` only: the hosted search's (or page read's) own model call (tokens and per-search fee), booked
+   * to the person who searched or read; its cost is not part of that person's run.
    */
-  searchUsage?(who: { id: string; name: string }, model: string, usage: Usage, costUsd: number): void;
+  searchUsage?(who: { id: string; name: string }, model: string, usage: Usage, costUsd: number, tool?: ResearchEvent['tool']): void;
 }
 
 /** Cost of a hosted search call: tokens at the model's price plus the per-request fees of server tools. Pure. */
@@ -97,6 +110,38 @@ function metered(ref: ModelRef, onUsage: (model: string, usage: Usage) => void):
 }
 
 type WebTools = { web_search: Tool; web_fetch?: Tool };
+
+/** The readable text of a hosted `web_fetch` result block, or an error code. Pure. */
+export function hostedFetchText(content: unknown): { url: string; title?: string; text: string } | { error: string } {
+  const c = content as { type?: string; error_code?: string; url?: string; content?: { title?: string; source?: { type?: string; media_type?: string; data?: string } } } | undefined;
+  if (!c || typeof c !== 'object') return { error: 'no_result' };
+  if (c.error_code || /_error$/.test(String(c.type ?? ''))) return { error: String(c.error_code ?? c.type) };
+  const src = c.content?.source;
+  if (!src || src.type !== 'text' || typeof src.data !== 'string') return { error: `unsupported_${src?.media_type ?? src?.type ?? 'content'}` };
+  return { url: String(c.url ?? ''), ...(c.content?.title ? { title: String(c.content.title) } : {}), text: src.data };
+}
+
+/**
+ * A page reader through Anthropic's hosted `web_fetch`: one small model call per page, restricted to the page's own
+ * host (`allowed_domains`); the page text comes from the tool result, not from the model's words.
+ */
+function anthropicFetcher(ref: ModelRef, opt: NonNullable<ResearchConfig['anthropicFetch']>): NonNullable<WebProvider['fetch']> {
+  return async (url, { signal }) => {
+    const host = new URL(url).hostname;
+    const tool = hostedTool({ provider: 'anthropic', type: opt.type, name: 'web_fetch', beta: opt.beta, params: { max_uses: 1, allowed_domains: [host], max_content_tokens: opt.maxContentTokens } });
+    const res = await ref.provider.generate({
+      model: ref.model,
+      instructions: 'Fetch the URL in the message with web_fetch, then reply with one word: done.',
+      messages: [userMessage(url)],
+      tools: [{ name: tool.name, description: tool.description, schema: tool.schema, hosted: tool.hosted }],
+      params: { ...ref.params, maxTokens: opt.maxOutputTokens },
+    }, { signal });
+    const part = res.message.parts.find((p) => p.type === 'hosted_result' && p.name === 'web_fetch') as { content?: unknown } | undefined;
+    const page = hostedFetchText(part?.content);
+    if ('error' in page) throw new Error(`web_fetch: ${page.error}`);
+    return { url: page.url || url, ...(page.title ? { title: page.title } : {}), content: page.text };
+  };
+}
 
 const DOMAIN = /\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}\b/gi;
 
@@ -151,14 +196,17 @@ export class ResearchDesk {
   private readonly t: Translate;
   private readonly web: WebTools;
   private readonly cache = new Map<string, { expires: number; value: string }>();
-  /** Calls that reached the backend, per day and per person. */
+  /** Calls that reached the backend, per kind (search, read), day and person. */
   private readonly used = new Map<string, number>();
   /** Per agent: the normalized URLs its own searches returned, with their expiry (what `web_fetch` may read). */
   private readonly allowed = new Map<string, Map<string, number>>();
-  /** `capped`: calls refused because the run had used its per-decision web calls (not counted in `refused`). */
-  /** Who is searching right now (for the hosted search's usage). */
-  searcher: AsyncLocalStorage<{ id: string; name: string }> | undefined;
-  readonly stats = { searches: 0, fetches: 0, cached: 0, refused: 0, errors: 0, capped: 0 };
+  /** Who is searching or reading right now (for the hosted call's usage). */
+  searcher: AsyncLocalStorage<{ id: string; name: string; tool: ResearchEvent['tool'] }> | undefined;
+  /**
+   * `capped`: calls refused because the run had used its per-decision web calls (not counted in `refused`).
+   * `refusals`: every refusal (capped included) by `tool:reason` (e.g. `web_fetch:person_quota`).
+   */
+  readonly stats = { searches: 0, fetches: 0, cached: 0, refused: 0, errors: 0, capped: 0, refusals: {} as Record<string, number> };
 
   constructor(cfg: ResearchConfig, host: ResearchHost, t: Translate, web: WebTools) {
     this.cfg = cfg;
@@ -172,17 +220,21 @@ export class ResearchDesk {
     if (!cfg || cfg.provider === 'off') return undefined;
     try {
       // The hosted search is a model call of its own: its usage is booked to whoever searched (async context).
-      const searcher = new AsyncLocalStorage<{ id: string; name: string }>();
-      const anthropic = cfg.provider === 'anthropic-native'
-        ? { model: metered(resolveModel(models[cfg.anthropicTier] ?? cfg.anthropicTier), (model, usage) => {
+      const searcher = new AsyncLocalStorage<{ id: string; name: string; tool: ResearchEvent['tool'] }>();
+      let provider: 'tavily' | WebProvider = 'tavily';
+      if (cfg.provider === 'anthropic-native') {
+        const model = metered(resolveModel(models[cfg.anthropicTier] ?? cfg.anthropicTier), (m, usage) => {
           const who = searcher.getStore();
-          if (who) host.searchUsage?.(who, model, usage, hostedSearchCost(model, usage));
-        }) }
-        : undefined;
+          if (who) host.searchUsage?.({ id: who.id, name: who.name }, m, usage, hostedSearchCost(m, usage), who.tool);
+        });
+        const search = anthropicWebProvider({ model });
+        provider = { name: search.name, search: search.search.bind(search), ...(cfg.anthropicFetch ? { fetch: anthropicFetcher(model, cfg.anthropicFetch) } : {}) };
+      }
+      // The desk applies its own allowlist (own search results, official sources of signals) across runs.
       const web = webTools({
-        provider: cfg.provider,
-        ...(anthropic ? { anthropic } : {}),
-        maxResults: cfg.maxResults, maxResultsCap: cfg.maxResultsCap, maxChars: cfg.maxChars, maxFetchChars: cfg.maxFetchChars,
+        provider,
+        fetchPolicy: 'any',
+        maxResults: cfg.maxResults, maxResultsCap: cfg.maxResultsCap, maxChars: cfg.maxChars, maxFetchChars: cfg.maxFetchChars, maxUrlLength: cfg.fetch.maxUrlChars,
       });
       const desk = new ResearchDesk(cfg, host, t, web);
       desk.searcher = searcher;
@@ -203,19 +255,35 @@ export class ResearchDesk {
     return p ? domainsIn(p.text) : [];
   }
 
+  /** The quota a call counts against: reads have their own policies when configured, else they share the searches'. */
+  private quota(kind: ResearchEvent['tool']): { bucket: string; perPerson: string; total: string } {
+    const p = this.cfg.policies;
+    return kind === 'web_fetch' && p.readsPerPerson && p.readsTotal
+      ? { bucket: 'read', perPerson: p.readsPerPerson, total: p.readsTotal }
+      : { bucket: 'search', perPerson: p.perPerson, total: p.total };
+  }
+
   /** Why a person may not reach the backend now (a refusal reason code), or undefined. */
-  private quotaError(name: string): string | undefined {
+  private quotaError(name: string, kind: ResearchEvent['tool']): string | undefined {
     const day = this.host.day();
-    if ((this.used.get(`${day}`) ?? 0) >= this.num(this.cfg.policies.total)) return 'total_quota';
-    if ((this.used.get(`${day}\u0000${name}`) ?? 0) >= this.num(this.cfg.policies.perPerson)) return 'person_quota';
+    const q = this.quota(kind);
+    const prefix = q.bucket === 'read' ? 'read_' : '';
+    if ((this.used.get(`${q.bucket}\u0000${day}`) ?? 0) >= this.num(q.total)) return `${prefix}total_quota`;
+    if ((this.used.get(`${q.bucket}\u0000${day}\u0000${name}`) ?? 0) >= this.num(q.perPerson)) return `${prefix}person_quota`;
     return undefined;
   }
 
-  private count(name: string): void {
+  private count(name: string, kind: ResearchEvent['tool']): void {
     const day = this.host.day();
-    for (const k of [`${day}`, `${day}\u0000${name}`]) this.used.set(k, (this.used.get(k) ?? 0) + 1);
+    const { bucket } = this.quota(kind);
+    for (const k of [`${bucket}\u0000${day}`, `${bucket}\u0000${day}\u0000${name}`]) this.used.set(k, (this.used.get(k) ?? 0) + 1);
     // Older days are not needed any more.
-    for (const k of this.used.keys()) if (Number(k.split('\u0000')[0]) < day) this.used.delete(k);
+    for (const k of this.used.keys()) if (Number(k.split('\u0000')[1]) < day) this.used.delete(k);
+  }
+
+  private refusal(kind: ResearchEvent['tool'], reason: string): void {
+    const k = `${kind}:${reason}`;
+    this.stats.refusals[k] = (this.stats.refusals[k] ?? 0) + 1;
   }
 
   private cached(key: string): string | undefined {
@@ -246,8 +314,10 @@ export class ResearchDesk {
     while (mine.size > this.cfg.fetch.allowMax) mine.delete(mine.keys().next().value!);
   }
 
-  private isAllowed(agentId: string, url: string): boolean {
-    return (this.allowed.get(agentId)?.get(url) ?? 0) > Date.now();
+  private isAllowed(who: { id: string; name: string }, url: string): boolean {
+    if ((this.allowed.get(who.id)?.get(url) ?? 0) > Date.now()) return true;
+    // The official source of a signal the person carries or has read: same normalization and checks.
+    return (this.host.officialUrls?.(who) ?? []).some((u) => normalizeFetchUrl(u, this.cfg.fetch.maxUrlChars) === url);
   }
 
   /** Runs one call through the cache, the quotas and the backend; returns the content for the model. */
@@ -255,6 +325,7 @@ export class ResearchDesk {
     let target = kind === 'web_search' ? String(args.query ?? '').trim() : String(args.url ?? '').trim();
     const refuse = (reason: string) => {
       this.stats.refused++;
+      this.refusal(kind, reason);
       return { content: this.t('rt.act.researchFailed', { reason: this.t(`rt.researchReason.${reason}`) }), isError: true as const };
     };
     if (!target) return refuse('empty');
@@ -262,10 +333,11 @@ export class ResearchDesk {
     if (kind === 'web_fetch') {
       if (this.cfg.fetch.mode === 'off') return refuse('fetch_off');
       if (excluded(target, domains)) return refuse('excluded_domain');
-      // Only pages this agent's own searches returned, byte for byte (query string included): nothing the model
-      // composes, or a page tells it to compose, can reach another host.
+      // Only pages this agent's own searches returned, or the official source of a signal it carries or has read,
+      // byte for byte (query string included): nothing the model composes, or a page tells it to compose, can reach
+      // another host.
       const url = normalizeFetchUrl(target, this.cfg.fetch.maxUrlChars);
-      if (!url || !this.isAllowed(who.id, url)) return refuse('not_from_search');
+      if (!url || !this.isAllowed(who, url)) return refuse('not_from_search');
       target = url;
       args = { ...args, url };
     }
@@ -273,11 +345,11 @@ export class ResearchDesk {
     let raw = this.cached(key);
     const cached = raw !== undefined;
     if (!cached) {
-      const quota = this.quotaError(who.name);
+      const quota = this.quotaError(who.name, kind);
       if (quota) return refuse(quota);
-      this.count(who.name);
+      this.count(who.name, kind);
       try {
-        const out = await (this.searcher ? this.searcher.run(who, () => tool.run(args, ctx)) : tool.run(args, ctx));
+        const out = await (this.searcher ? this.searcher.run({ ...who, tool: kind }, () => tool.run(args, ctx)) : tool.run(args, ctx));
         if (isErr(out)) {
           this.stats.errors++;
           return { content: text(out), isError: true };
@@ -329,6 +401,7 @@ export class ResearchDesk {
         if (budget) {
           if (budget.left <= 0) {
             this.stats.capped++;
+            this.refusal(kind, 'decision_cap');
             return { content: this.t('rt.act.researchFailed', { reason: this.t('rt.researchReason.decision_cap') }), isError: true };
           }
           budget.left--;

@@ -285,6 +285,9 @@ kinds:
       min_distance:
         description: Fewest tiles from the centre of the campus at which it is found.
         type: decimal(6,2)
+      url:
+        description: Official source of the signal (a public http/https page, e.g. the text of a regulation); whoever carries the signal or reads it on an idea may read that page with web_fetch.
+        type: string
 
   Idea:
     description: An IT product idea of the hub. It lives on its own idea/ branch while people enrich and review it; it reaches main (the portfolio) only when the investment committee approves it.

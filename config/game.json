@@ -715,7 +715,8 @@
       "criteria": "criteri_comitato",
       "approvalPhase": "fase_approvazione",
       "deferralCost": "costo_del_rinvio",
-      "portfolioTarget": "obiettivo_portfolio_trimestre"
+      "portfolioTarget": "obiettivo_portfolio_trimestre",
+      "sessionCadence": "cadenza_sedute_comitato_ore"
     }
   },
   "company": {
@@ -758,6 +759,12 @@
     "cacheTtlMs": 86400000,
     "cacheMax": 500,
     "anthropicTier": "haiku",
+    "anthropicFetch": {
+      "type": "web_fetch_20250910",
+      "beta": "web-fetch-2025-09-10",
+      "maxContentTokens": 6000,
+      "maxOutputTokens": 256
+    },
     "fetch": {
       "mode": "search-results-only",
       "allowTtlMs": 3600000,
@@ -767,6 +774,8 @@
     "policies": {
       "perPerson": "ricerche_web_per_persona_al_giorno",
       "total": "ricerche_web_totali_al_giorno",
+      "readsPerPerson": "letture_web_per_persona_al_giorno",
+      "readsTotal": "letture_web_totali_al_giorno",
       "excludedDomains": "domini_esclusi"
     },
     "eventSnippetChars": 200,

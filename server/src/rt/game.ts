@@ -55,6 +55,8 @@ interface PlayerConn {
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
 const r2 = (n: number) => Math.round(n * 100) / 100;
+/** HH:MM of a game clock (minutes). */
+const clockOf = (clock: number) => { const m = Math.floor(((clock % DAY_MINUTES) + DAY_MINUTES) % DAY_MINUTES); return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
 
 export class Game {
   readonly cfg: SimConfig;
@@ -150,6 +152,13 @@ export class Game {
   /** Why each person left (entity_removed reason): burnout or left. */
   private readonly leftFor = new Map<string, 'burnout' | 'left'>();
   private committeeBusy = false;
+  /** Policy cadenza_sedute_comitato_ore: the grid slot last seen, and whether a scheduled session is due. */
+  private committeeSlot = -1;
+  private sessionDue = false;
+  /** Per idea code: game clock since which it meets the candidacy requirements (cleared when it stops meeting them). */
+  private readonly requirementsMetAt = new Map<string, number>();
+  /** Per person: Signal codes read on ideas (leggi_idea); their official sources are readable with web_fetch. */
+  private readonly consultedSignals = new Map<string, Set<string>>();
 
   constructor(cfg: SimConfig, game: GameConfig) {
     this.cfg = cfg;
@@ -169,9 +178,10 @@ export class Game {
       },
       day: () => this.world.day,
       researched: (who, ev) => this.onResearch(who, ev),
+      officialUrls: (who) => this.officialUrls(who),
       found: (who, rows) => this.evidence?.remember(who.id, rows.map((r) => ({ url: r.url, type: 'web_source', source: 'web', title: r.title, metric: null, metric_name: '', excerpt: r.snippet.slice(0, game.evidence.excerptMaxChars) }))),
       // The hosted search's model call, booked to the person who searched (it counts toward the budget).
-      searchUsage: (who, model, usage, costUsd) => this.usage.track({ id: `${who.id}:web`, name: `${who.name}/web_search`, model, tier: 'research', tool: 'web_search' }, { status: 'completed', usage, costUsd }),
+      searchUsage: (who, model, usage, costUsd, tool = 'web_search') => this.usage.track({ id: `${who.id}:${tool}`, name: `${who.name}/${tool}`, model, tier: 'research', tool }, { status: 'completed', usage, costUsd }),
     }, this.t, cfg.models);
     this.evidence = game.evidence.enabled ? new EvidenceDesk(game.evidence, {
       policy: (key) => this.policyNum(key),
@@ -199,8 +209,8 @@ export class Game {
       agents: () => this.world.living().filter((e) => e.kind === 'agent').map((e) => ({ id: e.id, name: e.name, key: memoryKey(e.name) })),
       stats: () => ({
         ...this.stats, running: this.limiter.running,
-        ...(this.evidence ? { signalSearches: this.evidence.stats.searches, signalCached: this.evidence.stats.cached, signalRefused: this.evidence.stats.refused, signalErrors: this.evidence.stats.errors, evidenceAttached: this.evidence.stats.attached, interviews: this.evidence.stats.interviews } : {}),
-        ...(this.research ? { webSearches: this.research.stats.searches, webFetches: this.research.stats.fetches, webCached: this.research.stats.cached, webRefused: this.research.stats.refused, webCapped: this.research.stats.capped, webErrors: this.research.stats.errors } : {}), budgetMaxUsd: game.budget.maxUsd, budgetPaused: this.budgetPaused ? 1 : 0 }),
+        ...(this.evidence ? { signalSearches: this.evidence.stats.searches, signalCached: this.evidence.stats.cached, signalRefused: this.evidence.stats.refused, signalRefusals: { ...this.evidence.stats.refusals }, signalErrors: this.evidence.stats.errors, evidenceAttached: this.evidence.stats.attached, interviews: this.evidence.stats.interviews } : {}),
+        ...(this.research ? { webSearches: this.research.stats.searches, webFetches: this.research.stats.fetches, webCached: this.research.stats.cached, webRefused: this.research.stats.refused, webRefusals: { ...this.research.stats.refusals }, webCapped: this.research.stats.capped, webErrors: this.research.stats.errors } : {}), budgetMaxUsd: game.budget.maxUsd, budgetPaused: this.budgetPaused ? 1 : 0 }),
     }, game.observatory);
     this.world = this.newWorld();
     this.groups = this.newGroups();
@@ -982,6 +992,7 @@ export class Game {
     this.flushTiles(now);
     const turn = this.company.track(this.world.year(), this.world.quarter(), this.policyOn(this.game.ideas.policies.slotsExpire) ? undefined : this.world.r('quarter_idea_slots'));
     if (turn) this.onQuarter(turn);
+    this.committeeSchedule();
     this.reflexes(now);
     this.tickSociety(now);
     this.checkBudget();
@@ -1422,8 +1433,7 @@ export class Game {
   private slotsText(): string {
     const t = this.t;
     const end = this.world.quarterEndsAt();
-    const m = Math.floor(end % DAY_MINUTES);
-    const at = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+    const at = clockOf(end);
     return t(this.policyOn(this.game.ideas.policies.slotsExpire) ? 'rt.observation.slotsExpire' : 'rt.observation.slotsCarry', {
       slots: this.slotsLeft(), total: this.company.slotsTotal(this.world.r('quarter_idea_slots')), day: Math.floor(end / DAY_MINUTES) + 1, clock: at,
     });
@@ -1493,10 +1503,84 @@ export class Game {
       return t('rt.observation.ideaLine', {
         code: i.code, title: i.title, stage: t(`rt.ideaStage.${i.stage}`), champion: i.champion ?? '-', authors: i.authors.join(', '),
         reviews: i.reviews.length, mine: `${mine(i) ? t('rt.observation.ideaMine') : reviewed ? t('rt.observation.ideaReviewed') : ''}${recused ? t('rt.observation.ideaRecused') : ''}${short}`,
-        missing: `${isOpen(i) && missing.length ? t('rt.observation.ideaMissing', { fields: missing.map((k) => t(`rt.ideaField.${k}`)).join(', ') }) : ''}${isOpen(i) ? this.evidenceLine(i) : ''}`,
+        missing: `${isOpen(i) && missing.length ? t('rt.observation.ideaMissing', { fields: missing.map((k) => t(`rt.ideaField.${k}`)).join(', ') }) : ''}${isOpen(i) ? this.evidenceLine(i) : ''}${this.pipelineLine(i)}`,
       });
     });
     return t('rt.observation.ideas', { lines: lines.join('\n') });
+  }
+
+  /** Minutes between committee sessions (policy cadenza_sedute_comitato_ore); 0: a session follows each submission. */
+  private sessionPeriod(): number {
+    const key = this.game.ideas.policies.sessionCadence;
+    const h = key ? this.policyNum(key) : undefined;
+    return h !== undefined && h > 0 ? Math.round(h * 60) : 0;
+  }
+
+  /** Game clock of the next scheduled committee session, undefined without a cadence. */
+  private nextSessionAt(): number | undefined {
+    const p = this.sessionPeriod();
+    return p ? (Math.floor(this.world.clock / p) + 1) * p : undefined;
+  }
+
+  /** On the policy grid: when a slot begins and ideas wait, the committee's session is due. */
+  private committeeSchedule(): void {
+    const p = this.sessionPeriod();
+    if (!p) return;
+    const slot = Math.floor(this.world.clock / p);
+    if (slot === this.committeeSlot) return;
+    const first = this.committeeSlot < 0;
+    this.committeeSlot = slot;
+    if (first || !this.ideas.pitches().length) return;
+    const g = this.committeeGroup();
+    if (!g) return;
+    this.sessionDue = true;
+    this.groupMinds.get(g.id)?.perceive(this.t('rt.why.idea.session'), true);
+  }
+
+  /** A span of game minutes as people read it (minutes, hours or days). */
+  private span(minutes: number): string {
+    const m = Math.max(0, Math.floor(minutes));
+    if (m < 60) return this.t('rt.observation.agoMinutes', { n: m });
+    if (m < DAY_MINUTES) return this.t('rt.observation.agoHours', { n: Math.floor(m / 60) });
+    return this.t('rt.observation.agoDays', { n: Math.floor(m / DAY_MINUTES) });
+  }
+
+  /** Since when an open idea meets the candidacy requirements (game clock), undefined when it does not. */
+  private requirementsSince(i: Idea): number | undefined {
+    if (!isOpen(i) || !this.gateOf(i)?.pass) {
+      this.requirementsMetAt.delete(i.code);
+      return undefined;
+    }
+    let at = this.requirementsMetAt.get(i.code);
+    if (at === undefined) {
+      at = this.world.clock;
+      this.requirementsMetAt.set(i.code, at);
+    }
+    return at;
+  }
+
+  /** Where an idea stands towards the committee, as facts: how long a pitch waits and the next session, or how long an unsubmitted idea has met the requirements. */
+  private pipelineLine(i: Idea): string {
+    const t = this.t;
+    const now = this.world.clock;
+    if (i.stage === 'pitch') {
+      const at = this.ideas.submittedClock(i.code);
+      const next = this.nextSessionAt();
+      const wait = at ? t('rt.observation.ideaWaiting', { ago: this.span(now - at) }) : t('rt.observation.ideaWaitingSince');
+      const nextText = next === undefined ? '' : t('rt.observation.ideaNextSession', { day: Math.floor(next / DAY_MINUTES) + 1, clock: clockOf(next) });
+      return `${wait}${nextText}`;
+    }
+    const since = this.requirementsSince(i);
+    return since === undefined ? '' : t('rt.observation.ideaMetSince', { ago: this.span(now - since) });
+  }
+
+  /** Official sources of the Signal records a person carries, has read on an idea or brought into an idea of theirs. */
+  private officialUrls(who: { id: string; name: string }): string[] {
+    const e = this.world.entities.get(who.id);
+    const codes = new Set<string>(this.consultedSignals.get(who.id) ?? []);
+    if (e) for (const [c, n] of Object.entries(e.inventory)) if (n >= 1) codes.add(c);
+    for (const i of this.ideas.list()) if (i.champion === who.name || i.authors.includes(who.name)) for (const c of i.signals) codes.add(c);
+    return [...codes].map((c) => this.catalog.resources.get(c)?.url).filter((u): u is string => !!u);
   }
 
   /** An idea's evidence against the candidacy requirements, as a person perceives it (facts, numbers). */
@@ -1584,6 +1668,11 @@ export class Game {
       },
       read: (e, code) => {
         const i = this.ideas.get(code);
+        if (i?.signals.length) {
+          const seen = this.consultedSignals.get(e.id) ?? new Set<string>();
+          for (const c of i.signals) seen.add(c);
+          this.consultedSignals.set(e.id, seen);
+        }
         return i ? this.ideaText(i, this.hidesReviews(i, e.name)) : this.ideaReason('unknown_idea');
       },
       briefs: (e) => {
@@ -1730,7 +1819,7 @@ export class Game {
     });
     return `${t('rt.committee.idea', {
       code: i.code, title: i.title, stage: t(`rt.ideaStage.${i.stage}`), champion: i.champion ?? '-', authors: i.authors.join(', ') || '-', tags: i.tags.join(', ') || '-',
-      ...Object.fromEntries(IDEA_FIELDS.map((k) => [k, i[k] || '-'])), signals: i.signals.map((c) => this.itemName(c)).join(', ') || '-',
+      ...Object.fromEntries(IDEA_FIELDS.map((k) => [k, i[k] || '-'])), signals: i.signals.map((c) => { const url = this.catalog.resources.get(c)?.url; return url ? `${this.itemName(c)} (${url})` : this.itemName(c); }).join(', ') || '-',
       sources: (i.sources ?? []).map((x) => `${x.title} (${x.url})`).join('; ') || '-',
       n: i.reviews.length, reviews, scores: i.scores && !hideReviews ? SCORE_KEYS.map((k) => `${t(`rt.score.${k}`)} ${i.scores![k]}`).join(', ') : '-', weighted: weighted ?? '-',
       history: i.history.slice(-5).map((h) => {
@@ -1783,8 +1872,9 @@ export class Game {
         this.company.stats.submitted++;
         this.live(actor, 'idea', t('rt.memory.ideaSubmitted', vars));
         this.chron('idea_submitted', text, [by]);
+        // With a session cadence the committee meets on its grid (committeeSchedule); otherwise right away.
         const g = this.committeeGroup();
-        if (g) this.groupMinds.get(g.id)?.perceive(t('rt.why.idea.pitch', vars), true);
+        if (g && !this.sessionPeriod()) this.groupMinds.get(g.id)?.perceive(t('rt.why.idea.pitch', vars), true);
         break;
       }
       case 'approved':
@@ -1896,6 +1986,11 @@ export class Game {
    */
   private async runCommittee(g: Group): Promise<void> {
     if (!g.committee || this.committeeBusy || !this.game.ideas.enabled) return;
+    // With a session cadence the committee decides only at its scheduled sessions.
+    if (this.sessionPeriod()) {
+      if (!this.sessionDue) return;
+      this.sessionDue = false;
+    }
     this.committeeBusy = true;
     const t = this.t;
     try {
@@ -1967,8 +2062,8 @@ export class Game {
         if (slotsSpent) this.broadcast({ type: 'company', ...this.companyDto() });
         console.log(`[committee ${g.name}] ${idea.code}: ${decision}${unmet.length ? ` unmet ${unmet.join(',')}` : ''}${outOfPolicy.length ? ` out-of-policy ${outOfPolicy.length}` : ''}${slotsSpent ? ` slots spent ${slotsSpent}` : ''}${summary ? ` (${summary.slice(0, 120)})` : ''}`);
       }
-      // What is left waits for the committee's next session (its cooldown applies).
-      if (this.ideas.pitches().length) this.groupMinds.get(g.id)?.perceive(t('rt.why.idea.waiting'), false);
+      // What is left waits for the committee's next session (its cooldown applies; with a cadence, the next slot).
+      if (this.ideas.pitches().length && !this.sessionPeriod()) this.groupMinds.get(g.id)?.perceive(t('rt.why.idea.waiting'), false);
     } finally {
       this.committeeBusy = false;
     }

@@ -223,7 +223,8 @@ export class EvidenceDesk {
   private readonly used = new Map<string, number>();
   private readonly seen = new Map<string, Map<string, Seen>>();
   readonly impl: string;
-  readonly stats = { searches: 0, cached: 0, refused: 0, errors: 0, attached: 0, interviews: 0 };
+  /** `refusals`: every refusal by `tool:reason` (e.g. `cerca_discussioni:signal_person_quota`). */
+  readonly stats = { searches: 0, cached: 0, refused: 0, errors: 0, attached: 0, interviews: 0, refusals: {} as Record<string, number> };
 
   constructor(cfg: EvidenceConfig, host: EvidenceHost, t: Translate, backend: { impl: string; tools: SignalToolSet }) {
     this.cfg = cfg;
@@ -284,8 +285,10 @@ export class EvidenceDesk {
     while (mine.size > this.cfg.signals.allowMax) mine.delete(mine.keys().next().value!);
   }
 
-  private refusal(reason: string) {
+  private refusal(tool: string, reason: string) {
     this.stats.refused++;
+    const k = `${tool}:${reason}`;
+    this.stats.refusals[k] = (this.stats.refusals[k] ?? 0) + 1;
     return { content: this.t('rt.act.evidenceFailed', { reason: this.reason(reason) }), isError: true as const };
   }
 
@@ -297,9 +300,9 @@ export class EvidenceDesk {
 
   private async search(who: { id: string; name: string }, source: SignalSourceName, args: Record<string, unknown>, ctx: Parameters<Tool['run']>[1]) {
     const inner = this.backend[SOURCE_TOOL[source]];
-    if (!inner) return this.refusal('source_off');
+    if (!inner) return this.refusal(SIGNAL_TOOL[source], 'source_off');
     const query = clean(args.query, 300);
-    if (!query) return this.refusal('empty');
+    if (!query) return this.refusal(SIGNAL_TOOL[source], 'empty');
     const n = Math.min(Number(args.max_results) || this.cfg.signals.maxResults, this.cfg.signals.maxResultsCap);
     const key = `${source}\u0000${n}\u0000${query.toLowerCase()}`;
     const hit = this.cache.get(key);
@@ -311,17 +314,17 @@ export class EvidenceDesk {
       this.stats.cached++;
     } else {
       const quota = this.take(who.name, 'signal');
-      if (quota) return this.refusal(quota);
+      if (quota) return this.refusal(SIGNAL_TOOL[source], quota);
       let out: unknown;
       try {
         out = await inner.run({ query, max_results: n }, ctx);
       } catch (err) {
         this.stats.errors++;
-        return this.refusal(err instanceof Error && err.name === 'AbortError' ? 'aborted' : 'unavailable');
+        return this.refusal(SIGNAL_TOOL[source], err instanceof Error && err.name === 'AbortError' ? 'aborted' : 'unavailable');
       }
       if (typeof out !== 'string') {
         this.stats.errors++;
-        return this.refusal('unavailable');
+        return this.refusal(SIGNAL_TOOL[source], 'unavailable');
       }
       raw = out;
       if (this.cfg.signals.cacheTtlMs > 0) {
@@ -357,10 +360,10 @@ export class EvidenceDesk {
   private attachTool(who: { id: string; name: string }, args: Record<string, unknown>) {
     const idea = clean(args.idea ?? args.code, 120);
     const url = normalizeFetchUrl(String(args.url ?? ''), this.cfg.signals.maxUrlChars);
-    if (!idea) return this.refusal('no_idea');
-    if (!url) return this.refusal('bad_url');
+    if (!idea) return this.refusal('allega_prova', 'no_idea');
+    if (!url) return this.refusal('allega_prova', 'bad_url');
     const seen = this.seen.get(who.id)?.get(url);
-    if (!seen || seen.expires <= Date.now()) return this.refusal('not_from_search');
+    if (!seen || seen.expires <= Date.now()) return this.refusal('allega_prova', 'not_from_search');
     // The metric is the source's only (a number the person writes is never recorded); words fill only the excerpt.
     const metric = seen.metric;
     const out = this.host.attach(who, {
@@ -368,21 +371,21 @@ export class EvidenceDesk {
       metric, metric_name: seen.metric_name, excerpt: clean(args.estratto, this.cfg.excerptMaxChars) || seen.excerpt, collected_by: who.name,
       weight: evidenceWeight(seen.type, this.weights()), label: '',
     });
-    if (typeof out === 'string') return this.refusal(out);
+    if (typeof out === 'string') return this.refusal('allega_prova', out);
     this.stats.attached++;
     return this.t('rt.act.evidenceAttached', { idea: out.idea, type: this.t(`rt.evidenceType.${out.type}`), weight: out.weight });
   }
 
   private async interview(who: { id: string; name: string }, args: Record<string, unknown>, signal: AbortSignal) {
     const persona = String(args.persona ?? '').toLowerCase() as Persona;
-    if (!PERSONAS.includes(persona)) return this.refusal('bad_persona');
+    if (!PERSONAS.includes(persona)) return this.refusal('intervista_simulata', 'bad_persona');
     const raw = Array.isArray(args.domande) ? args.domande : typeof args.domande === 'string' ? [args.domande] : [];
     const questions = raw.map((q) => clean(q, this.cfg.interview.questionMaxChars)).filter(Boolean).slice(0, this.cfg.interview.questionsMax);
-    if (!questions.length) return this.refusal('no_questions');
+    if (!questions.length) return this.refusal('intervista_simulata', 'no_questions');
     const idea = this.host.ideaOpen(clean(args.idea ?? args.code, 120));
-    if (typeof idea === 'string') return this.refusal(idea);
+    if (typeof idea === 'string') return this.refusal('intervista_simulata', idea);
     const quota = this.take(who.name, 'interview');
-    if (quota) return this.refusal(quota);
+    if (quota) return this.refusal('intervista_simulata', quota);
     const t = this.t;
     const model = this.host.interviewModel();
     const runner = agent({
@@ -397,13 +400,13 @@ export class EvidenceDesk {
       res = await runner.run(prompt, { signal: AbortSignal.any([signal, AbortSignal.timeout(this.cfg.interview.timeoutMs)]) });
     } catch {
       this.stats.errors++;
-      return this.refusal('unavailable');
+      return this.refusal('intervista_simulata', 'unavailable');
     }
     this.host.ranModel({ id: `${who.id}:interview`, name: `${who.name}/intervista_simulata`, model: typeof model === 'string' ? model : model.model, tier: this.cfg.interview.tier, tool: 'intervista_simulata' }, res);
     const answer = clean(res.output, this.cfg.interviewMaxChars);
     if (res.status !== 'completed' || !answer) {
       this.stats.errors++;
-      return this.refusal('unavailable');
+      return this.refusal('intervista_simulata', 'unavailable');
     }
     const prefix = t('rt.interview.prefix', { persona: t(`rt.persona.${persona}`) });
     const excerpt = `${prefix} ${answer}`.slice(0, this.cfg.interviewMaxChars);
@@ -411,7 +414,7 @@ export class EvidenceDesk {
       idea: idea.code, type: 'simulated_interview', source: 'persona', url: '', title: t('rt.interview.title', { persona: t(`rt.persona.${persona}`) }),
       metric: null, metric_name: '', excerpt, collected_by: who.name, weight: 0, label: HYPOTHESIS, role: persona,
     });
-    if (typeof out === 'string') return this.refusal(out);
+    if (typeof out === 'string') return this.refusal('intervista_simulata', out);
     this.stats.interviews++;
     return t('rt.act.interviewed', { text: excerpt });
   }
@@ -429,7 +432,7 @@ export class EvidenceDesk {
         required: ['query'],
       }, (args, ctx) => {
         if (budget) {
-          if (budget.left <= 0) return this.refusal('decision_cap');
+          if (budget.left <= 0) return this.refusal(SIGNAL_TOOL[source], 'decision_cap');
           budget.left--;
         }
         return this.search(who, source, args ?? {}, ctx);

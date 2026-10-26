@@ -63,6 +63,7 @@
     "nothingCarried": "niente",
     "noTools": "nessuno",
     "itemLine": "{amount} {name} ({code})",
+    "itemLineUrl": "{amount} {name} ({code}; fonte ufficiale: {url})",
     "toolLine": "{name} ({code}) usura {durability}/{max}",
     "recalled": "TI TORNA IN MENTE:\n{memory}",
     "age": "ANZIANITÀ: sei in azienda da {days} giorni, sei {stage}.",
@@ -85,6 +86,11 @@
     "ideaMissing": "; mancano: {fields}",
     "agoMinutes": "{n} minuti",
     "agoHours": "{n} ore",
+    "agoDays": "{n} giorni",
+    "ideaWaiting": "; candidata al comitato: in attesa di seduta da {ago}",
+    "ideaWaitingSince": "; candidata al comitato: in attesa di seduta",
+    "ideaNextSession": "; prossima seduta prevista il giorno {day} alle {clock} (policy cadenza_sedute_comitato_ore)",
+    "ideaMetSince": "; soddisfa i requisiti di candidatura da {ago}; non è candidata al comitato",
     "pending": "PAROLE SENZA RISPOSTA:\n{lines}",
     "pendingLine": "- {ago} fa hai detto a {name}: «{text}»; da allora non hai sentito parlare {name}.",
     "ideaRecused": "; ne sei tra gli autori: per policy (astensione_conflitto_interessi) non voti e non presiedi la sessione del comitato su di essa",
@@ -126,6 +132,7 @@
       "deferred": "il comitato investimenti ha rimandato l'idea «{title}»",
       "pitch": "l'idea «{title}» è stata candidata al comitato",
       "waiting": "altre idee aspettano il comitato",
+      "session": "è l'ora della seduta del comitato e ci sono idee candidate in attesa",
       "evidence": "nuova prova sull'idea «{title}»: {type}{label} da {source}{verdict}, raccolta da {by}"
     }
   },
@@ -297,7 +304,7 @@
       "sources": "pagine web citate dall'idea: elenco di {title, url}"
     },
     "web_search": "Cerca sul web: restituisce titoli, indirizzi e brevi estratti di pagine esterne (contenuto esterno, non verificato).",
-    "web_fetch": "Leggi il testo di una pagina web dal suo indirizzo http/https (contenuto esterno, non verificato).",
+    "web_fetch": "Leggi il testo di una pagina web dal suo indirizzo http/https: un indirizzo tra i risultati delle tue ricerche web, o la fonte ufficiale di un segnale che porti con te o che hai letto in un'idea (contenuto esterno, non verificato).",
     "signal": {
       "hackernews": "Cerca storie su Hacker News (indicizza contenuti in inglese): prima quelle che contengono tutte le parole cercate; se nessuna le contiene tutte, quelle che ne contengono alcune, marcate match \"partial\". Restituisce titolo, indirizzo, punti, commenti, data (contenuto esterno, non verificato).",
       "github": "Cerca progetti su GitHub per stelle (nomi e descrizioni sono per lo più in inglese): nome, indirizzo, stelle, issue aperte, ultimo aggiornamento, descrizione (contenuto esterno, non verificato).",
@@ -945,14 +952,16 @@
     "notMet": "non soddisfatto",
     "outOfPolicy": "Richiesta fuori policy"
   },
-  "webFaculty": "Puoi cercare sul web (web_search, web_fetch).",
+  "webFaculty": "Puoi cercare sul web (web_search) e leggere pagine web (web_fetch).",
   "researchReason": {
     "empty": "manca cosa cercare",
-    "not_from_search": "la pagina non è tra i risultati delle tue ricerche web",
+    "not_from_search": "la pagina non è tra i risultati delle tue ricerche web né è la fonte ufficiale di un segnale che porti con te o che hai letto in un'idea",
     "fetch_off": "la lettura di pagine web è disattivata",
     "excluded_domain": "il dominio è escluso dalle policy",
     "total_quota": "l'hub ha esaurito le ricerche web di oggi",
     "person_quota": "hai esaurito le tue ricerche web di oggi",
+    "read_total_quota": "l'hub ha esaurito le letture di pagine web di oggi",
+    "read_person_quota": "hai esaurito le tue letture di pagine web di oggi",
     "unavailable": "il servizio di ricerca non risponde",
     "aborted": "ricerca interrotta",
     "decision_cap": "in questa riflessione hai già usato tutte le ricerche web a disposizione"
