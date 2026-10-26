@@ -507,9 +507,8 @@ export async function decide(host: DecideHost, e: RtEntity, why: string, stop?: 
   for await (const ev of handle) if (ev.type === 'thinking_delta') thought += (ev.data as { text: string }).text;
   const res = await handle.result;
   host.ranModel(e, res);
-  // With thinking display `omitted` (config) the visible thought is the person's own Italian plan reason.
-  const shown = thought.trim() || committed?.reason.trim() || '';
-  if (shown) host.reasoned(e, shown.slice(0, textMax));
+  // With thinking display `omitted` (config) there is no summary: the plan reason is the visible thought (commitPlan).
+  if (thought.trim()) host.reasoned(e, thought.trim().slice(0, textMax));
   if (committed) return committed;
   return { error: res.status === 'completed' ? 'no plan committed' : `${res.status}${res.reason ? `: ${res.reason}` : ''}` };
 }

@@ -361,8 +361,8 @@ export class EvidenceDesk {
     if (!url) return this.refusal('bad_url');
     const seen = this.seen.get(who.id)?.get(url);
     if (!seen || seen.expires <= Date.now()) return this.refusal('not_from_search');
-    // What the source said wins over what the person writes; the person's words fill only what is missing.
-    const metric = seen.metric ?? (Number.isFinite(Number(args.metrica)) && args.metrica !== undefined && args.metrica !== '' ? Number(args.metrica) : null);
+    // The metric is the source's only (a number the person writes is never recorded); words fill only the excerpt.
+    const metric = seen.metric;
     const out = this.host.attach(who, {
       idea, type: seen.type, source: seen.source, url, title: seen.title || clean(args.titolo, this.cfg.titleMaxChars) || url,
       metric, metric_name: seen.metric_name, excerpt: clean(args.estratto, this.cfg.excerptMaxChars) || seen.excerpt, collected_by: who.name,

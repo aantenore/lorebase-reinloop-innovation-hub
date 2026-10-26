@@ -89,8 +89,8 @@
     "pendingLine": "- {ago} fa hai detto a {name}: «{text}»; da allora non hai sentito parlare {name}.",
     "ideaRecused": "; ne sei tra gli autori: per policy (astensione_conflitto_interessi) non voti e non presiedi la sessione del comitato su di essa",
     "ideaNoQuorum": "; membri del comitato che possono decidere su di essa: {seated}, quorum {quorum}",
-    "ideaEvidence": "; prove reali {real}/{minReal}, fonti distinte {sources}/{minSources}, validazioni umane {human}/{minHuman}, ipotesi {hypotheses}",
-    "ideaEvidenceOk": "; prove reali {real}, fonti distinte {sources}, validazioni umane {human}, ipotesi {hypotheses}: requisiti di candidatura soddisfatti"
+    "ideaEvidence": "; prove reali {real}/{minReal}, fonti distinte {sources}/{minSources}, ipotesi {hypotheses} (peso 0); in alternativa per policy: validazioni umane {human}/{minHuman}",
+    "ideaEvidenceOk": "; prove reali {real} (policy: {minReal}), fonti distinte {sources} (policy: {minSources}), ipotesi {hypotheses}, validazioni umane {human} (facoltative): requisiti di candidatura soddisfatti per policy, l'idea può essere candidata al comitato"
   },
   "why": {
     "start": "arrivi in ufficio e ti guardi intorno per la prima volta",
@@ -300,7 +300,7 @@
       "type": "segnale_pubblico (discussioni, progetti, domande, paper) o fonte_web (pagina trovata con web_search)",
       "url": "indirizzo del risultato, esattamente come è tornato dalla ricerca",
       "title": "titolo del risultato",
-      "metric": "metrica della fonte (punti, stelle, voti), se c'è",
+      "metric": "metrica che vedi nel risultato (punti, stelle, voti): si registra quella restituita dalla fonte",
       "excerpt": "estratto breve: cosa mostra il risultato",
       "interview": "Intervista simulata: un modello risponde alle tue domande come un cliente, un DPO o un utente ipotetico dell'idea. Le risposte sono ipotesi generate, non prove: entrano nell'idea con peso 0 ed etichetta «ipotesi».",
       "persona": "chi rispondi: cliente, dpo o utente",
@@ -951,7 +951,7 @@
     "human": "validazioni umane {have} di {need} (in alternativa)",
     "score": "punteggio pesato {have} di {need}",
     "refused": "requisiti di candidatura non soddisfatti: {missing}",
-    "ok": "requisiti di candidatura soddisfatti"
+    "ok": "requisiti di candidatura soddisfatti per policy"
   },
   "validation": {
     "title": "Validazione di un {role}: {verdict}"

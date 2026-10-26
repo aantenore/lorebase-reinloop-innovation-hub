@@ -89,8 +89,8 @@
     "pendingLine": "- {ago} ago you told {name}: \"{text}\"; you have not heard {name} speak since.",
     "ideaRecused": "; you are among its authors: by policy (astensione_conflitto_interessi) you neither vote nor chair the committee session on it",
     "ideaNoQuorum": "; committee members who may decide on it: {seated}, quorum {quorum}",
-    "ideaEvidence": "; real evidence {real}/{minReal}, distinct sources {sources}/{minSources}, human validations {human}/{minHuman}, hypotheses {hypotheses}",
-    "ideaEvidenceOk": "; real evidence {real}, distinct sources {sources}, human validations {human}, hypotheses {hypotheses}: candidacy requirements met"
+    "ideaEvidence": "; real evidence {real}/{minReal}, distinct sources {sources}/{minSources}, hypotheses {hypotheses} (weight 0); alternatively per policy: human validations {human}/{minHuman}",
+    "ideaEvidenceOk": "; real evidence {real} (policy: {minReal}), distinct sources {sources} (policy: {minSources}), hypotheses {hypotheses}, human validations {human} (optional): candidacy requirements met per policy, the idea can be submitted to the committee"
   },
   "why": {
     "start": "you look around for the first time",
@@ -300,7 +300,7 @@
       "type": "segnale_pubblico (discussions, projects, questions, papers) or fonte_web (a page found with web_search)",
       "url": "URL of the result, exactly as the search returned it",
       "title": "title of the result",
-      "metric": "the source's metric (points, stars, votes), if any",
+      "metric": "metric you see in the result (points, stars, votes): the one the source returned is recorded",
       "excerpt": "short excerpt: what the result shows",
       "interview": "Simulated interview: a model answers your questions as a hypothetical customer, DPO or user of the idea. Answers are generated hypotheses, not evidence: they enter the idea with weight 0 and the label «ipotesi».",
       "persona": "who answers: cliente, dpo or utente",
@@ -951,7 +951,7 @@
     "human": "human validations {have} of {need} (alternative)",
     "score": "weighted score {have} of {need}",
     "refused": "candidacy requirements not met: {missing}",
-    "ok": "candidacy requirements met"
+    "ok": "candidacy requirements met per policy"
   },
   "validation": {
     "title": "Validation by a {role}: {verdict}"

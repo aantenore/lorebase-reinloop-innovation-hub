@@ -110,6 +110,8 @@ export class Game {
     failureReasons: {} as Record<string, number>, thoughtLangs: {} as Record<string, number>, recusals: 0, scoreMatches: 0,
     /** Submissions refused by the candidacy requirements; human validations received. */
     gateRefusals: 0, validations: 0,
+    /** Plan reasons (the visible thoughts) by guessed language. */
+    reasonLangs: {} as Record<string, number>,
   };
   /** Set while a reply is spoken, so a reply never triggers another reply. */
   private speakingReply = false;
@@ -1199,8 +1201,12 @@ export class Game {
         this.setPlan(e, d.steps, d.reason, 'entity');
         this.live(e, 'planned', this.t('rt.memory.planned', { reason: d.reason }));
         if (d.reason) {
-          this.broadcastPrivileged({ type: 'say', from: e.id, to: 'all', text: d.reason, kind: 'thought' });
-          this.recent(this.thoughts, e.id, { at: this.now(), text: d.reason });
+          // The plan reason is the visible thought (thinking summaries are omitted); its language is recorded too.
+          const tl = this.game.decisions.thoughtLanguage;
+          const lang = tl ? textLanguage(d.reason, tl.markers, tl.minHits) : undefined;
+          if (lang) this.stats.reasonLangs[lang] = (this.stats.reasonLangs[lang] ?? 0) + 1;
+          this.broadcastPrivileged({ type: 'say', from: e.id, to: 'all', text: d.reason, kind: 'thought', ...(lang ? { lang } : {}) });
+          this.recent(this.thoughts, e.id, { at: this.now(), text: d.reason, ...(lang ? { lang } : {}) });
           this.mnemo.converse({ from: e.name, to: e.name, text: d.reason, kind: 'thought', at: this.now() });
         }
       },
