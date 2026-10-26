@@ -7,6 +7,7 @@ import { drawPortrait } from '../render/portrait';
 import { store } from '../state/store';
 import { bus } from './bus';
 import { fmtClock, h, uiRoot, webLink } from './dom';
+import { evidenceBadge, evidenceSection, evidenceTypeLabel } from './evidence';
 import { panels } from './panels';
 
 const PANEL = 'ideas';
@@ -138,6 +139,8 @@ export function mountIdeaBoard(): void {
 
   let selected: string | null = null;
   const flashed = new Map<string, number>();
+  /** Ideas with fresh evidence (pulse) and the code of the newest evidence item. */
+  const evFlashed = new Map<string, { until: number; code: string }>();
 
   const load = async () => {
     try {
@@ -152,9 +155,10 @@ export function mountIdeaBoard(): void {
   const card = (i: Idea) => {
     const o = overall(i.scores);
     const flash = (flashed.get(i.code) ?? 0) > Date.now();
+    const evFlash = (evFlashed.get(i.code)?.until ?? 0) > Date.now();
     return h(
       'div',
-      { class: `idea-card${selected === i.code ? ' sel' : ''}${flash ? ' moved' : ''}`, 'data-code': i.code, onclick: () => ((selected = selected === i.code ? null : i.code), render()) },
+      { class: `idea-card${selected === i.code ? ' sel' : ''}${flash ? ' moved' : ''}${evFlash ? ' ev-pulse' : ''}`, 'data-code': i.code, onclick: () => ((selected = selected === i.code ? null : i.code), render()) },
       h('div', { class: 'idea-card-title' }, i.title),
       h(
         'div',
@@ -169,6 +173,7 @@ export function mountIdeaBoard(): void {
         o !== null ? h('span', { class: `idea-score ${o >= 3.8 ? 'hi' : o >= 3.2 ? 'mid' : 'lo'}`, title: t('ideas.scores') }, `★ ${o.toFixed(1)}`) : null,
         i.scores ? h('span', { class: `idea-score risk ${i.scores.risk >= 3.2 ? 'lo' : 'hi'}`, title: t('score.risk') }, `⚠ ${i.scores.risk.toFixed(1)}`) : null,
         i.reviews.length ? h('span', { class: 'idea-score', title: t('ideas.reviews') }, `✎ ${i.reviews.length}`) : null,
+        evidenceBadge(i),
         h('span', { class: 'muted idea-code' }, i.code),
       ),
     );
@@ -202,6 +207,7 @@ export function mountIdeaBoard(): void {
       field('ideas.feasibility', i.feasibility),
       field('ideas.risks', i.risks),
       ...sourcesBlock(i),
+      evidenceSection(i, (evFlashed.get(i.code)?.until ?? 0) > Date.now() ? evFlashed.get(i.code)!.code : null),
       h('div', { class: 'section-title' }, t('ideas.scores')),
       i.scores ? radar(i.scores) : h('div', { class: 'muted' }, t('ideas.noScores')),
       h('div', { class: 'section-title' }, `${t('ideas.reviews')} (${i.reviews.length})`),
@@ -253,6 +259,12 @@ export function mountIdeaBoard(): void {
     }
     if (action === 'created') bus.emit('toast', { text: `💡 ${t('idea.new', { title: idea.title })}` });
     else if (prevStage && prevStage !== idea.stage && idea.stage !== 'approved' && idea.stage !== 'killed') bus.emit('toast', { text: t('idea.moved', { title: idea.title, to: stageLabel(idea.stage) }) });
+    render();
+  });
+  store.on('evidence', ({ ideaCode, evidence, idea }) => {
+    evFlashed.set(ideaCode, { until: Date.now() + config.hub.evidenceFlashMs, code: evidence.code });
+    setTimeout(() => render(), config.hub.evidenceFlashMs + 50);
+    bus.emit('toast', { text: t('ev.new', { type: evidenceTypeLabel(evidence.type), title: idea?.title ?? evidence.title ?? ideaCode }) });
     render();
   });
   bus.on('openIdea', ({ code }) => {

@@ -41,6 +41,7 @@ import type {
   SkillMsg,
   Company,
   CommitteeMsg,
+  EvidenceMsg,
   Idea,
   IdeaMsg,
 } from '../net/protocol';
@@ -157,6 +158,8 @@ export interface StoreEvents {
   /** Innovation hub: an idea changed (`prevStage` is null for new ideas). */
   idea: IdeaMsg & { prevStage: Idea['stage'] | null };
   ideas: void;
+  /** Innovation hub: a piece of evidence was added to an idea (idea is the updated copy, if known). */
+  evidence: EvidenceMsg & { idea: Idea | undefined };
   committee: CommitteeMsg;
   company: Company;
   any: void;
@@ -583,6 +586,15 @@ export class Store {
         const prev = this.ideas.get(msg.idea.code);
         this.ideas.set(msg.idea.code, msg.idea);
         this.emit('idea', { ...msg, prevStage: prev?.stage ?? null });
+        break;
+      }
+      case 'evidence': {
+        const idea = this.ideas.get(msg.ideaCode);
+        if (idea) {
+          const list = (idea.evidence ?? []).filter((e) => e.code !== msg.evidence.code);
+          this.ideas.set(idea.code, { ...idea, evidence: [...list, msg.evidence] });
+        }
+        this.emit('evidence', { ...msg, idea: this.ideas.get(msg.ideaCode) });
         break;
       }
       case 'committee':

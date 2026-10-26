@@ -13,6 +13,7 @@ import { mountJoin } from './join';
 import { mountLaws } from './laws';
 import { mountMinimap } from './minimap';
 import { mountSociety } from './society';
+import { mountValidatePanel } from './validate';
 import './styles.css';
 
 /** Mounts every DOM overlay component over the canvas. */
@@ -26,6 +27,7 @@ export function mountOverlay(): void {
   mountEconomy();
   mountSociety();
   mountIdeaBoard();
+  mountValidatePanel();
   mountDiscoveryBanner();
   mountDialog();
   mountGodMode();

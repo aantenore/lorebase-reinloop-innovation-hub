@@ -59,6 +59,12 @@ export const config = {
     committeeBannerMs: 7000,
     /** How long a moved card stays highlighted (ms). */
     cardFlashMs: 2600,
+    /** Used when the world has no `speech_radius` rule (tiles). */
+    speechRadiusFallback: 4,
+    /** Max length of a validation comment (server limit). */
+    validationCommentMax: 280,
+    /** Duration of the pulse on an idea card/drawer after new evidence (ms). */
+    evidenceFlashMs: 2600,
   },
   /** Lorebase web UI (link target from god mode). */
   lorebaseUi: {

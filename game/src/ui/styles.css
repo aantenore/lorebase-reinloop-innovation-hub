@@ -688,3 +688,29 @@ path.soc-op:hover { opacity: 1; stroke-width: 5; }
 .career-senior { background: var(--bronze); }
 .career-principal { background: var(--silver); }
 .career-fellow { background: var(--gold); }
+
+/* ---- idea evidence + validation */
+.ev-section { margin-top: 6px; }
+.ev-gate { background: rgba(23,17,26,0.4); border-left: 3px solid var(--gold); padding: 4px 6px; margin-bottom: 6px; }
+.ev-gate.pass { border-left-color: var(--green); }
+.ev-gate-head { font-family: var(--pixel); font-size: 7px; line-height: 11px; margin-bottom: 4px; }
+.ev-bar { margin-bottom: 3px; }
+.ev-bar-label { font-size: 16px; line-height: 15px; }
+.ev-track { height: 8px; background: #1c131e; border: 2px solid var(--ink); position: relative; }
+.ev-fill { height: 100%; background: var(--gold); }
+.ev-bar.ok .ev-fill, .ev-gate.pass .ev-fill { background: var(--green); }
+.ev-group { margin-bottom: 6px; }
+.ev-group-title { font-family: var(--pixel); font-size: 7px; line-height: 11px; color: var(--paper-dim); margin-bottom: 3px; }
+.ev-item { background: rgba(23,17,26,0.4); border-left: 3px solid var(--blue); padding: 4px 6px; margin-bottom: 4px; }
+.ev-item.ev-hyp { border-left-color: #8a7a80; border-left-style: dashed; opacity: 0.75; }
+.ev-item.ev-new { animation: cardIn 0.5s steps(4) 4; }
+.ev-head { display: flex; gap: 5px; align-items: baseline; flex-wrap: wrap; }
+.ev-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ev-badge { font-family: var(--pixel); font-size: 7px; padding: 2px 4px 1px; border: 2px solid var(--ink); background: var(--gold); color: var(--ink); }
+.ev-badge.zero { background: #d8d0c8; }
+.ev-badge.hyp { background: #c9a0e8; }
+.ev-meta { font-size: 15px; line-height: 14px; }
+.ev-excerpt { font-size: 16px; line-height: 15px; margin-top: 2px; }
+.idea-card.ev-pulse { animation: cardIn 0.5s steps(4) 4; }
+.validate { right: 10px; bottom: 10px; width: 300px; z-index: 4; }
+.val-comment { resize: vertical; font-size: 18px; }

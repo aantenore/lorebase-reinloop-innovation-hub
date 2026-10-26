@@ -371,9 +371,51 @@ export interface Idea {
   history: IdeaHistoryEntry[];
   /** Web sources attached to the idea. */
   sources?: WebSource[];
+  /** Evidence collected for the idea (absent on older servers). */
+  evidence?: Evidence[];
+  /** Evidence gate computed by the server (absent on older servers). */
+  gate?: EvidenceGate;
 }
 
-export type IdeaAction = 'created' | 'updated' | 'reviewed' | 'submitted' | 'approved' | 'killed' | 'stage';
+export type EvidenceType = 'public_signal' | 'human_validation' | 'simulated_interview' | 'web_source';
+export type EvidenceSource = 'hackernews' | 'github' | 'stackoverflow' | 'arxiv' | 'web' | 'player' | 'persona';
+
+export interface Evidence {
+  code: string;
+  idea: string;
+  type: EvidenceType;
+  source: EvidenceSource;
+  url: string;
+  title: string;
+  metric: number | null;
+  metric_name: string;
+  excerpt: string;
+  collected_by: string;
+  collected_at: GameTime;
+  weight: number;
+  /** 'ipotesi' on simulated interviews. */
+  label: string;
+  role?: string;
+  verdict?: string;
+}
+
+export interface EvidenceGate {
+  pass: boolean;
+  real: number;
+  sources: number;
+  human: number;
+  hypotheses: number;
+  missing: { code: 'real' | 'sources' | 'human' | 'score'; have: number; need: number }[];
+  need: { minReal: number; minSources: number; minHuman: number; minScore: number };
+}
+
+/** POST /api/ideas/:code/validation */
+export type ValidationRole = 'cliente' | 'dpo' | 'utente';
+export type ValidationVerdict = 'positivo' | 'neutro' | 'negativo';
+export interface ValidationRequest { player: string; role: ValidationRole; verdict: ValidationVerdict; comment: string }
+export interface ValidationResponse { ok: boolean; evidence?: Evidence; error?: string }
+
+export type IdeaAction = 'created' | 'updated' | 'reviewed' | 'submitted' | 'approved' | 'killed' | 'stage' | 'evidence';
 export type CommitteeDecision = 'approve' | 'kill' | 'defer';
 
 export interface CommitteeVote {
@@ -522,11 +564,13 @@ export interface ResearchMsg {
 }
 
 export interface IdeaMsg { type: 'idea'; idea: Idea; action: IdeaAction }
+export interface EvidenceMsg { type: 'evidence'; ideaCode: string; evidence: Evidence }
 export interface CommitteeMsg { type: 'committee'; groupId: string; ideaCode: string; decision: CommitteeDecision; votes?: CommitteeVote[]; summary: string }
 export interface CompanyMsg { type: 'company'; quarter: Quarter; slotsLeft: number; themes: string[]; freeze: boolean }
 
 export type ServerMsg =
   | IdeaMsg
+  | EvidenceMsg
   | CommitteeMsg
   | CompanyMsg
   | HelloMsg
