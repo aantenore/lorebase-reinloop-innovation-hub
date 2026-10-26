@@ -328,6 +328,15 @@ export class RtWorld {
     return Math.floor(this.seasonTurn / Math.max(1, Math.round(this.r('winter_every_ticks')))) + 1;
   }
 
+  /** Game clock (minutes) at which the current quarter ends: the first seasonal turn of the next quarter. */
+  quarterEndsAt(): number {
+    const year = Math.max(1, Math.round(this.r('winter_every_ticks')));
+    const turn = this.seasonTurn;
+    const start = Math.floor(turn / year) * year;
+    const end = start + Math.ceil((this.quarter() * year) / 4);
+    return this.epoch + Math.max(turn + 1, end) * Math.max(1, this.r('season_turn_minutes'));
+  }
+
   /** The freeze (budget crunch) is the winter of the year. */
   isFreeze(): boolean {
     return this.season() === 'winter';

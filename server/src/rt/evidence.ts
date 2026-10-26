@@ -206,7 +206,7 @@ export interface EvidenceHost {
   /** The model that answers simulated interviews (a scripted mock offline). */
   interviewModel(): string | ModelRef;
   /** A model run ended (cost booked to the person who asked). */
-  ranModel(who: { id: string; name: string; model: string; tier: string }, res: { status: string; usage?: unknown; costUsd?: number }): void;
+  ranModel(who: { id: string; name: string; model: string; tier: string; tool?: string }, res: { status: string; usage?: unknown; costUsd?: number }): void;
 }
 
 /** Italian tool name of each source. */
@@ -399,7 +399,7 @@ export class EvidenceDesk {
       this.stats.errors++;
       return this.refusal('unavailable');
     }
-    this.host.ranModel({ id: `${who.id}:interview`, name: `${who.name}/intervista_simulata`, model: typeof model === 'string' ? model : model.model, tier: this.cfg.interview.tier }, res);
+    this.host.ranModel({ id: `${who.id}:interview`, name: `${who.name}/intervista_simulata`, model: typeof model === 'string' ? model : model.model, tier: this.cfg.interview.tier, tool: 'intervista_simulata' }, res);
     const answer = clean(res.output, this.cfg.interviewMaxChars);
     if (res.status !== 'completed' || !answer) {
       this.stats.errors++;

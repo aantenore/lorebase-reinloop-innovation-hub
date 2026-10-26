@@ -31,7 +31,7 @@ import { type Plan, type PlanStep, tileOf } from './plan.ts';
 import { type GroupView, proclamation, textLanguage } from './prompt.ts';
 import { reflexEat, reflexSteps } from './reflex.ts';
 import { canAddAgentMind, childSpec } from './births.ts';
-import { missingRtRules, RT_RULE_KEYS, type Resource, type RtEntity, type RtTile, RtWorld, type WorldEvent } from './world.ts';
+import { DAY_MINUTES, missingRtRules, RT_RULE_KEYS, type Resource, type RtEntity, type RtTile, RtWorld, type WorldEvent } from './world.ts';
 import { askError, giveAsked, offerError, OfferBook, offerMinutes, type Offer, swap } from './barter.ts';
 import { bagOf } from './plan.ts';
 import { type Family, type Opinion, Society, Testimonies } from './society.ts';
@@ -107,7 +107,7 @@ export class Game {
   private readonly stats = {
     decisions: 0, groupDecisions: 0, replies: 0, failures: 0, thoughts: 0,
     /** Failed runs by kind and reason; thoughts by guessed language; committee seats left for a conflict; same five scores as another review. */
-    failureReasons: {} as Record<string, number>, thoughtLangs: {} as Record<string, number>, recusals: 0, scoreMatches: 0,
+    failureReasons: {} as Record<string, number>, thoughtLangs: {} as Record<string, number>, recusals: 0, alternates: 0, scoreMatches: 0,
     /** Submissions refused by the candidacy requirements; human validations received. */
     gateRefusals: 0, validations: 0,
     /** Plan reasons (the visible thoughts) by guessed language. */
@@ -166,7 +166,7 @@ export class Game {
       researched: (who, ev) => this.onResearch(who, ev),
       found: (who, rows) => this.evidence?.remember(who.id, rows.map((r) => ({ url: r.url, type: 'web_source', source: 'web', title: r.title, metric: null, metric_name: '', excerpt: r.snippet.slice(0, game.evidence.excerptMaxChars) }))),
       // The hosted search's model call, booked to the person who searched (it counts toward the budget).
-      searchUsage: (who, model, usage, costUsd) => this.usage.track({ id: `${who.id}:web`, name: `${who.name}/web_search`, model, tier: 'research' }, { status: 'completed', usage, costUsd }),
+      searchUsage: (who, model, usage, costUsd) => this.usage.track({ id: `${who.id}:web`, name: `${who.name}/web_search`, model, tier: 'research', tool: 'web_search' }, { status: 'completed', usage, costUsd }),
     }, this.t, cfg.models);
     this.evidence = game.evidence.enabled ? new EvidenceDesk(game.evidence, {
       policy: (key) => this.policyNum(key),
@@ -971,7 +971,7 @@ export class Game {
       }
     }
     this.flushTiles(now);
-    const turn = this.company.track(this.world.year(), this.world.quarter());
+    const turn = this.company.track(this.world.year(), this.world.quarter(), this.policyOn(this.game.ideas.policies.slotsExpire) ? undefined : this.world.r('quarter_idea_slots'));
     if (turn) this.onQuarter(turn);
     this.reflexes(now);
     this.tickSociety(now);
@@ -1403,7 +1403,21 @@ export class Game {
   }
 
   companyDto() {
-    return { name: this.game.company.name, quarter: quarterLabel(this.world.quarter()), slotsLeft: this.slotsLeft(), themes: this.company.themes(this.laws), freeze: this.world.isFreeze() };
+    return {
+      name: this.game.company.name, quarter: quarterLabel(this.world.quarter()), slotsLeft: this.slotsLeft(), themes: this.company.themes(this.laws), freeze: this.world.isFreeze(),
+      slotsExpire: this.policyOn(this.game.ideas.policies.slotsExpire), quarterEndsDay: Math.floor(this.world.quarterEndsAt() / DAY_MINUTES) + 1,
+    };
+  }
+
+  /** The approval slots of the quarter as a fact: left, total and when they expire (policy slot_scadono_a_fine_trimestre). */
+  private slotsText(): string {
+    const t = this.t;
+    const end = this.world.quarterEndsAt();
+    const m = Math.floor(end % DAY_MINUTES);
+    const at = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+    return t(this.policyOn(this.game.ideas.policies.slotsExpire) ? 'rt.observation.slotsExpire' : 'rt.observation.slotsCarry', {
+      slots: this.slotsLeft(), total: this.company.slotsTotal(this.world.r('quarter_idea_slots')), day: Math.floor(end / DAY_MINUTES) + 1, clock: at,
+    });
   }
 
   private careerOf(e: Pick<RtEntity, 'id' | 'kind'>): string {
@@ -1443,7 +1457,7 @@ export class Game {
   private companyLine(e: RtEntity): string {
     const t = this.t;
     return t('rt.observation.company', {
-      name: this.game.company.name, quarter: quarterLabel(this.world.quarter()), slots: this.slotsLeft(), total: this.world.r('quarter_idea_slots'),
+      name: this.game.company.name, quarter: quarterLabel(this.world.quarter()), slots: this.slotsText(),
       freeze: t(this.world.isFreeze() ? 'rt.observation.freezeOn' : 'rt.observation.freezeOff'), career: t(`rt.career.${this.careerOf(e)}`),
     });
   }
@@ -1481,8 +1495,12 @@ export class Game {
     const g = this.gateOf(i);
     if (!g || !this.evidence) return '';
     const r = this.evidence.requirements();
-    return this.t(g.pass ? 'rt.observation.ideaEvidenceOk' : 'rt.observation.ideaEvidence', {
-      real: g.real, minReal: r.minReal, sources: g.sources, minSources: r.minSources, human: g.human, minHuman: r.minHuman, hypotheses: g.hypotheses,
+    // Only what the policy requires and whether it is met; human validation appears as the alternative path only.
+    const byEvidence = g.real >= r.minReal && g.sources >= r.minSources;
+    const key = !g.pass ? 'ideaEvidence' : byEvidence ? 'ideaEvidenceOk' : 'ideaEvidenceOkHuman';
+    return this.t(`rt.observation.${key}`, {
+      real: g.real, minReal: r.minReal, sources: g.sources, minSources: r.minSources, human: g.human, minHuman: r.minHuman,
+      alt: r.minHuman > 0 ? this.t('rt.observation.ideaEvidenceAlt', { minHuman: r.minHuman }) : '',
     });
   }
 
@@ -1512,6 +1530,7 @@ export class Game {
     return {
       propose: async (e, input) => {
         if (!this.game.ideas.enabled) return fail('disabled');
+        if (this.committeeNotAuthor(e)) return fail('committee_member');
         const signals = this.takeSignals(e, input.signals);
         const out = await this.ideas.create(e.name, input, { at: this.now(), quarter: quarterLabel(this.world.quarter()), signals, maxOpen: this.world.r('max_open_ideas_per_person') });
         if (typeof out === 'string') {
@@ -1523,12 +1542,14 @@ export class Game {
       enrich: (e, input) => {
         const code = String(input.code ?? '');
         const signals = this.takeSignals(e, input.signals);
-        const out = this.ideas.enrich(code, e.name, input, { at: this.now(), signals });
+        const asAuthor = !this.committeeNotAuthor(e);
+        const out = this.ideas.enrich(code, e.name, input, { at: this.now(), signals, asAuthor });
         if (typeof out === 'string') {
           for (const c of signals) e.inventory[c] = (e.inventory[c] ?? 0) + 1;
           return fail(out);
         }
-        return { ok: true, text: t('rt.act.ideaEnriched', { code: out.code, stage: t(`rt.ideaStage.${out.stage}`) }) };
+        const contributed = out.history.at(-1)?.action === 'contributed' || (out.history.at(-1)?.action === 'stage' && out.history.at(-2)?.action === 'contributed');
+        return { ok: true, text: t(contributed ? 'rt.act.ideaContributed' : 'rt.act.ideaEnriched', { code: out.code, stage: t(`rt.ideaStage.${out.stage}`) }) };
       },
       review: (e, input) => {
         const scores = scoresFrom(input, aliases);
@@ -1597,7 +1618,14 @@ export class Game {
   /** The missing requirements as a factual sentence. */
   private gateText(g: GateStatus): string {
     const t = this.t;
-    return g.missing.map((m) => t(`rt.gate.${m.code}`, { have: m.have, need: m.need })).join('; ');
+    const alt = g.missing.find((m) => m.code === 'human');
+    const lines = g.missing.filter((m) => m !== alt).map((m) => t(`rt.gate.${m.code}`, { have: m.have, need: m.need }));
+    return [...lines, ...(alt ? [t('rt.gate.alternative', { need: alt.need })] : [])].join('; ');
+  }
+
+  /** Policy comitato_non_coautore: a member of the investment committee does not become an author of ideas. */
+  private committeeNotAuthor(e: Pick<RtEntity, 'id'>): boolean {
+    return !!this.committeeGroup()?.members.includes(e.id) && this.policyOn(this.game.ideas.policies.committeeNotAuthor);
   }
 
   /** Whether a policy (Lorebase `Rule`) is on: value 1 or more. A missing policy is off. */
@@ -1741,23 +1769,32 @@ export class Game {
   /**
    * Who sits in the committee's session on an idea. Policy astensione_conflitto_interessi: its champion and
    * authors neither vote nor chair; when the chair is one of them, the eligible member with the highest career
-   * step chairs (then the higher vote weight, rule esteem_vote_weight). Chair first; the quorum counts `seated`.
+   * step chairs (then the higher vote weight, rule esteem_vote_weight). Policy supplenti_comitato_per_anzianita: below
+   * quorum, people of the hub with no conflict on the idea sit as alternates by the same order, up to the quorum.
+   * Chair first; the quorum counts `seated` (alternates included).
    */
-  private committeeSeats(g: Group, idea: Idea): { seated: RtEntity[]; recused: RtEntity[] } {
+  private committeeSeats(g: Group, idea: Idea): { seated: RtEntity[]; recused: RtEntity[]; alternates: RtEntity[] } {
     const w = this.world;
     const living = g.members.map((id) => w.entities.get(id)).filter((m): m is RtEntity => !!m && m.alive);
     const lead = living.find((m) => m.id === g.leader);
     const ordered = lead ? [lead, ...living.filter((m) => m !== lead)] : living;
-    if (!this.policyOn(this.game.ideas.policies.conflictOfInterest)) return { seated: ordered, recused: [] };
-    const names = conflicted(idea);
+    const conflict = this.policyOn(this.game.ideas.policies.conflictOfInterest);
+    const names = conflict ? conflicted(idea) : [];
     const recused = ordered.filter((m) => names.includes(m.name));
-    const seated = ordered.filter((m) => !names.includes(m.name));
+    let seated = ordered.filter((m) => !names.includes(m.name));
+    const step = (m: RtEntity) => this.game.company.careers.findIndex((c) => c.code === this.careerOf(m));
+    const senior = (a: RtEntity, b: RtEntity) => step(b) - step(a) || this.society.voteWeight(b.id) - this.society.voteWeight(a.id);
     if (lead && recused.includes(lead) && seated.length) {
-      const step = (m: RtEntity) => this.game.company.careers.findIndex((c) => c.code === this.careerOf(m));
-      const chair = [...seated].sort((a, b) => step(b) - step(a) || this.society.voteWeight(b.id) - this.society.voteWeight(a.id))[0]!;
-      return { seated: [chair, ...seated.filter((m) => m !== chair)], recused };
+      const chair = [...seated].sort(senior)[0]!;
+      seated = [chair, ...seated.filter((m) => m !== chair)];
     }
-    return { seated, recused };
+    const quorum = w.r('committee_quorum');
+    let alternates: RtEntity[] = [];
+    if (seated.length < quorum && this.policyOn(this.game.ideas.policies.committeeAlternates)) {
+      alternates = w.living().filter((m) => m.kind === 'agent' && !g.members.includes(m.id) && !names.includes(m.name)).sort(senior).slice(0, quorum - seated.length);
+      seated = [...seated, ...alternates];
+    }
+    return { seated, recused, alternates };
   }
 
   private committeeGroup(): Group | undefined {
@@ -1797,19 +1834,24 @@ export class Game {
     try {
       for (const idea of this.ideas.pitches().slice(0, this.game.ideas.committee.maxPerSession)) {
         const w = this.world;
-        const { seated, recused } = this.committeeSeats(g, idea);
+        const { seated, recused, alternates } = this.committeeSeats(g, idea);
         if (seated.length < w.r('committee_quorum')) {
           console.log(`[committee ${g.name}] no quorum (${seated.length}/${w.r('committee_quorum')}${recused.length ? `, recused ${recused.map((m) => m.name).join(', ')}` : ''}): ${idea.code} waits`);
           return;
         }
         const brief = [
           this.ideaText(idea),
-          t('rt.committee.company', { quarter: quarterLabel(w.quarter()), slots: this.slotsLeft(), total: w.r('quarter_idea_slots'), freeze: t(w.isFreeze() ? 'rt.observation.freezeOn' : 'rt.observation.freezeOff') }),
+          t('rt.committee.company', { quarter: quarterLabel(w.quarter()), slots: this.slotsText(), freeze: t(w.isFreeze() ? 'rt.observation.freezeOn' : 'rt.observation.freezeOff') }),
           recused.length ? t('rt.committee.recused', { names: recused.map((m) => m.name).join(', '), chair: seated[0]!.name }) : '',
+          alternates.length ? t('rt.committee.alternates', { names: alternates.map((m) => m.name).join(', '), quorum: w.r('committee_quorum') }) : '',
         ].filter(Boolean).join('\n\n');
         if (recused.length) {
           this.stats.recusals += recused.length;
           console.log(`[committee ${g.name}] ${idea.code}: recused ${recused.map((m) => m.name).join(', ')} (conflict of interest), chair ${seated[0]!.name}`);
+        }
+        if (alternates.length) {
+          this.stats.alternates += alternates.length;
+          console.log(`[committee ${g.name}] ${idea.code}: alternates ${alternates.map((m) => m.name).join(', ')} (below quorum)`);
         }
         const out = await this.groups.reviewIdea(g, brief, this.committeeMock(idea), seated);
         if ('error' in out) {
@@ -1833,7 +1875,7 @@ export class Game {
         if (g.memory.length > this.game.decisions.memoryItems) g.memory.splice(0, g.memory.length - this.game.decisions.memoryItems);
         this.broadcastGroup(g);
         this.broadcastCommittee({ type: 'committee', groupId: g.id, ideaCode: idea.code, decision, votes: out.votes, summary });
-        for (const id of g.members) this.live(w.entities.get(id), 'committee', t('rt.memory.committee', { title: idea.title, decision: t(`rt.committee.vote.${decision}`), summary }));
+        for (const id of [...g.members, ...alternates.map((m) => m.id)]) this.live(w.entities.get(id), 'committee', t('rt.memory.committee', { title: idea.title, decision: t(`rt.committee.vote.${decision}`), summary }));
         for (const m of recused) this.live(m, 'committee', t('rt.memory.recused', { title: idea.title }));
         console.log(`[committee ${g.name}] ${idea.code}: ${decision}${summary ? ` (${summary.slice(0, 120)})` : ''}`);
       }
@@ -1902,7 +1944,7 @@ export class Game {
 
   /** GET /api/company */
   companyView() {
-    return { ...this.companyDto(), stats: { ...this.company.stats }, slotsPerQuarter: this.world.r('quarter_idea_slots'), committee: this.committeeGroup() ? this.groupDto(this.committeeGroup()!, false) : null };
+    return { ...this.companyDto(), stats: { ...this.company.stats }, slotsPerQuarter: this.world.r('quarter_idea_slots'), slotsCarried: this.company.carried, committee: this.committeeGroup() ? this.groupDto(this.committeeGroup()!, false) : null };
   }
 
   // ---- players (WebSocket) -------------------------------------------------------

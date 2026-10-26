@@ -1,6 +1,6 @@
 // The company around the people: quarters (four parts of the year, rule winter_every_ticks), the
 // freeze (the year's winter), the idea slots of the quarter (rule quarter_idea_slots minus the ideas
-// approved in it), the strategic themes (texts of the policies in `themeCategory`) and the career
+// approved in it, plus the slots carried over when policy slot_scadono_a_fine_trimestre is off), the strategic themes (texts of the policies in `themeCategory`) and the career
 // ladder (fame thresholds from `promotion_*` rules, never demoted). Facts only: nothing here decides.
 import type { Rule } from '../lorebase/rules.ts';
 import type { EntityKind, RtRuleKey } from './world.ts';
@@ -48,6 +48,8 @@ export function careerFor(ladder: CompanyConfig['careers'], fame: number, curren
 export class Company {
   readonly cfg: CompanyConfig;
   stats: QuarterStats = empty();
+  /** Approval slots carried over from earlier quarters (only when they do not expire). */
+  carried = 0;
   /** Year and quarter the stats belong to (e.g. "1-Q1"). */
   private key = '';
   private label = '';
@@ -56,8 +58,11 @@ export class Company {
     this.cfg = cfg;
   }
 
-  /** Called every tick with the world's year and quarter: returns the turn when a quarter ended. */
-  track(year: number, quarter: number): QuarterTurn | undefined {
+  /**
+   * Called every tick with the world's year and quarter: returns the turn when a quarter ended. `carry`, when given,
+   * is the per-quarter slot count and the unused slots of the ending quarter pass to the next one.
+   */
+  track(year: number, quarter: number, carry?: number): QuarterTurn | undefined {
     const key = `${year}-${quarter}`;
     const label = quarterLabel(quarter);
     if (!this.key) {
@@ -67,6 +72,7 @@ export class Company {
     }
     if (key === this.key) return undefined;
     const turn = { ended: this.label, stats: this.stats, began: label };
+    this.carried = carry === undefined ? 0 : this.slotsLeft(carry);
     this.key = key;
     this.label = label;
     this.stats = empty();
@@ -74,7 +80,12 @@ export class Company {
   }
 
   slotsLeft(slots: number): number {
-    return Math.max(0, Math.floor(slots) - this.stats.approved);
+    return Math.max(0, Math.floor(slots) + this.carried - this.stats.approved);
+  }
+
+  /** Slots of the current quarter: the policy's count plus what was carried over. */
+  slotsTotal(slots: number): number {
+    return Math.floor(slots) + this.carried;
   }
 
   themes(laws: Rule[]): string[] {

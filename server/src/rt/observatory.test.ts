@@ -19,6 +19,8 @@ test('group usage: each nested model run is booked once (resumed runs by increas
   ledger.track({ id: 'g/b', name: 'G/B', model: 'sonnet-m', tier: 'group:assembly' }, { status: 'completed', costUsd: 0.5 });
   assert.deepEqual(Object.keys(ledger.by('model')).sort(), ['haiku-m', 'sonnet-m']);
   assert.equal(ledger.totalUsd(), 0.75);
+  ledger.track({ id: 'a:web', name: 'A/web_search', model: 'haiku-m', tier: 'research', tool: 'web_search' }, { status: 'completed', costUsd: 0.25 });
+  assert.deepEqual(Object.fromEntries(Object.entries(ledger.by('tool')).map(([k, v]) => [k, v.costUsd])), { minds: 0.75, web_search: 0.25 });
 });
 
 test('prompt cache: nested cache counts are booked by increase, savings priced per model, totals and hit ratio', () => {

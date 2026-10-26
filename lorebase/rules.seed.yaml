@@ -440,12 +440,12 @@ rules:
     category: ideas
     text: "Il comitato investimenti accetta idee con rischio medio fino a questo valore; oltre servono ragioni eccezionali."
   - code: ricerche_web_per_persona_al_giorno
-    value: 12
+    value: 3
     unit: "ricerche"
     category: ideas
     text: "Ricerche e letture sul web che una persona può fare in un giorno."
   - code: ricerche_web_totali_al_giorno
-    value: 60
+    value: 12
     unit: "ricerche"
     category: ideas
     text: "Ricerche e letture sul web che l'intero hub può fare in un giorno."
@@ -504,13 +504,28 @@ rules:
     unit: "policy"
     category: ideas
     text: "Con valore 1, chi non è autore di un'idea legge punteggi e commenti delle altre valutazioni solo dopo aver dato la propria. Con 0 sono visibili a tutti."
+  - code: comitato_non_coautore
+    value: 1
+    unit: "policy"
+    category: ideas
+    text: "Con valore 1, i membri del comitato investimenti non diventano autori né co-autori di un'idea: non possono proporne, e quando ne modificano una il loro contributo è registrato come contributo di un revisore, non come co-autorialità. Con 0 non si applica."
+  - code: supplenti_comitato_per_anzianita
+    value: 1
+    unit: "policy"
+    category: ideas
+    text: "Con valore 1, quando i membri del comitato idonei a decidere su un'idea sono meno del quorum, siedono come supplenti le persone dell'hub senza conflitto di interessi su quell'idea, per grado più alto (a parità, di maggiore stima), fino al quorum. Con 0 l'idea aspetta."
+  - code: slot_scadono_a_fine_trimestre
+    value: 1
+    unit: "policy"
+    category: ideas
+    text: "Con valore 1, gli slot di approvazione non usati in un trimestre si perdono alla sua chiusura. Con 0 passano al trimestre successivo."
   - code: segnali_pubblici_per_persona_al_giorno
-    value: 10
+    value: 16
     unit: "ricerche"
     category: ideas
     text: "Ricerche di segnali pubblici (discussioni, progetti, domande, paper) che una persona può fare in un giorno."
   - code: segnali_pubblici_totali_al_giorno
-    value: 60
+    value: 120
     unit: "ricerche"
     category: ideas
     text: "Ricerche di segnali pubblici che l'intero hub può fare in un giorno."

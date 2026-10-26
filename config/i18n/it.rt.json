@@ -74,7 +74,7 @@
     "askForYou": "- {id}: {from} ti chiede {want}, senza offrire niente in cambio",
     "askByYou": "- {id}: hai chiesto a {to} {want}",
     "anyLine": "{amount} {category} qualsiasi ({code})",
-    "company": "AZIENDA: {name}; trimestre {quarter}; slot di approvazione rimasti nel trimestre: {slots} su {total}; {freeze}. La tua carriera: {career}.",
+    "company": "AZIENDA: {name}; trimestre {quarter}; {slots}; {freeze}. La tua carriera: {career}.",
     "freezeOn": "è in corso il freeze di budget",
     "freezeOff": "nessun freeze in corso",
     "ideas": "IDEE IN AZIENDA:\n{lines}",
@@ -89,8 +89,12 @@
     "pendingLine": "- {ago} fa hai detto a {name}: «{text}»; da allora non hai sentito parlare {name}.",
     "ideaRecused": "; ne sei tra gli autori: per policy (astensione_conflitto_interessi) non voti e non presiedi la sessione del comitato su di essa",
     "ideaNoQuorum": "; membri del comitato che possono decidere su di essa: {seated}, quorum {quorum}",
-    "ideaEvidence": "; prove reali {real}/{minReal}, fonti distinte {sources}/{minSources}, ipotesi {hypotheses} (peso 0); in alternativa per policy: validazioni umane {human}/{minHuman}",
-    "ideaEvidenceOk": "; prove reali {real} (policy: {minReal}), fonti distinte {sources} (policy: {minSources}), ipotesi {hypotheses}, validazioni umane {human} (facoltative): requisiti di candidatura soddisfatti per policy, l'idea può essere candidata al comitato"
+    "ideaEvidence": "; requisiti di candidatura per policy: prove reali {real} di {minReal}, fonti distinte {sources} di {minSources}, non ancora soddisfatti{alt}",
+    "ideaEvidenceOk": "; requisiti di candidatura soddisfatti per policy (prove reali {real}, ne servono {minReal}; fonti distinte {sources}, ne servono {minSources}): l'idea può essere candidata al comitato",
+    "slotsExpire": "slot di approvazione rimasti questo trimestre: {slots} su {total}, scadono il giorno {day} alle {clock} (policy slot_scadono_a_fine_trimestre)",
+    "slotsCarry": "slot di approvazione rimasti questo trimestre: {slots} su {total}; quelli non usati passano al trimestre successivo, che comincia il giorno {day} alle {clock}",
+    "ideaEvidenceAlt": "; la policy prevede anche una strada alternativa: validazioni umane, almeno {minHuman}",
+    "ideaEvidenceOkHuman": "; requisiti di candidatura soddisfatti per policy (strada alternativa: validazioni umane {human}, ne servono {minHuman}): l'idea può essere candidata al comitato"
   },
   "why": {
     "start": "arrivi in ufficio e ti guardi intorno per la prima volta",
@@ -357,7 +361,8 @@
     "researchFailed": "Ricerca non eseguita: {reason}.",
     "evidenceFailed": "Prova non registrata: {reason}.",
     "evidenceAttached": "Prova allegata all'idea {idea}: {type}, peso {weight}.",
-    "interviewed": "{text}"
+    "interviewed": "{text}",
+    "ideaContributed": "contributo all'idea {code} registrato, fase: {stage}; per policy (comitato_non_coautore) come membro del comitato sei registrato come revisore che ha contribuito, non come co-autore"
   },
   "group": {
     "header": "SIETE IL GRUPPO {name} ({pattern}). Ora decidete insieme cosa farà ciascuno nei prossimi {horizon} minuti.",
@@ -755,14 +760,15 @@
     "idea": "IDEA «{title}» ({code}), fase: {stage}\nChampion: {champion}; autori: {authors}; tag: {tags}\nProblema: {problem}\nUtenti: {users}\nSoluzione: {solution}\nDifferenziazione: {differentiation}\nFattibilità: {feasibility}\nRischi: {risks}\nSegnali e materiali: {signals}\nFonti: {sources}\nVALUTAZIONI ({n}):\n{reviews}\nMedia: {scores}; punteggio pesato secondo le policy di valutazione: {weighted}\nStoria recente: {history}",
     "reviewLine": "- {by}: impatto {impact}, fattibilità {feasibility}, novità {novelty}, coerenza {fit}, rischio {risk}: «{comment}»",
     "noReviews": "- nessuna",
-    "company": "AZIENDA: trimestre {quarter}; slot di approvazione rimasti nel trimestre: {slots} su {total}; {freeze}.",
+    "company": "AZIENDA: trimestre {quarter}; {slots}; {freeze}.",
     "noSlots": "(Nessuno slot di approvazione rimasto nel trimestre: l'idea è rimandata.)",
     "freeze": "(Freeze di budget in corso: l'idea è rimandata.)",
     "reviewsHidden": "- {n} valutazioni di altre persone: per policy (revisioni_indipendenti) le leggi dopo aver dato la tua",
     "recused": "ASTENSIONI: {names}, tra gli autori dell'idea, per policy (astensione_conflitto_interessi) non votano e non presiedono. Presiede {chair}.",
     "evidence": "PROVE ({n}):\n{lines}\nRequisiti di candidatura: {gate}\nPunteggio per il comitato (valutazioni e prove, secondo le policy): {score}",
     "evidenceLine": "- {type}{label} da {source} ({metric}; peso {weight}; raccolta da {by}): {title} <{url}> - {excerpt}",
-    "noEvidence": "- nessuna"
+    "noEvidence": "- nessuna",
+    "alternates": "SUPPLENTI: {names}, senza conflitto di interessi su questa idea, siedono per policy (supplenti_comitato_per_anzianita) fino al quorum di {quorum}."
   },
   "ideaStage": {
     "signal": "segnale",
@@ -799,7 +805,8 @@
     "stage": "è passata di fase",
     "scores_match": "punteggi identici a una valutazione già data",
     "recused": "astensione per conflitto di interessi",
-    "evidence": "prova allegata"
+    "evidence": "prova allegata",
+    "contributed": "ha contribuito come membro del comitato (non co-autore)"
   },
   "ideaReason": {
     "disabled": "non disponibile",
@@ -819,7 +826,8 @@
     "not_submitted": "l'idea non è davanti al comitato",
     "unchanged_since_deferral": "il comitato l'ha rimandata e da allora non è cambiato niente",
     "duplicate_evidence": "questa prova è già allegata all'idea",
-    "too_much_evidence": "l'idea ha già il numero massimo di prove"
+    "too_much_evidence": "l'idea ha già il numero massimo di prove",
+    "committee_member": "per policy (comitato_non_coautore) i membri del comitato investimenti non propongono idee"
   },
   "career": {
     "junior": "Junior",
@@ -948,10 +956,10 @@
   "gate": {
     "real": "prove reali {have} di {need}",
     "sources": "fonti distinte {have} di {need}",
-    "human": "validazioni umane {have} di {need} (in alternativa)",
     "score": "punteggio pesato {have} di {need}",
     "refused": "requisiti di candidatura non soddisfatti: {missing}",
-    "ok": "requisiti di candidatura soddisfatti per policy"
+    "ok": "requisiti di candidatura soddisfatti per policy",
+    "alternative": "in alternativa, per policy bastano validazioni umane: almeno {need}"
   },
   "validation": {
     "title": "Validazione di un {role}: {verdict}"

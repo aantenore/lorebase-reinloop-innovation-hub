@@ -56,6 +56,8 @@ export interface UsageRow extends TokenCounts {
   name: string;
   model: string;
   tier: string;
+  /** What spent it: `minds` (decisions, replies, groups) or the tool that made its own model calls (web_search, intervista_simulata). */
+  tool: string;
   runs: number;
   failures: number;
   costUsd: number;
@@ -78,8 +80,8 @@ const round = (n: number, digits = 6) => Math.round(n * 10 ** digits) / 10 ** di
 
 export class UsageLedger {
   readonly rows = new Map<string, UsageRow>();
-  track(who: { id: string; name: string; model: string; tier: string }, res: RunUsage): void {
-    const row = this.rows.get(who.id) ?? { agentId: who.id, name: who.name, model: who.model, tier: who.tier, runs: 0, failures: 0, ...zeroTokens(), costUsd: 0, cacheSavedUsd: 0 };
+  track(who: { id: string; name: string; model: string; tier: string; tool?: string }, res: RunUsage): void {
+    const row = this.rows.get(who.id) ?? { agentId: who.id, name: who.name, model: who.model, tier: who.tier, tool: who.tool ?? 'minds', runs: 0, failures: 0, ...zeroTokens(), costUsd: 0, cacheSavedUsd: 0 };
     row.runs++;
     if (!['completed', 'stopped', 'interrupted'].includes(res.status)) row.failures++;
     const t = tokensOf(res.usage);
@@ -93,8 +95,8 @@ export class UsageLedger {
     for (const r of this.rows.values()) sum += r.costUsd;
     return sum;
   }
-  /** Totals grouped by a key (model or tier). */
-  by(key: 'model' | 'tier'): Record<string, { runs: number; inputTokens: number; outputTokens: number; costUsd: number }> {
+  /** Totals grouped by a key (model, tier or tool). */
+  by(key: 'model' | 'tier' | 'tool'): Record<string, { runs: number; inputTokens: number; outputTokens: number; costUsd: number }> {
     const out: Record<string, { runs: number; inputTokens: number; outputTokens: number; costUsd: number }> = {};
     for (const r of this.rows.values()) {
       const o = (out[r[key]] ??= { runs: 0, inputTokens: 0, outputTokens: 0, costUsd: 0 });
@@ -266,9 +268,20 @@ export class Observatory {
         ...this.host.stats(),
         runs: rows.reduce((s, r) => s + r.runs, 0),
         tokens: { input: rows.reduce((s, r) => s + r.inputTokens, 0), output: rows.reduce((s, r) => s + r.outputTokens, 0) },
-        costUsd: { total: Math.round(rows.reduce((s, r) => s + r.costUsd, 0) * 1e6) / 1e6, byModel: usd(u.by('model')), byTier: usd(u.by('tier')) },
+        costUsd: { total: Math.round(rows.reduce((s, r) => s + r.costUsd, 0) * 1e6) / 1e6, byModel: usd(u.by('model')), byTier: usd(u.by('tier')), byTool: this.byTool() },
         cache: { ...u.cache(), byModel: u.cacheBy('model'), byTier: u.cacheBy('tier') },
       },
     };
+  }
+
+  /** Spend per tool: the minds, each tool with model calls of its own, and the public signals (free APIs, calls only). */
+  private byTool(): Record<string, { runs: number; costUsd: number; share: number }> {
+    const by = this.host.usage.by('tool');
+    const signals = Number(this.host.stats().signalSearches ?? 0);
+    const total = Object.values(by).reduce((s, v) => s + v.costUsd, 0);
+    const out: Record<string, { runs: number; costUsd: number; share: number }> = {};
+    for (const [k, v] of Object.entries(by)) out[k] = { runs: v.runs, costUsd: v.costUsd, share: total > 0 ? Math.round((v.costUsd / total) * 1000) / 1000 : 0 };
+    out.segnali_pubblici = { runs: signals, costUsd: 0, share: 0 };
+    return out;
   }
 }

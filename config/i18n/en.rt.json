@@ -74,7 +74,7 @@
     "askForYou": "- {id}: {from} asks you for {want}, offering nothing in return",
     "askByYou": "- {id}: you asked {to} for {want}",
     "anyLine": "{amount} {category} of any kind ({code})",
-    "company": "COMPANY: {name}; quarter {quarter}; approval slots left this quarter: {slots} of {total}; {freeze}. Your career: {career}.",
+    "company": "COMPANY: {name}; quarter {quarter}; {slots}; {freeze}. Your career: {career}.",
     "freezeOn": "a budget freeze is on",
     "freezeOff": "no freeze",
     "ideas": "IDEAS IN THE COMPANY:\n{lines}",
@@ -89,8 +89,12 @@
     "pendingLine": "- {ago} ago you told {name}: \"{text}\"; you have not heard {name} speak since.",
     "ideaRecused": "; you are among its authors: by policy (astensione_conflitto_interessi) you neither vote nor chair the committee session on it",
     "ideaNoQuorum": "; committee members who may decide on it: {seated}, quorum {quorum}",
-    "ideaEvidence": "; real evidence {real}/{minReal}, distinct sources {sources}/{minSources}, hypotheses {hypotheses} (weight 0); alternatively per policy: human validations {human}/{minHuman}",
-    "ideaEvidenceOk": "; real evidence {real} (policy: {minReal}), distinct sources {sources} (policy: {minSources}), hypotheses {hypotheses}, human validations {human} (optional): candidacy requirements met per policy, the idea can be submitted to the committee"
+    "ideaEvidence": "; candidacy requirements per policy: real evidence {real} of {minReal}, distinct sources {sources} of {minSources}, not met yet{alt}",
+    "ideaEvidenceOk": "; candidacy requirements met per policy (real evidence {real}, {minReal} required; distinct sources {sources}, {minSources} required): the idea can be submitted to the committee",
+    "slotsExpire": "approval slots left this quarter: {slots} of {total}, they expire on day {day} at {clock} (policy slot_scadono_a_fine_trimestre)",
+    "slotsCarry": "approval slots left this quarter: {slots} of {total}; unused ones pass to the next quarter, which begins on day {day} at {clock}",
+    "ideaEvidenceAlt": "; the policy also provides an alternative path: human validations, at least {minHuman}",
+    "ideaEvidenceOkHuman": "; candidacy requirements met per policy (alternative path: human validations {human}, {minHuman} required): the idea can be submitted to the committee"
   },
   "why": {
     "start": "you look around for the first time",
@@ -357,7 +361,8 @@
     "researchFailed": "Research not done: {reason}.",
     "evidenceFailed": "Evidence not recorded: {reason}.",
     "evidenceAttached": "Evidence attached to idea {idea}: {type}, weight {weight}.",
-    "interviewed": "{text}"
+    "interviewed": "{text}",
+    "ideaContributed": "contribution to idea {code} recorded, stage: {stage}; by policy (comitato_non_coautore) as a committee member you are recorded as a reviewer who contributed, not as a co-author"
   },
   "group": {
     "header": "YOU ARE THE GROUP {name} ({pattern}). Now decide together what each of you will do in the next {horizon} minutes.",
@@ -755,14 +760,15 @@
     "idea": "IDEA \"{title}\" ({code}), stage: {stage}\nChampion: {champion}; authors: {authors}; tags: {tags}\nProblem: {problem}\nUsers: {users}\nSolution: {solution}\nDifferentiation: {differentiation}\nFeasibility: {feasibility}\nRisks: {risks}\nSignals and artifacts: {signals}\nSources: {sources}\nREVIEWS ({n}):\n{reviews}\nMean: {scores}; score weighted by the evaluation policies: {weighted}\nRecent history: {history}",
     "reviewLine": "- {by}: impact {impact}, feasibility {feasibility}, novelty {novelty}, fit {fit}, risk {risk}: \"{comment}\"",
     "noReviews": "- none",
-    "company": "COMPANY: quarter {quarter}; approval slots left: {slots} of {total}; {freeze}.",
+    "company": "COMPANY: quarter {quarter}; {slots}; {freeze}.",
     "noSlots": "(No approval slot left this quarter: the idea is deferred.)",
     "freeze": "(Budget freeze on: the idea is deferred.)",
     "reviewsHidden": "- {n} reviews by other people: by policy (revisioni_indipendenti) you read them after giving yours",
     "recused": "ABSTENTIONS: {names}, among the idea's authors, by policy (astensione_conflitto_interessi) neither vote nor chair. {chair} chairs.",
     "evidence": "EVIDENCE ({n}):\n{lines}\nCandidacy requirements: {gate}\nScore for the committee (reviews and evidence, per policy): {score}",
     "evidenceLine": "- {type}{label} from {source} ({metric}; weight {weight}; collected by {by}): {title} <{url}> - {excerpt}",
-    "noEvidence": "- none"
+    "noEvidence": "- none",
+    "alternates": "ALTERNATES: {names}, with no conflict of interest on this idea, sit by policy (supplenti_comitato_per_anzianita) up to the quorum of {quorum}."
   },
   "ideaStage": {
     "signal": "signal",
@@ -799,7 +805,8 @@
     "stage": "moved to a new stage",
     "scores_match": "scores identical to a review already given",
     "recused": "abstention for a conflict of interest",
-    "evidence": "evidence attached"
+    "evidence": "evidence attached",
+    "contributed": "contributed as a committee member (not a co-author)"
   },
   "ideaReason": {
     "disabled": "not available",
@@ -819,7 +826,8 @@
     "not_submitted": "not before the committee",
     "unchanged_since_deferral": "the committee deferred it and nothing changed since",
     "duplicate_evidence": "this evidence is already attached",
-    "too_much_evidence": "the idea already has the most evidence it can keep"
+    "too_much_evidence": "the idea already has the most evidence it can keep",
+    "committee_member": "by policy (comitato_non_coautore) members of the investment committee do not propose ideas"
   },
   "career": {
     "junior": "Junior",
@@ -948,10 +956,10 @@
   "gate": {
     "real": "real evidence {have} of {need}",
     "sources": "distinct sources {have} of {need}",
-    "human": "human validations {have} of {need} (alternative)",
     "score": "weighted score {have} of {need}",
     "refused": "candidacy requirements not met: {missing}",
-    "ok": "candidacy requirements met per policy"
+    "ok": "candidacy requirements met per policy",
+    "alternative": "alternatively, per policy human validations suffice: at least {need}"
   },
   "validation": {
     "title": "Validation by a {role}: {verdict}"

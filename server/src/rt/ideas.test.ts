@@ -10,7 +10,7 @@ import {
 const cfg: IdeasConfig = {
   enabled: true, kind: 'Idea', reviewKind: 'Review', evidenceKind: 'Evidence', evidenceMax: 3, writeOperation: 'import_records', branchPrefix: 'idea/', titleMaxChars: 90, textMaxChars: 500, tagsMax: 6,
   tagMaxChars: 30, historyMax: 30, commentMaxChars: 280, perceiveMax: 6, signalsMax: 3, sourcesMax: 2, sourceTitleMaxChars: 20, retries: 0, retryBaseMs: 1, committee: { groupName: 'Comitato', maxPerSession: 3 },
-  policies: { conflictOfInterest: 'astensione_conflitto_interessi', independentReviews: 'revisioni_indipendenti' },
+  policies: { conflictOfInterest: 'astensione_conflitto_interessi', independentReviews: 'revisioni_indipendenti', committeeNotAuthor: 'comitato_non_coautore', committeeAlternates: 'supplenti_comitato_per_anzianita', slotsExpire: 'slot_scadono_a_fine_trimestre' },
 };
 
 /** A Keeper stand-in that records the calls. */
@@ -101,6 +101,14 @@ test('company: quarters turn with stats, slots, careers never go down', () => {
   assert.equal(turn.ended, 'Q1');
   assert.equal(turn.stats.approved, 2);
   assert.equal(c.slotsLeft(3), 3);
+  // Policy slot_scadono_a_fine_trimestre off: the unused slots pass to the next quarter.
+  c.stats.approved = 1;
+  c.track(1, 3, 3);
+  assert.equal(c.carried, 2);
+  assert.equal(c.slotsLeft(3), 5);
+  assert.equal(c.slotsTotal(3), 5);
+  c.track(1, 4);
+  assert.equal(c.slotsLeft(3), 3);
   const r = (k: string) => ({ promotion_senior_fame: 2, promotion_principal_fame: 6 })[k] ?? 0;
   assert.equal(careerFor(c.cfg.careers, 7, 'junior', r as never), 'principal');
   assert.equal(careerFor(c.cfg.careers, 0, 'principal', r as never), 'principal');
@@ -122,6 +130,11 @@ test('conflicts, review visibility and copied scores are facts on the idea', asy
   assert.ok(typeof idea !== 'string');
   book.enrich(idea.code, 'Matteo', { risks: 'r2' }, { at, signals: [] });
   assert.deepEqual(conflicted(idea), ['Livia', 'Matteo']);
+  // Policy comitato_non_coautore: a committee member's edit is a contribution, not co-authorship.
+  const contributed = book.enrich(idea.code, 'Dario', { risks: 'r3' }, { at, signals: [], asAuthor: false });
+  assert.ok(typeof contributed !== 'string');
+  assert.deepEqual(contributed.authors, ['Livia', 'Matteo']);
+  assert.equal(contributed.history.at(-1)!.action, 'contributed');
   assert.equal(seesReviews(idea, 'Matteo'), true);
   assert.equal(seesReviews(idea, 'Irene'), false);
   const s: Scores = { impact: 5, feasibility: 6, novelty: 3, fit: 6, risk: 6 };

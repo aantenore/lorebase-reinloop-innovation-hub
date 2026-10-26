@@ -695,7 +695,10 @@
     "sourceTitleMaxChars": 120,
     "policies": {
       "conflictOfInterest": "astensione_conflitto_interessi",
-      "independentReviews": "revisioni_indipendenti"
+      "independentReviews": "revisioni_indipendenti",
+      "committeeNotAuthor": "comitato_non_coautore",
+      "committeeAlternates": "supplenti_comitato_per_anzianita",
+      "slotsExpire": "slot_scadono_a_fine_trimestre"
     }
   },
   "company": {
@@ -735,7 +738,7 @@
     "maxResultsCap": 8,
     "maxChars": 600,
     "maxFetchChars": 6000,
-    "cacheTtlMs": 3600000,
+    "cacheTtlMs": 86400000,
     "cacheMax": 500,
     "anthropicTier": "haiku",
     "fetch": {
@@ -771,7 +774,7 @@
       "maxResultsCap": 8,
       "maxChars": 240,
       "timeoutMs": 10000,
-      "cacheTtlMs": 3600000,
+      "cacheTtlMs": 86400000,
       "cacheMax": 500,
       "allowTtlMs": 7200000,
       "allowMax": 120,

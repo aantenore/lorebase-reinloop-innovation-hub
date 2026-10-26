@@ -1,5 +1,5 @@
 {
-  "description": "Low-cost runs: every mind on haiku, the committee chair (Livia) included; committee voters and group proposers on haiku, no interns, shorter replies; game clock x3 for live runs, more turns and a web-call cap per decision.",
+  "description": "Low-cost runs: every mind on haiku, the committee chair (Livia) included; committee voters and group proposers on haiku, no interns, shorter replies; game clock x3 for live runs, more turns and one hosted web call per decision.",
   "rosterTiers": {
     "*": "haiku"
   },
@@ -13,7 +13,7 @@
           "maxTurns": 8,
           "maxOutputTokens": 2500,
           "maxConsults": 1,
-          "maxWebCalls": 2
+          "maxWebCalls": 1
         },
         "sonnet": {
           "maxSteps": 50,

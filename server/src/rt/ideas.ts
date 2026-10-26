@@ -123,7 +123,15 @@ export interface IdeasConfig {
    * authors of an idea out of the committee's session on it; `independentReviews` hides the other reviews of an
    * idea from a person until that person has reviewed it.
    */
-  policies: { conflictOfInterest: string; independentReviews: string };
+  policies: {
+    conflictOfInterest: string; independentReviews: string;
+    /** Committee members never become authors: they cannot propose, and an edit of theirs is a reviewer's contribution. */
+    committeeNotAuthor: string;
+    /** Below quorum, non-conflicted people of the hub sit as alternates by seniority (career step, then esteem). */
+    committeeAlternates: string;
+    /** Unused approval slots are lost at the end of the quarter (off: they carry over). */
+    slotsExpire: string;
+  };
 }
 
 export interface IdeaEvents {
@@ -414,8 +422,11 @@ export class IdeaBook {
     return idea;
   }
 
-  /** Adds or rewrites fields (the editor becomes a co-author). Returns the idea or an error code. */
-  enrich(code: string, by: string, input: IdeaInput, ctx: { at: At; signals: string[] }): Idea | string {
+  /**
+   * Adds or rewrites fields. The editor becomes a co-author, unless `asAuthor` is false (policy comitato_non_coautore):
+   * then the edit is recorded as a reviewer's contribution and the authors stay as they are. Returns the idea or an error code.
+   */
+  enrich(code: string, by: string, input: IdeaInput, ctx: { at: At; signals: string[]; asAuthor?: boolean }): Idea | string {
     const i = this.get(code);
     if (!i) return 'unknown_idea';
     if (!isOpen(i)) return 'idea_closed';
@@ -443,8 +454,9 @@ export class IdeaBook {
       changed.push('sources');
     }
     if (!changed.length) return 'nothing_changed';
-    if (!i.authors.includes(by)) i.authors.push(by);
-    this.note(i, ctx.at, by, 'updated', changed.join(', '));
+    const author = ctx.asAuthor !== false || i.authors.includes(by) || i.champion === by;
+    if (author && !i.authors.includes(by)) i.authors.push(by);
+    this.note(i, ctx.at, by, author ? 'updated' : 'contributed', changed.join(', '));
     const before = i.stage;
     const stage = stageFromFields(i);
     if (ORDER[stage] > ORDER[i.stage]) {
