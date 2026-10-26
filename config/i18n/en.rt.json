@@ -841,6 +841,8 @@
   "webFaculty": "You can search the web (web_search, web_fetch).",
   "researchReason": {
     "empty": "nothing to search for",
+    "not_from_search": "the page was not returned by your own web searches",
+    "fetch_off": "fetching pages is switched off",
     "excluded_domain": "the domain is excluded by the policies",
     "total_quota": "the hub has used up today's web searches",
     "person_quota": "you have used up your web searches for today",

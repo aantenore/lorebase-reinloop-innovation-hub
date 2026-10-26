@@ -21,6 +21,15 @@ export interface ResearchConfig {
   cacheMax: number;
   /** `anthropic-native` only: the model tier that runs the hosted search (resolved through sim.json `models`). */
   anthropicTier: string;
+  /** `web_fetch` hardening: pages may only be read when they came back from the same agent's own searches. */
+  fetch: {
+    /** `search-results-only` (default) | `off` (the tool refuses every call). */
+    mode: 'search-results-only' | 'off';
+    /** How long a search result stays fetchable, how many are kept per agent, longest URL accepted. */
+    allowTtlMs: number;
+    allowMax: number;
+    maxUrlChars: number;
+  };
   /** Policy keys (Lorebase `Rule` records) behind the quotas and the excluded domains. */
   policies: { perPerson: string; total: string; excludedDomains: string };
   /** Snippets carried by an event (privileged clients only) and their length. */
@@ -73,6 +82,32 @@ export function excluded(url: string, domains: string[]): boolean {
   return domains.some((d) => host === d || host.endsWith(`.${d}`));
 }
 
+const PRIVATE_HOST = /(^|\.)(localhost|local|internal|localdomain|lan|home\.arpa)$/;
+const IPV4_LIKE = /^[0-9a-fx.]+$/;
+
+/**
+ * The canonical form of a URL a page may be fetched from, or undefined when it must never be: only http(s), no
+ * credentials, no IP literals (which covers private and link-local ranges), no localhost / `.local` / `.internal` /
+ * single-label hosts, no URL longer than `maxChars`. The fragment is dropped. Pure.
+ */
+export function normalizeFetchUrl(raw: string, maxChars: number): string | undefined {
+  const input = raw.trim();
+  if (!input || input.length > maxChars) return undefined;
+  let u: URL;
+  try {
+    u = new URL(input);
+  } catch {
+    return undefined;
+  }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return undefined;
+  if (u.username || u.password) return undefined;
+  const host = u.hostname.toLowerCase().replace(/\.$/, '');
+  if (!host.includes('.') || host.startsWith('[') || IPV4_LIKE.test(host) || PRIVATE_HOST.test(host)) return undefined;
+  u.hash = '';
+  const out = u.toString();
+  return out.length > maxChars ? undefined : out;
+}
+
 const text = (out: unknown): string => (typeof out === 'string' ? out : String((out as { content?: unknown })?.content ?? ''));
 const isErr = (out: unknown): boolean => typeof out === 'object' && !!out && (out as { isError?: boolean }).isError === true;
 
@@ -84,6 +119,8 @@ export class ResearchDesk {
   private readonly cache = new Map<string, { expires: number; value: string }>();
   /** Calls that reached the backend, per day and per person. */
   private readonly used = new Map<string, number>();
+  /** Per agent: the normalized URLs its own searches returned, with their expiry (what `web_fetch` may read). */
+  private readonly allowed = new Map<string, Map<string, number>>();
   readonly stats = { searches: 0, fetches: 0, cached: 0, refused: 0, errors: 0 };
 
   constructor(cfg: ResearchConfig, host: ResearchHost, t: Translate, web: WebTools) {
@@ -147,16 +184,44 @@ export class ResearchDesk {
     while (this.cache.size > this.cfg.cacheMax) this.cache.delete(this.cache.keys().next().value!);
   }
 
+  private allow(agentId: string, urls: string[]): void {
+    const mine = this.allowed.get(agentId) ?? new Map<string, number>();
+    this.allowed.set(agentId, mine);
+    const expires = Date.now() + this.cfg.fetch.allowTtlMs;
+    for (const url of urls) {
+      const n = normalizeFetchUrl(url, this.cfg.fetch.maxUrlChars);
+      if (!n) continue;
+      mine.delete(n);
+      mine.set(n, expires);
+    }
+    const now = Date.now();
+    for (const [k, exp] of mine) if (exp <= now) mine.delete(k);
+    while (mine.size > this.cfg.fetch.allowMax) mine.delete(mine.keys().next().value!);
+  }
+
+  private isAllowed(agentId: string, url: string): boolean {
+    return (this.allowed.get(agentId)?.get(url) ?? 0) > Date.now();
+  }
+
   /** Runs one call through the cache, the quotas and the backend; returns the content for the model. */
   private async call(who: { id: string; name: string }, tool: Tool, kind: ResearchEvent['tool'], args: Record<string, unknown>, ctx: Parameters<Tool['run']>[1]): Promise<string | { content: string; isError: true }> {
-    const target = kind === 'web_search' ? String(args.query ?? '').trim() : String(args.url ?? '').trim();
+    let target = kind === 'web_search' ? String(args.query ?? '').trim() : String(args.url ?? '').trim();
     const refuse = (reason: string) => {
       this.stats.refused++;
       return { content: this.t('rt.act.researchFailed', { reason: this.t(`rt.researchReason.${reason}`) }), isError: true as const };
     };
     if (!target) return refuse('empty');
     const domains = this.domains();
-    if (kind === 'web_fetch' && excluded(target, domains)) return refuse('excluded_domain');
+    if (kind === 'web_fetch') {
+      if (this.cfg.fetch.mode === 'off') return refuse('fetch_off');
+      if (excluded(target, domains)) return refuse('excluded_domain');
+      // Only pages this agent's own searches returned, byte for byte (query string included): nothing the model
+      // composes, or a page tells it to compose, can reach another host.
+      const url = normalizeFetchUrl(target, this.cfg.fetch.maxUrlChars);
+      if (!url || !this.isAllowed(who.id, url)) return refuse('not_from_search');
+      target = url;
+      args = { ...args, url };
+    }
     const key = `${kind}\u0000${args.max_results ?? ''}\u0000${target}`;
     let raw = this.cached(key);
     const cached = raw !== undefined;
@@ -188,6 +253,7 @@ export class ResearchDesk {
     const all = Array.isArray(body.results) ? (body.results as Array<Record<string, unknown>>) : [];
     const results = all.filter((r) => !excluded(String(r.url ?? ''), domains));
     if (Array.isArray(body.results)) body.results = results;
+    if (kind === 'web_search') this.allow(who.id, results.map((r) => String(r.url ?? '')));
     const cut = (s: unknown) => String(s ?? '').replace(/\s+/g, ' ').slice(0, this.cfg.eventSnippetChars);
     this.host.researched(who, {
       tool: kind,

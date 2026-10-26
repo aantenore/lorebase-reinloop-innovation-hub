@@ -678,6 +678,12 @@
     "cacheTtlMs": 3600000,
     "cacheMax": 500,
     "anthropicTier": "haiku",
+    "fetch": {
+      "mode": "search-results-only",
+      "allowTtlMs": 3600000,
+      "allowMax": 100,
+      "maxUrlChars": 512
+    },
     "policies": {
       "perPerson": "ricerche_web_per_persona_al_giorno",
       "total": "ricerche_web_totali_al_giorno",

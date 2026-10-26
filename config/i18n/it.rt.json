@@ -841,6 +841,8 @@
   "webFaculty": "Puoi cercare sul web (web_search, web_fetch).",
   "researchReason": {
     "empty": "manca cosa cercare",
+    "not_from_search": "la pagina non è tra i risultati delle tue ricerche web",
+    "fetch_off": "la lettura di pagine web è disattivata",
     "excluded_domain": "il dominio è escluso dalle policy",
     "total_quota": "l'hub ha esaurito le ricerche web di oggi",
     "person_quota": "hai esaurito le tue ricerche web di oggi",

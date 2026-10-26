@@ -175,8 +175,15 @@ share one mind (crowd "Stagisti").
 
 - **Web research.** `research` in `config/game.json`: `provider` (`tavily` | `anthropic-native` | `off`),
   `maxResults`, `maxResultsCap`, `maxChars` (per snippet), `maxFetchChars`, `cacheTtlMs` / `cacheMax` (server-side
-  cache), `anthropicTier` (the model of `anthropic-native`), `policies` (the keys of the quota and domain
+  cache), `anthropicTier` (the model of `anthropic-native`), `fetch` (see below), `policies` (the keys of the quota and domain
   policies), `eventSnippetChars`, `recentMax`, `logMax`. Offline (`game:mock`) research is off.
+  **Security:** `web_fetch` is not a free-form browser (a prompt-injected page could make it call an attacker URL
+  carrying memory or conversations in the query string). With `research.fetch.mode` = `search-results-only`
+  (default) it reads only URLs that came back, exactly, from the same agent's own `web_search` (kept server-side
+  for `allowTtlMs`, at most `allowMax` per agent); anything else is refused as `not_from_search`. URLs must be
+  http(s), without credentials, not an IP literal, not localhost / `.local` / `.internal` / single-label hosts, at
+  most `maxUrlChars` long; fragments are dropped. `mode: "off"` refuses every fetch. Hostnames that resolve to
+  private addresses are not detected (no DNS check).
 - **Prompt caching.** On Anthropic models reinloop caches the prompt prefix (tool catalog, instructions, then the
   latest message). Every call puts what does not change between decisions first: tools, then the person's
   instructions (identity, role, faculties, horizon); the perception of the moment is the message, last. Config

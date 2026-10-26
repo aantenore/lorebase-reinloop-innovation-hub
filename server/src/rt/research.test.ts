@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { defineTool } from 'reinloop';
-import { domainsIn, excluded, type ResearchConfig, ResearchDesk, type ResearchEvent } from './research.ts';
+import { domainsIn, excluded, normalizeFetchUrl, type ResearchConfig, ResearchDesk, type ResearchEvent } from './research.ts';
 
 const cfg: ResearchConfig = {
-  provider: 'tavily', maxResults: 5, maxResultsCap: 8, maxChars: 600, maxFetchChars: 6000, cacheTtlMs: 60_000, cacheMax: 10, anthropicTier: 'haiku',
+  provider: 'tavily', maxResults: 5, maxResultsCap: 8, maxChars: 600, maxFetchChars: 6000, fetch: { mode: 'search-results-only', allowTtlMs: 60_000, allowMax: 3, maxUrlChars: 100 }, cacheTtlMs: 60_000, cacheMax: 10, anthropicTier: 'haiku',
   policies: { perPerson: 'per_person', total: 'total', excludedDomains: 'domains' }, eventSnippetChars: 20, recentMax: 5, logMax: 50,
 };
 
@@ -63,6 +63,38 @@ test('research: excluded domains are never fetched; a missing quota policy allow
   const blocked = await f.fetch.run({ url: 'https://pinterest.com/x' }, f.ctx);
   assert.match((blocked as { content: string }).content, /excluded_domain/);
   const none = await f.fetch.run({ url: 'https://ok.example.org' }, f.ctx);
-  assert.match((none as { content: string }).content, /total_quota/);
+  assert.match((none as { content: string }).content, /not_from_search/);
   assert.equal(f.calls(), 0);
+});
+
+test('research: fetch normalization refuses non-http, credentials, IPs, local hosts, long urls; drops fragments', () => {
+  const n = (u: string) => normalizeFetchUrl(u, 100);
+  assert.equal(n('https://a.example.org/x?q=1#top'), 'https://a.example.org/x?q=1');
+  for (const bad of ['ftp://a.example.org/x', 'file:///etc/passwd', 'https://u:p@a.example.org/', 'http://127.0.0.1/', 'http://2130706433/', 'http://[::1]/', 'http://169.254.169.254/latest', 'http://localhost/', 'http://x.localhost/', 'http://nas.local/', 'http://db.internal/', 'http://intranet/', 'nope', '', `https://a.example.org/${'x'.repeat(100)}`]) {
+    assert.equal(n(bad), undefined, bad);
+  }
+});
+
+test('research: web_fetch only reads urls from the same agent\'s own searches, exact match', async () => {
+  const f = fixture({ per_person: { value: 5, text: '' }, total: { value: 9, text: '' }, domains: { value: 1, text: 'pinterest.com' } });
+  const reason = async (url: string) => (await f.fetch.run({ url }, f.ctx) as { content: string }).content;
+  assert.match(await reason('https://a.example.org/x'), /not_from_search/);
+  await f.search.run({ query: 'agent ops' }, f.ctx);
+  assert.match(await reason('https://a.example.org/x?secret=memory'), /not_from_search/);
+  assert.match(await reason('https://evil.example.net/?d=1'), /not_from_search/);
+  assert.equal(JSON.parse(String(await f.fetch.run({ url: 'https://a.example.org/x#frag' }, f.ctx))).title, 'Page');
+  // another agent does not inherit the allowlist
+  const other = f.desk.tools({ id: 'a2', name: 'Bruno' })[1]!;
+  assert.match((await other.run({ url: 'https://a.example.org/x' }, f.ctx) as { content: string }).content, /not_from_search/);
+});
+
+test('research: fetch mode off refuses every fetch', async () => {
+  const f = fixture({ per_person: { value: 5, text: '' }, total: { value: 9, text: '' } });
+  (cfg.fetch as { mode: string }).mode = 'off';
+  try {
+    await f.search.run({ query: 'agent ops' }, f.ctx);
+    assert.match((await f.fetch.run({ url: 'https://a.example.org/x' }, f.ctx) as { content: string }).content, /fetch_off/);
+  } finally {
+    cfg.fetch.mode = 'search-results-only';
+  }
 });

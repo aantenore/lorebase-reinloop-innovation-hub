@@ -30,7 +30,8 @@ Descriptions say what each tool does, never when or why to use it (`rt.tools.ide
 | `leggi_idea` | `code` | the idea in full (fields, authors, reviews, weighted score, history) |
 
 Web research refusals are facts too (`rt.researchReason.*`): "hai esaurito le tue ricerche web di oggi",
-"il dominio è escluso dalle policy". Results come back as reinloop marks them (`untrusted: true` and a note);
+"il dominio è escluso dalle policy", "la pagina non è tra i risultati delle tue ricerche web" (`web_fetch` only reads URLs
+returned by the agent's own searches; `research.fetch.mode`). Results come back as reinloop marks them (`untrusted: true` and a note);
 they are only text for the model and never feed a write.
 
 Refusals are facts (`rt.ideaReason.*`): "l'idea non è completa", "non ha ancora abbastanza valutazioni",
