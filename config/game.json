@@ -90,11 +90,11 @@
         "wood": 0
       },
       "plaza": {
-        "food": 2,
+        "food": 0,
         "wood": 0
       },
       "garden": {
-        "food": 1,
+        "food": 0,
         "wood": 0
       },
       "wall": {
@@ -133,9 +133,9 @@
     ],
     "spawnRadius": 3,
     "spawnFood": {
-      "radius": 4,
+      "radius": -1,
       "fill": 1,
-      "minFood": 2
+      "minFood": 0
     },
     "maxPopulation": 40
   },
@@ -178,7 +178,7 @@
     "maxConcurrent": 4,
     "memoryItems": 12,
     "inboxItems": 8,
-    "lookMaxTiles": 14,
+    "lookMaxTiles": 8,
     "lookMaxPeople": 10,
     "nearbyGroupsMax": 5,
     "perception": {

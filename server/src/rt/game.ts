@@ -859,6 +859,8 @@ export class Game {
       }),
     });
     this.broadcast(this.lorebaseMsg());
+    // Slots, themes and the freeze rule are policies: clients see the company as it is now.
+    this.broadcast({ type: 'company', ...this.companyDto() });
     if (changes.length) {
       const list = changes.map((c) => `${c.key} ${c.old ?? '-'} → ${c.new ?? '-'}`).join(', ');
       const text = this.t('rt.events.rules', { changes: list });
