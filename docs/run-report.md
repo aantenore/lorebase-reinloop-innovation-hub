@@ -115,3 +115,87 @@ More in [evidence/run1/conversations.md](evidence/run1/conversations.md).
 
 A second run with a faster clock (`GAME_TIME_SCALE`) or a higher `ricerche_web_per_persona_al_giorno` (board change,
 `npm run rule`) would show whether more searches and more working hours turn into committee decisions.
+
+# Run 2: committee policies, independent reviews, faster clock
+
+Date: 2026-10-26, 09:52-10:11 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (now
+also clock x3, 8 turns and a web-call cap per decision), `GAME_BUDGET_USD=3`, `--seconds 1800`, web research through
+Tavily (the run started before the default moved to `anthropic-native`). New policies on: `astensione_conflitto_interessi`,
+`revisioni_indipendenti`; working hours 7-21, freeze of one period, web quota 12 per person and 60 in total. Stop
+rule: budget, 30 real minutes or five committee decisions: **the $3 budget came first, after 19 minutes**.
+
+Evidence: [docs/evidence/run2/](evidence/run2/). Progress log: [docs/run-progress.log](run-progress.log) (`run2`
+lines). Export: [docs/portfolio-run2.md](portfolio-run2.md).
+
+## Run 1 and run 2
+
+| | Run 1 | Run 2 |
+|---|---|---|
+| Real time, stop | 30 min, time limit | 19 min, budget cap |
+| Game time | day 1 08:00 to day 2 13:47 (~30 h) | day 1 07:00 to day 3 15:30 (~56 h) |
+| Decisions | 213 individual, 29 group, ~220 replies, 480 runs | 293 individual, 48 group, 269 replies, 663 runs |
+| Failures | 8 (6 `maxTurns`, 1 `maxToolCalls`, 1 no plan, 1 group JSON) | 6 (0 `maxTurns`; 3 replies at `maxToolCalls`, 2 group JSON, 1 no plan) |
+| Cost | $2.33 (sonnet $1.83, haiku $0.50) | $3.01 (sonnet $2.27, haiku $0.73) |
+| Tokens | 10.78 M in (8.46 M cached), 0.43 M out | 15.03 M in (11.73 M cached), 0.63 M out |
+| Prompt cache | hit 0.785, saved $3.04 | hit 0.781, saved $4.06 |
+| Web | 29 searches, 7 reads, 22 refused by quota | 10 searches, 0 reads, 0 refused, 0 capped |
+| Ideas by stage | 2 proposal | 3 proposal |
+| Reviews | 7 | 11 |
+| Committee | 1 decision (defer) | 0 (nothing submitted) |
+| Conflicts avoided | - (Livia chaired her own idea) | 0 recusals (no session) |
+| Copied scores | 2 reviews equal to Dario's | 0 `scores_match` |
+| Thought summaries | English and Italian, not counted | `{"en": 293, "it": 1}` |
+
+## Portfolio
+
+No idea was submitted, approved or killed. Full text in [portfolio-run2.md](portfolio-run2.md).
+
+- **Audit delle decisioni AI per settori regolati (on-prem)**: champion Giulia, authors Giulia, Irene, Livia;
+  5 reviews (impact 7, feasibility 5, fit 8); sources include the AI Act Service Desk text of Article 12. A signed
+  evidence pack of automated decisions, kept on premise, starting from one SQL connector and one pilot.
+- **AI gateway on-prem per sistemi legacy in settori regolati**: champion Livia; 5 reviews (feasibility 4); a local
+  gateway that connects legacy systems, runs contained models, anonymises and logs every automated decision.
+- **Triage automatico dei segreti nei repository**: champion Irene; 1 review (Dario: «una feature, non un
+  prodotto»).
+
+## What changed, what it showed
+
+- **Turn limits fixed.** No decision stopped at `maxTurns` (6 in run 1) with 8 turns and at most 2 web calls per
+  haiku decision; failures are now counted by reason (`reinloop.failureReasons`).
+- **Independent reviews.** Eleven reviews, none with the same five scores as another; the spread on one idea was
+  impact 6-8, feasibility 4-6, risk 5-7.
+- **Waiting turned into moving.** The new perception line (words said to a named person and no answer heard since)
+  appears in the minds' own reasons: «Livia, che è lontana e non risponde da 7 ore: vado da lei» (Matteo); «smetto di
+  aspettare, uso il Q3 per un'idea non regolata» (Giulia, who then started a third idea with Irene).
+- **The team set a bar no one could meet.** From day 2 the reviewers and Livia agreed that nothing goes to the
+  committee without «pilota nominato, parere DPO scritto e fonte firmata con nome e data». The world has no
+  customers to name and no DPO: no idea was submitted, so the conflict-of-interest seating was never exercised live
+  (the offline smoke run showed it: a pitch co-authored by two of three committee members waited at 1 of 2 seats).
+- **The faster clock spends faster.** Three game minutes per second shorten every cooldown in real time: 663 runs in
+  19 minutes against 480 in 30. Livia on sonnet (venture lead) cost 76% of the run. The budget, not the clock, now
+  bounds a run.
+- **Fewer searches.** 10 searches and no page reads, without a single refusal: the quota was no longer the limit;
+  the minds searched less (Giulia 6 of 10).
+
+## Problems seen
+
+- **Thought summaries are English.** 293 of 294 reasoning summaries were English although the instructions say
+  «Lavori in italiano: pensi, scrivi e parli in italiano.» The summaries come from the provider's summarised thinking
+  (`thinking.display: summarized`), which no reinloop param sets the language of; plan reasons, speech, reviews and
+  ideas are Italian. Each thought now carries `lang`; nothing is translated. A lever left: `display: omitted` with the
+  Italian plan reason as the only thought shown.
+- **Group plan JSON (2 failures).** The Squadra Esplorazione's orchestrator leader (haiku) emitted `commit_plan`
+  arguments that were not valid JSON; reinloop's Anthropic provider parses streamed tool input with a strict
+  `JSON.parse` (`dist/providers/anthropic.js`, tool `input` assembly) and the run fails. The group then falls back to
+  the members' own minds. The fix belongs in reinloop (a tolerant parse, as `parseJsonLoose` already does for
+  structured output) and needs a re-pin, left for a later change.
+- **Reviewer turned author.** Irene and Livia reviewed the audit idea and later enriched it (becoming co-authors);
+  their reviews still count toward `min_idea_reviewers`.
+- **Quarters are short.** A company year is 16 periods of 45 game minutes (12 game hours): at x3 the run crossed six
+  quarters and two freezes, so slots and freezes come round faster than the minds' plans.
+
+## Next useful step
+
+A run with `research.provider: anthropic-native` (now the default, search cost booked in the budget) and a higher
+budget, or Livia on haiku, to see whether a submission happens once the team stops waiting for a pilot; and a reinloop
+fix for strict tool-input parsing, then a re-pin.

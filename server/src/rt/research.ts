@@ -2,7 +2,8 @@
 // company policies (daily searches per person and in total, excluded domains), caches results server-side and
 // reports every call as a `research` event. Web content is untrusted: it is only text handed back to the model,
 // never an input to any write.
-import { defineTool, type Tool, webTools } from 'reinloop';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { ANTHROPIC_SERVER_TOOL_USD, costOf, defineTool, type ModelRef, pricingFor, resolveModel, type Tool, type Usage, webTools } from 'reinloop';
 import type { Translate } from '../i18n.ts';
 
 export type ResearchProvider = 'tavily' | 'anthropic-native' | 'off';
@@ -60,6 +61,37 @@ export interface ResearchHost {
   /** Day of the world (quotas are per day). */
   day(): number;
   researched(who: { id: string; name: string }, ev: ResearchEvent): void;
+  /**
+   * `anthropic-native` only: the hosted search's own model call (tokens and per-search fee), booked to the person
+   * who searched; its cost is not part of that person's run.
+   */
+  searchUsage?(who: { id: string; name: string }, model: string, usage: Usage, costUsd: number): void;
+}
+
+/** Cost of a hosted search call: tokens at the model's price plus the per-request fees of server tools. Pure. */
+export function hostedSearchCost(model: string, usage: Usage): number {
+  const p = pricingFor(model.replace(/^[^/]+\//, '')) ?? pricingFor(model);
+  if (!p) return Object.entries(usage.serverToolUse ?? {}).reduce((s, [k, n]) => s + n * (ANTHROPIC_SERVER_TOOL_USD[k] ?? 0), 0);
+  return costOf({ ...p, serverToolUsd: { ...ANTHROPIC_SERVER_TOOL_USD, ...p.serverToolUsd } }, usage);
+}
+
+/** A model whose every call reports its usage (the hosted search runs outside any agent run). */
+function metered(ref: ModelRef, onUsage: (model: string, usage: Usage) => void): ModelRef {
+  const inner = ref.provider;
+  const provider = new Proxy(inner, {
+    get(target, key) {
+      if (key === 'generate') {
+        return async (...args: Parameters<typeof inner.generate>) => {
+          const res = await target.generate(...args);
+          if (res.usage) onUsage(ref.model, res.usage);
+          return res;
+        };
+      }
+      const v = Reflect.get(target, key) as unknown;
+      return typeof v === 'function' ? (v as (...a: unknown[]) => unknown).bind(target) : v;
+    },
+  });
+  return { ...ref, provider };
 }
 
 type WebTools = { web_search: Tool; web_fetch?: Tool };
@@ -122,6 +154,8 @@ export class ResearchDesk {
   /** Per agent: the normalized URLs its own searches returned, with their expiry (what `web_fetch` may read). */
   private readonly allowed = new Map<string, Map<string, number>>();
   /** `capped`: calls refused because the run had used its per-decision web calls (not counted in `refused`). */
+  /** Who is searching right now (for the hosted search's usage). */
+  searcher: AsyncLocalStorage<{ id: string; name: string }> | undefined;
   readonly stats = { searches: 0, fetches: 0, cached: 0, refused: 0, errors: 0, capped: 0 };
 
   constructor(cfg: ResearchConfig, host: ResearchHost, t: Translate, web: WebTools) {
@@ -135,12 +169,22 @@ export class ResearchDesk {
   static create(cfg: ResearchConfig | undefined, host: ResearchHost, t: Translate, models: Record<string, string>): ResearchDesk | undefined {
     if (!cfg || cfg.provider === 'off') return undefined;
     try {
+      // The hosted search is a model call of its own: its usage is booked to whoever searched (async context).
+      const searcher = new AsyncLocalStorage<{ id: string; name: string }>();
+      const anthropic = cfg.provider === 'anthropic-native'
+        ? { model: metered(resolveModel(models[cfg.anthropicTier] ?? cfg.anthropicTier), (model, usage) => {
+          const who = searcher.getStore();
+          if (who) host.searchUsage?.(who, model, usage, hostedSearchCost(model, usage));
+        }) }
+        : undefined;
       const web = webTools({
         provider: cfg.provider,
-        ...(cfg.provider === 'anthropic-native' ? { anthropic: { model: models[cfg.anthropicTier] ?? cfg.anthropicTier } } : {}),
+        ...(anthropic ? { anthropic } : {}),
         maxResults: cfg.maxResults, maxResultsCap: cfg.maxResultsCap, maxChars: cfg.maxChars, maxFetchChars: cfg.maxFetchChars,
       });
-      return new ResearchDesk(cfg, host, t, web);
+      const desk = new ResearchDesk(cfg, host, t, web);
+      desk.searcher = searcher;
+      return desk;
     } catch (err) {
       console.warn(`[research] off: ${err instanceof Error ? err.message : String(err)}`);
       return undefined;
@@ -231,7 +275,7 @@ export class ResearchDesk {
       if (quota) return refuse(quota);
       this.count(who.name);
       try {
-        const out = await tool.run(args, ctx);
+        const out = await (this.searcher ? this.searcher.run(who, () => tool.run(args, ctx)) : tool.run(args, ctx));
         if (isErr(out)) {
           this.stats.errors++;
           return { content: text(out), isError: true };

@@ -726,7 +726,7 @@
     "groupTtl": "5m"
   },
   "research": {
-    "provider": "tavily",
+    "provider": "anthropic-native",
     "maxResults": 5,
     "maxResultsCap": 8,
     "maxChars": 600,

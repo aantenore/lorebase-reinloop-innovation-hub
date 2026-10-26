@@ -12,8 +12,8 @@ one while the hub runs and the people learn of it from Lorebase's change feed. T
 Derived from [lorebase-reinloop-civilization](https://github.com/aantenore/lorebase-reinloop-civilization),
 which holds the history of the engine (real-time world, minds, groups, society, economy, god mode).
 
-Latest live run (budget-capped, real models, web research on): [docs/run-report.md](docs/run-report.md),
-evidence in [docs/evidence/run1/](docs/evidence/run1/).
+Live runs (budget-capped, real models, web research on): [docs/run-report.md](docs/run-report.md), evidence in
+[docs/evidence/run1/](docs/evidence/run1/) and [docs/evidence/run2/](docs/evidence/run2/).
 
 ## Screenshots
 
@@ -140,7 +140,7 @@ npm run game:mock          # same, offline mock provider (no model calls)
 (cd game && npm install && npm run dev)   # the isometric client on http://localhost:5184
 ```
 
-`.env` may hold `ANTHROPIC_API_KEY` and `TAVILY_API_KEY` (web research; without it research is off). Useful environment: `GAME_TIME_SCALE` (game time multiplier),
+`.env` holds `ANTHROPIC_API_KEY` (models and, by default, web research) and optionally `TAVILY_API_KEY` (only for `research.provider: tavily`). Useful environment: `GAME_TIME_SCALE` (game time multiplier),
 `GAME_BUDGET_USD` (model spend cap of a run; default `budget.maxUsd` = 2 in `config/game.json`; at the cap
 every mind pauses), `SIM_MODEL_OVERRIDE=haiku` (every agent on one tier), `SIM_ROSTER_FILE` (another roster),
 `GAME_CROWD` (number of interns), `GAME_PROFILE` (cost profile, `config/profiles/<name>.json`), `--seconds N` (stop after N seconds). Other variables as in the engine
@@ -173,7 +173,10 @@ share one mind (crowd "Stagisti").
 
 ### Research, prompt caching, cost profiles
 
-- **Web research.** `research` in `config/game.json`: `provider` (`tavily` | `anthropic-native` | `off`),
+- **Web research.** `research` in `config/game.json`: `provider`: `anthropic-native` (default: Anthropic's hosted
+  web search run by a small model call on the `anthropicTier` model, only the Anthropic key needed, about $0.01 per
+  search plus the call's tokens, booked in the run's cost and budget under `<person>/web_search`, tier `research`;
+  search only, so no `web_fetch`), `tavily` (needs `TAVILY_API_KEY`; search and page reads) or `off`;
   `maxResults`, `maxResultsCap`, `maxChars` (per snippet), `maxFetchChars`, `cacheTtlMs` / `cacheMax` (server-side
   cache), `anthropicTier` (the model of `anthropic-native`), `fetch` (see below), `policies` (the keys of the quota and domain
   policies), `eventSnippetChars`, `recentMax`, `logMax`. Offline (`game:mock`) research is off.
@@ -301,6 +304,15 @@ Live run 1 (2026-10-26, 30 real minutes, $2.33, economy profile, Tavily research
 - [conversations.md](docs/evidence/run1/conversations.md): curated thoughts, reviews and exchanges, including how search results were used
 - [research.md](docs/evidence/run1/research.md): every search and page read, with the top result titles and links
 - [lorebase-log.md](docs/evidence/run1/lorebase-log.md): `main` revision log, `idea/` branches and their Proposals
+Live run 2 (2026-10-26, stopped by the $3 budget after 19 real minutes, conflict-of-interest and independent-review
+policies on, clock x3), section "Run 2" of [docs/run-report.md](docs/run-report.md):
+
+- [summary.json](docs/evidence/run2/summary.json) (adds `failureReasons`, `thoughtLangs`, `recusals`, `scoreMatches`, `webCapped`)
+- [portfolio.md](docs/evidence/run2/portfolio.md) (also [docs/portfolio-run2.md](docs/portfolio-run2.md))
+- [committee.md](docs/evidence/run2/committee.md): no session (nothing was submitted)
+- [conversations.md](docs/evidence/run2/conversations.md), [research.md](docs/evidence/run2/research.md),
+  [lorebase-log.md](docs/evidence/run2/lorebase-log.md)
+
 - [run-progress.log](docs/run-progress.log) and the screenshots above (all live except the idea board, from an
   offline run with more ideas)
 
@@ -312,8 +324,7 @@ Live run 1 (2026-10-26, 30 real minutes, $2.33, economy profile, Tavily research
 - Offline, movement follows `mock.habits` (which company roles explore, gather, build or look after colleagues);
   idea work comes from the individual minds (committee members and people outside groups), squad members follow
   joint plans.
-- Research quotas are counted in memory per game day: a restart starts the count again. `anthropic-native`
-  searches run a small model call whose tokens are not booked in the run's cost.
+- Research quotas are counted in memory per game day: a restart starts the count again.
 - Herald pins agents to `main`: they read approved ideas there and see open ones through their perception and
   `leggi_idea`. Reviews of open ideas live on their `idea/` branches, out of reach of the agents' Lorebase tools, so
   `revisioni_indipendenti` is enforced where agents can read them (perception, `leggi_idea`).

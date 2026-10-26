@@ -1,0 +1,176 @@
+{
+  "lorebase": {
+    "url": "http://127.0.0.1:8280",
+    "domain": "hub",
+    "branch": "main",
+    "revision": "4484c5a98af4ccfe17ab55bc73aea0539c93c16fcae8d661153f4b5edcee9a90",
+    "counts": {
+      "Signal": 40,
+      "Role": 8,
+      "Recipe": 11,
+      "Resource": 15,
+      "Chronicle": 24,
+      "Insight": 1,
+      "Rule": 100
+    }
+  },
+  "mnemo": {
+    "connected": true,
+    "memories": 3149,
+    "perAgent": [
+      {
+        "agentId": "a1",
+        "name": "Livia",
+        "count": 435,
+        "avgFidelity": 0.964,
+        "gists": 0
+      },
+      {
+        "agentId": "a2",
+        "name": "Matteo",
+        "count": 425,
+        "avgFidelity": 0.964,
+        "gists": 0
+      },
+      {
+        "agentId": "a3",
+        "name": "Giulia",
+        "count": 224,
+        "avgFidelity": 0.957,
+        "gists": 0
+      },
+      {
+        "agentId": "a4",
+        "name": "Enea",
+        "count": 425,
+        "avgFidelity": 0.965,
+        "gists": 0
+      },
+      {
+        "agentId": "a5",
+        "name": "Sara",
+        "count": 436,
+        "avgFidelity": 0.968,
+        "gists": 0
+      },
+      {
+        "agentId": "a6",
+        "name": "Bruno",
+        "count": 440,
+        "avgFidelity": 0.965,
+        "gists": 0
+      },
+      {
+        "agentId": "a7",
+        "name": "Irene",
+        "count": 336,
+        "avgFidelity": 0.951,
+        "gists": 0
+      },
+      {
+        "agentId": "a8",
+        "name": "Dario",
+        "count": 428,
+        "avgFidelity": 0.966,
+        "gists": 0
+      }
+    ],
+    "dbBytes": 21417984,
+    "lastCompaction": null,
+    "embedder": {
+      "name": "transformers:Xenova/multilingual-e5-small:q8",
+      "dim": 384,
+      "fallback": false
+    }
+  },
+  "reinloop": {
+    "decisions": 293,
+    "groupDecisions": 48,
+    "replies": 269,
+    "failures": 6,
+    "thoughts": 295,
+    "failureReasons": {
+      "group: orchestrator failed: Expected ',' or '}' after property valu": 2,
+      "reply: stopped: budget:maxToolCalls": 3,
+      "decide: no plan committed": 1
+    },
+    "thoughtLangs": {
+      "en": 293,
+      "it": 1
+    },
+    "recusals": 0,
+    "scoreMatches": 0,
+    "running": 1,
+    "webSearches": 10,
+    "webFetches": 0,
+    "webCached": 0,
+    "webRefused": 0,
+    "webCapped": 0,
+    "webErrors": 0,
+    "budgetMaxUsd": 3,
+    "budgetPaused": 1,
+    "runs": 663,
+    "tokens": {
+      "input": 15028634,
+      "output": 630738
+    },
+    "costUsd": {
+      "total": 3.005148,
+      "byModel": {
+        "anthropic/claude-haiku-5-5": 0.73072,
+        "anthropic/claude-sonnet-5-5": 2.274428
+      },
+      "byTier": {
+        "haiku": 0.65187,
+        "sonnet": 2.274428,
+        "group:orchestrator": 0.07885
+      }
+    },
+    "cache": {
+      "readTokens": 11734111,
+      "writeTokens": 3291151,
+      "write1hTokens": 0,
+      "hitRatio": 0.7808,
+      "savedUsd": 4.057294,
+      "byModel": {
+        "anthropic/claude-haiku-5-5": {
+          "readTokens": 9787261,
+          "writeTokens": 2774075,
+          "write1hTokens": 0,
+          "hitRatio": 0.779,
+          "savedUsd": 0.811502
+        },
+        "anthropic/claude-sonnet-5-5": {
+          "readTokens": 1946850,
+          "writeTokens": 517076,
+          "write1hTokens": 0,
+          "hitRatio": 0.79,
+          "savedUsd": 3.245792
+        }
+      },
+      "byTier": {
+        "haiku": {
+          "readTokens": 9050236,
+          "writeTokens": 2557192,
+          "write1hTokens": 0,
+          "hitRatio": 0.7795,
+          "savedUsd": 0.750591
+        },
+        "sonnet": {
+          "readTokens": 1946850,
+          "writeTokens": 517076,
+          "write1hTokens": 0,
+          "hitRatio": 0.79,
+          "savedUsd": 3.245792
+        },
+        "group:orchestrator": {
+          "readTokens": 737025,
+          "writeTokens": 216883,
+          "write1hTokens": 0,
+          "hitRatio": 0.7724,
+          "savedUsd": 0.06091
+        }
+      }
+    }
+  }
+}

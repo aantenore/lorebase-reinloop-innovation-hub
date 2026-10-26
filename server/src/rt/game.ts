@@ -155,6 +155,8 @@ export class Game {
       },
       day: () => this.world.day,
       researched: (who, ev) => this.onResearch(who, ev),
+      // The hosted search's model call, booked to the person who searched (it counts toward the budget).
+      searchUsage: (who, model, usage, costUsd) => this.usage.track({ id: `${who.id}:web`, name: `${who.name}/web_search`, model, tier: 'research' }, { status: 'completed', usage, costUsd }),
     }, this.t, cfg.models);
     this.observatoryView = new Observatory({
       client: this.client, mnemo: this.mnemo, branch: cfg.lorebase.branch, revision: () => this.revision, usage: this.usage,

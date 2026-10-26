@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { defineTool } from 'reinloop';
-import { domainsIn, excluded, normalizeFetchUrl, type ResearchConfig, ResearchDesk, type ResearchEvent } from './research.ts';
+import { domainsIn, excluded, hostedSearchCost, normalizeFetchUrl, type ResearchConfig, ResearchDesk, type ResearchEvent } from './research.ts';
 
 const cfg: ResearchConfig = {
   provider: 'tavily', maxResults: 5, maxResultsCap: 8, maxChars: 600, maxFetchChars: 6000, fetch: { mode: 'search-results-only', allowTtlMs: 60_000, allowMax: 3, maxUrlChars: 100 }, cacheTtlMs: 60_000, cacheMax: 10, anthropicTier: 'haiku',
@@ -108,4 +108,10 @@ test('research: a per-decision budget caps the web calls of one run, without spe
   assert.equal(f.calls(), 1);
   assert.equal(f.desk.stats.capped, 1);
   assert.equal(f.desk.stats.refused, 0);
+});
+
+test('research: a hosted search costs its tokens plus the per-search fee', () => {
+  const fee = hostedSearchCost('anthropic/claude-haiku-5-5', { inputTokens: 0, outputTokens: 0, serverToolUse: { webSearchRequests: 2 } });
+  assert.ok(Math.abs(fee - 0.02) < 1e-9, String(fee));
+  assert.ok(hostedSearchCost('anthropic/claude-haiku-5-5', { inputTokens: 1_000_000, outputTokens: 0, serverToolUse: { webSearchRequests: 1 } }) > 0.01);
 });
