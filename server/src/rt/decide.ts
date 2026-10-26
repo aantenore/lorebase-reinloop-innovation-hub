@@ -10,6 +10,8 @@ import type { Brain, ConsultEvent } from './brain.ts';
 import type { Tier } from '../world/types.ts';
 import { AGENT_PATTERNS, cacheParams, type GameConfig, type TierDecision } from './config.ts';
 import { flatSteps, mockSteps, needsOf } from './mock.ts';
+import { SIGNAL_TOOL } from './evidence.ts';
+import { mockSignalUrl } from './signals.ts';
 import type { TokenUsage } from './observatory.ts';
 import { MODEL_ACTIONS, normalizeStep, type PlanStep } from './plan.ts';
 import {
@@ -72,6 +74,8 @@ export interface DecideHost {
   ideas: IdeaDesk;
   /** Web research (web_search, web_fetch) under the company policies; undefined when off. */
   research?: { tools(who: { id: string; name: string }, budget?: { left: number }): Tool[] };
+  /** Public signals, evidence and simulated interviews (searches share the decision's web budget); undefined when off. */
+  evidence?: { tools(who: { id: string; name: string }, budget?: { left: number }): Tool[] };
 }
 
 /** What a person can do with ideas (tools); results are factual lines. */
@@ -96,6 +100,9 @@ export interface IdeaBrief {
   missing: string[];
   openByMe: number;
   maxOpen: number;
+  /** Pieces of evidence attached, and whether the candidacy requirements are met. */
+  evidence: number;
+  gatePass: boolean;
 }
 
 export interface PerceivedSociety {
@@ -116,11 +123,13 @@ export const isFailure = (v: unknown): v is Failure => !!v && typeof v === 'obje
 
 /** Lorebase read tools (bounded per decision) and the private memory of one person. */
 export function faculties(host: DecideHost, e: RtEntity, tc: Pick<TierDecision, 'maxConsults' | 'maxWebCalls'>): Tool[] {
+  const web = tc.maxWebCalls === undefined ? undefined : { left: tc.maxWebCalls };
   return [
     ...host.brain.lorebaseTools({ left: tc.maxConsults, onConsult: (ev) => host.consulted(e, ev) }),
     ...host.brain.memoryTools(e.name, () => ({ day: host.world().day, minute: host.world().minute }), host.cfg.memory.ingest.remember ?? { importance: 0.5, emotion: 0 }),
     // Web calls of one decision are bounded (tier `maxWebCalls`) so the run keeps turns to commit its plan.
-    ...(host.research?.tools(e, tc.maxWebCalls === undefined ? undefined : { left: tc.maxWebCalls }) ?? []),
+    ...(host.research?.tools(e, web) ?? []),
+    ...(host.evidence?.tools(e, web) ?? []),
   ];
 }
 
@@ -419,7 +428,17 @@ function mockIdeaCalls(host: DecideHost, e: RtEntity, roll: (salt: string) => nu
     for (let k = 0; k < m.ideaSeeds; k++) if (title.startsWith(t(`rt.mock.ideas.${k}.title`))) return k;
     return hashOf(title) % Math.max(1, m.ideaSeeds);
   };
-  const ready = briefs.find((b) => b.mine && b.stage === 'proposal' && b.reviews >= b.minReviewers);
+  // Evidence: a public signal on an open idea short of the requirements (the search, then the attachment of its
+  // first result), now and then a simulated interview.
+  const short = briefs.find((b) => !b.gatePass && ['concept', 'proposal'].includes(b.stage));
+  if (short && host.evidence && roll('evidence') < m.evidenceChance) {
+    const sources = host.cfg.evidence.signals.sources;
+    const source = sources[(hashOf(`${e.id}${short.code}`) + short.evidence) % sources.length]!;
+    calls.push({ name: SIGNAL_TOOL[source], args: { query: short.title } });
+    calls.push({ name: 'allega_prova', args: { idea: short.code, tipo: 'segnale_pubblico', url: mockSignalUrl(source, short.title, short.evidence % 3) } });
+    if (roll('interview') < m.interviewChance) calls.push({ name: 'intervista_simulata', args: { idea: short.code, persona: 'cliente', domande: [t('rt.mock.interviewQuestion')] } });
+  }
+  const ready = briefs.find((b) => b.mine && b.stage === 'proposal' && b.reviews >= b.minReviewers && b.gatePass);
   if (ready) calls.push({ name: 'candida_al_comitato', args: { code: ready.code } });
   const toReview = briefs.find((b) => !b.mine && !b.reviewedByMe && ['concept', 'proposal', 'pitch'].includes(b.stage));
   if (toReview && roll('review') < m.reviewChance) {
@@ -474,7 +493,7 @@ export async function decide(host: DecideHost, e: RtEntity, why: string, stop?: 
     name: e.id,
     model: modelRef(host, e.model, (req) => mockDecision(host, e, tc, req), cfg.mock.thinkDelayMs),
     params: { ...cfg.decisions.modelParams.plan, ...cacheParams(cfg), maxTokens: tc.maxOutputTokens },
-    instructions: rtInstructions(t, e, host.roleOf(e.role), { horizon }, !!host.research),
+    instructions: rtInstructions(t, e, host.roleOf(e.role), { horizon }, !!host.research, !!host.evidence),
     tools: [commit, ...socialTools(host, e), ...faculties(host, e, tc)],
     budget: { maxTurns: tc.maxTurns, maxToolCalls: tc.maxConsults + tc.maxTurns * 4 },
     toolSettings: { concurrency: 1 },
@@ -488,7 +507,9 @@ export async function decide(host: DecideHost, e: RtEntity, why: string, stop?: 
   for await (const ev of handle) if (ev.type === 'thinking_delta') thought += (ev.data as { text: string }).text;
   const res = await handle.result;
   host.ranModel(e, res);
-  if (thought.trim()) host.reasoned(e, thought.trim().slice(0, textMax));
+  // With thinking display `omitted` (config) the visible thought is the person's own Italian plan reason.
+  const shown = thought.trim() || committed?.reason.trim() || '';
+  if (shown) host.reasoned(e, shown.slice(0, textMax));
   if (committed) return committed;
   return { error: res.status === 'completed' ? 'no plan committed' : `${res.status}${res.reason ? `: ${res.reason}` : ''}` };
 }
@@ -530,7 +551,7 @@ export async function reply(host: DecideHost, e: RtEntity, speaker: RtEntity, on
     name: e.id,
     model: modelRef(host, e.model, mockReply, cfg.mock.replyDelayMs),
     params: { ...cfg.decisions.modelParams.reply, ...cacheParams(cfg), maxTokens: cfg.conversation.replyMaxOutputTokens },
-    instructions: `${rtInstructions(t, e, host.roleOf(e.role), { horizon: w.r('plan_horizon_minutes') * tc.horizonFactor }, !!host.research)}\n${t('rt.replyInstructions')}`,
+    instructions: `${rtInstructions(t, e, host.roleOf(e.role), { horizon: w.r('plan_horizon_minutes') * tc.horizonFactor }, !!host.research, !!host.evidence)}\n${t('rt.replyInstructions')}`,
     tools: [rethinkTool, ...lorebase],
     // Consultations, plus rethink and one refused extra call, then the answer.
     budget: { maxTurns: cfg.conversation.replyMaxTurns, maxToolCalls: consults + 2 },

@@ -215,7 +215,7 @@
       "plan": {
         "thinking": {
           "type": "adaptive",
-          "display": "summarized"
+          "display": "omitted"
         }
       },
       "reply": {
@@ -398,7 +398,9 @@
         "venture_lead",
         "critico"
       ]
-    }
+    },
+    "evidenceChance": 0.5,
+    "interviewChance": 0.2
   },
   "brain": {
     "mcpUrl": "http://127.0.0.1:8290/mcp",
@@ -662,6 +664,8 @@
     "enabled": true,
     "kind": "Idea",
     "reviewKind": "Review",
+    "evidenceKind": "Evidence",
+    "evidenceMax": 24,
     "writeOperation": "import_records",
     "branchPrefix": "idea/",
     "titleMaxChars": 90,
@@ -748,5 +752,56 @@
     "eventSnippetChars": 200,
     "recentMax": 10,
     "logMax": 1000
+  },
+  "evidence": {
+    "enabled": true,
+    "kind": "Evidence",
+    "titleMaxChars": 120,
+    "excerptMaxChars": 280,
+    "interviewMaxChars": 900,
+    "readMax": 8,
+    "signals": {
+      "sources": [
+        "hackernews",
+        "github",
+        "stackoverflow",
+        "arxiv"
+      ],
+      "maxResults": 5,
+      "maxResultsCap": 8,
+      "maxChars": 240,
+      "timeoutMs": 10000,
+      "cacheTtlMs": 3600000,
+      "cacheMax": 500,
+      "allowTtlMs": 7200000,
+      "allowMax": 120,
+      "maxUrlChars": 512,
+      "eventSnippetChars": 200
+    },
+    "interview": {
+      "tier": "haiku",
+      "maxOutputTokens": 700,
+      "questionsMax": 4,
+      "questionMaxChars": 200,
+      "timeoutMs": 45000
+    },
+    "validation": {
+      "commentMaxChars": 280
+    },
+    "policies": {
+      "signalsPerPerson": "segnali_pubblici_per_persona_al_giorno",
+      "signalsTotal": "segnali_pubblici_totali_al_giorno",
+      "interviewsPerPerson": "interviste_simulate_per_persona_al_giorno",
+      "interviewsTotal": "interviste_simulate_totali_al_giorno",
+      "weightPublicSignal": "peso_prova_segnale_pubblico",
+      "weightWebSource": "peso_prova_fonte_web",
+      "weightHuman": "peso_prova_validazione_umana",
+      "minReal": "requisiti_candidatura_prove_reali",
+      "minSources": "requisiti_candidatura_fonti_distinte",
+      "minHuman": "requisiti_candidatura_validazioni_umane",
+      "minScore": "requisiti_candidatura_punteggio_minimo",
+      "committeeWeight": "peso_prove_nel_punteggio_comitato",
+      "fullEvidence": "prove_per_punteggio_pieno"
+    }
   }
 }

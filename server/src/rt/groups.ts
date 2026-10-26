@@ -315,7 +315,7 @@ export class GroupManager {
   private instructionsOf(m: RtEntity, g: Group, withFaculties: boolean): string {
     const role = this.host.roleOf(m.role);
     const vars = { name: m.name, personality: m.personality || '-', roleTitle: role?.title ?? m.role, role: m.role, group: g.name };
-    return [this.t('rt.memberInstructions', vars), withFaculties ? this.t('rt.group.faculties') : '', withFaculties && this.host.research ? this.t('rt.webFaculty') : ''].filter(Boolean).join('\n');
+    return [this.t('rt.memberInstructions', vars), withFaculties ? this.t('rt.group.faculties') : '', withFaculties && this.host.research ? this.t('rt.webFaculty') : '', withFaculties && this.host.evidence ? this.t('rt.evidenceFaculty') : ''].filter(Boolean).join('\n');
   }
 
   /** The model tier a member uses in a capacity: its own when deciding, else `groups.memberTier` (when set). */

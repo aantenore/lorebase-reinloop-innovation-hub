@@ -8,7 +8,7 @@ import {
 } from './ideas.ts';
 
 const cfg: IdeasConfig = {
-  enabled: true, kind: 'Idea', reviewKind: 'Review', writeOperation: 'import_records', branchPrefix: 'idea/', titleMaxChars: 90, textMaxChars: 500, tagsMax: 6,
+  enabled: true, kind: 'Idea', reviewKind: 'Review', evidenceKind: 'Evidence', evidenceMax: 3, writeOperation: 'import_records', branchPrefix: 'idea/', titleMaxChars: 90, textMaxChars: 500, tagsMax: 6,
   tagMaxChars: 30, historyMax: 30, commentMaxChars: 280, perceiveMax: 6, signalsMax: 3, sourcesMax: 2, sourceTitleMaxChars: 20, retries: 0, retryBaseMs: 1, committee: { groupName: 'Comitato', maxPerSession: 3 },
   policies: { conflictOfInterest: 'astensione_conflitto_interessi', independentReviews: 'revisioni_indipendenti' },
 };
@@ -137,4 +137,28 @@ test('conflicts, review visibility and copied scores are facts on the idea', asy
   assert.ok(typeof out !== 'string');
   assert.deepEqual(out.decision!.recused, ['Livia', 'Matteo']);
   assert.deepEqual(out.history.slice(-2).map((h) => h.action), ['recused', 'deferred']);
+});
+
+test('evidence: written on the idea branch, one per URL, a validation per person and role, the gate refuses with its reason', async () => {
+  const { client, calls } = fakeClient();
+  const events: string[] = [];
+  const book = new IdeaBook(client, 'main', cfg, 's1', { changed: (i, a) => events.push(`${a}:${i.evidence.length}`) });
+  const idea = await book.create('Livia', { title: 'Prove', ...full }, { at, quarter: 'Q1', signals: [], maxOpen: 3 });
+  assert.ok(typeof idea !== 'string');
+  const base = { source: 'hackernews' as const, title: 't', metric: 10, metric_name: 'points', excerpt: '', collected_by: 'Dario', collected_at: at, weight: 1, label: '' };
+  const ev = book.addEvidence(idea.code, { ...base, type: 'public_signal', url: 'https://news.ycombinator.com/item?id=1' });
+  assert.ok(typeof ev !== 'string' && ev.idea === idea.code);
+  assert.equal(book.addEvidence(idea.code, { ...base, type: 'public_signal', url: 'https://news.ycombinator.com/item?id=1' }), 'duplicate_evidence');
+  const v = { ...base, type: 'human_validation' as const, source: 'player' as const, url: '', collected_by: 'Antonio', role: 'cliente', weight: 2 };
+  book.addEvidence(idea.code, { ...v, verdict: 'neutro' });
+  book.addEvidence(idea.code, { ...v, verdict: 'positivo' });
+  assert.deepEqual(book.get(idea.code)!.evidence.map((e) => e.verdict ?? ''), ['', 'positivo']);
+  book.review(idea.code, 'Dario', { impact: 8, feasibility: 6, novelty: 7, fit: 8, risk: 3 }, 'bene', at);
+  book.review(idea.code, 'Sara', { impact: 6, feasibility: 6, novelty: 5, fit: 7, risk: 4 }, 'ok', at);
+  assert.equal(await book.submit(idea.code, 'Livia', { at, clock: 0, minReviewers: 2, gate: () => 'prove reali 1 di 3' }), 'prove reali 1 di 3');
+  const pitched = await book.submit(idea.code, 'Livia', { at, clock: 0, minReviewers: 2, gate: () => undefined });
+  assert.ok(typeof pitched !== 'string' && pitched.stage === 'pitch');
+  await book.settle();
+  assert.ok(calls.some((c) => c.startsWith('import_records Evidence @idea/')));
+  assert.ok(events.includes('evidence:1'));
 });

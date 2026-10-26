@@ -420,6 +420,72 @@ kinds:
         description: Minute of the day.
         type: integer
 
+  Evidence:
+    description: A piece of evidence behind an idea, written on the idea's branch (reaches main with the idea when approved). Simulated interviews always weigh 0 and are labelled as hypothesis.
+    primary_key: [code]
+    title_attribute: title
+    attributes:
+      code:
+        description: Idea code and a suffix, minted by the world.
+        type: string
+        required: true
+      idea:
+        description: Code of the idea it supports.
+        type: string
+        required: true
+        indexed: true
+      type:
+        description: Kind of evidence.
+        type: {enum: [public_signal, human_validation, simulated_interview, web_source]}
+        required: true
+        indexed: true
+      source:
+        description: Where it comes from.
+        type: {enum: [hackernews, github, stackoverflow, arxiv, web, player, persona]}
+        required: true
+        indexed: true
+      url:
+        description: Link to the source (empty for validations and interviews).
+        type: string
+      title:
+        description: Title of the result or of the validation.
+        type: string
+        required: true
+        searchable: true
+      metric:
+        description: Size of the signal at the source (points, stars, votes).
+        type: decimal(14,2)
+      metric_name:
+        description: Name of the metric (points, stars, votes).
+        type: string
+      excerpt:
+        description: Short excerpt, comment or simulated answers.
+        type: text
+        searchable: true
+      collected_by:
+        description: Name of who collected it (a person of the hub or a player).
+        type: string
+        indexed: true
+      collected_at:
+        description: When, in game time ({day, minute}).
+        type: json
+      weight:
+        description: Weight from the policies when collected (0 for simulated interviews).
+        type: decimal(8,3)
+        required: true
+      label:
+        description: "ipotesi for simulated interviews, empty otherwise."
+        type: string
+      role:
+        description: Role spoken for in validations and interviews (cliente, dpo, utente).
+        type: string
+      verdict:
+        description: Verdict of a human validation (positivo, neutro, negativo).
+        type: string
+      session:
+        description: Id of the world run in which it was collected.
+        type: string
+
   Recipe:
     description: A work method that turns signals and artifacts into other artifacts; known only once its breakthrough is made (when it has one).
     primary_key: [code]

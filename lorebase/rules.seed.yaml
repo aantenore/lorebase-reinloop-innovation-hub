@@ -504,6 +504,71 @@ rules:
     unit: "policy"
     category: ideas
     text: "Con valore 1, chi non è autore di un'idea legge punteggi e commenti delle altre valutazioni solo dopo aver dato la propria. Con 0 sono visibili a tutti."
+  - code: segnali_pubblici_per_persona_al_giorno
+    value: 10
+    unit: "ricerche"
+    category: ideas
+    text: "Ricerche di segnali pubblici (discussioni, progetti, domande, paper) che una persona può fare in un giorno."
+  - code: segnali_pubblici_totali_al_giorno
+    value: 60
+    unit: "ricerche"
+    category: ideas
+    text: "Ricerche di segnali pubblici che l'intero hub può fare in un giorno."
+  - code: interviste_simulate_per_persona_al_giorno
+    value: 2
+    unit: "interviste"
+    category: ideas
+    text: "Interviste simulate che una persona può condurre in un giorno. Le risposte sono ipotesi generate, non prove."
+  - code: interviste_simulate_totali_al_giorno
+    value: 10
+    unit: "interviste"
+    category: ideas
+    text: "Interviste simulate che l'intero hub può condurre in un giorno."
+  - code: peso_prova_segnale_pubblico
+    value: 1
+    unit: "peso"
+    category: ideas
+    text: "Peso di una prova tratta da un segnale pubblico (discussione, progetto, domanda, paper) allegata a un'idea."
+  - code: peso_prova_fonte_web
+    value: 0.5
+    unit: "peso"
+    category: ideas
+    text: "Peso di una prova tratta da una pagina web allegata a un'idea."
+  - code: peso_prova_validazione_umana
+    value: 2
+    unit: "peso"
+    category: ideas
+    text: "Peso di una validazione data da una persona reale (giocatore) come cliente, DPO o utente. Le interviste simulate pesano sempre 0."
+  - code: requisiti_candidatura_prove_reali
+    value: 3
+    unit: "prove"
+    category: ideas
+    text: "Requisiti di candidatura: un'idea va al comitato solo con almeno questo numero di prove reali (segnali pubblici, fonti web, validazioni umane; le interviste simulate non contano)."
+  - code: requisiti_candidatura_fonti_distinte
+    value: 2
+    unit: "fonti"
+    category: ideas
+    text: "Requisiti di candidatura: le prove reali devono venire da almeno questo numero di fonti distinte (per esempio Hacker News, GitHub, Stack Overflow, arXiv, web, giocatore)."
+  - code: requisiti_candidatura_validazioni_umane
+    value: 1
+    unit: "validazioni"
+    category: ideas
+    text: "Requisiti di candidatura, in alternativa ai due precedenti: bastano almeno queste validazioni umane. Con 0 questa strada non esiste."
+  - code: requisiti_candidatura_punteggio_minimo
+    value: 0
+    unit: "punti"
+    category: ideas
+    text: "Requisiti di candidatura: punteggio pesato minimo delle valutazioni (0-10). Con 0 non si applica."
+  - code: peso_prove_nel_punteggio_comitato
+    value: 0.3
+    unit: "peso"
+    category: ideas
+    text: "Nel punteggio che il comitato legge, quota data alle prove (0-1); il resto è il punteggio pesato delle valutazioni."
+  - code: prove_per_punteggio_pieno
+    value: 6
+    unit: "peso"
+    category: ideas
+    text: "Somma dei pesi delle prove reali che vale il punteggio pieno delle prove (10)."
 
 roles:
   - code: ricercatore

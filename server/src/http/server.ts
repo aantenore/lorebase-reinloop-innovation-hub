@@ -42,6 +42,7 @@ export interface HttpHost {
   /** Ideas (filters stage, tag, author), one idea, the markdown portfolio, the company. */
   ideaList?(f: { stage?: string; tag?: string; author?: string }): unknown[];
   ideaView?(code: string): unknown | undefined;
+  validateIdea?(code: string, body: Record<string, unknown>): { ok: true; evidence: unknown } | { ok: false; status: number; error: string };
   ideasExport?(): string;
   companyView?(): unknown;
   /** Web research of the run (titles and URLs only). */
@@ -221,6 +222,12 @@ export function createHttpServer(sim: HttpHost): Server {
         if (!sim.ideasExport) return unsupported();
         res.writeHead(200, { 'Content-Type': 'text/markdown; charset=utf-8' });
         return void res.end(sim.ideasExport());
+      }
+      const validation = method === 'POST' ? /^\/api\/ideas\/([^/]+)\/validation$/.exec(path) : null;
+      if (validation) {
+        if (!sim.validateIdea) return unsupported();
+        const out = sim.validateIdea(decodeURIComponent(validation[1]!), (await readBody(req)) as Record<string, unknown>);
+        return out.ok ? send(res, 200, out) : send(res, out.status, out);
       }
       const ideaCode = method === 'GET' ? /^\/api\/ideas\/([^/]+)$/.exec(path) : null;
       if (ideaCode) {

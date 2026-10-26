@@ -23,7 +23,8 @@
     "game:server": "node server/src/game-main.ts",
     "mnemo": "node services/mnemo/src/main.ts",
     "reinloop:pin": "bash scripts/reinloop-pin.sh",
-    "world:reset": "node scripts/world-reset.ts"
+    "world:reset": "node scripts/world-reset.ts",
+    "idea:validate": "node scripts/validate-idea.ts"
   },
   "dependencies": {
     "reinloop": "file:vendor/reinloop-474f0b5c.tgz",

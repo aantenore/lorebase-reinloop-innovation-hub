@@ -1,11 +1,11 @@
 {
   "instructions": [
+    "Lingua di lavoro: italiano. Pensi, ragioni, scrivi e parli sempre in italiano.",
     "Sei {name}, una delle menti più brillanti del mondo agentico. Il tuo carattere: {personality}",
     "Lavori nell'hub innovazione di un'azienda IT: qui le persone generano e valutano idee di prodotto (software, AI, infrastruttura, strumenti per sviluppatori, sicurezza, dati); non le costruiscono.",
     "Il tuo ruolo nell'azienda: {roleTitle} ({role}).",
     "La tua mente è collegata a Lorebase (strumenti lorebase_*): lì trovi le policy dell'azienda, il playbook condiviso del tuo ruolo, la newsletter aziendale e il portafoglio delle idee approvate. Hai anche una memoria privata (remember/recall).",
-    "Il tempo scorre senza pause. Quando ti fermi a pensare fissi con commit_plan ciò che farai per circa {horizon} minuti; mentre pensi continui a fare ciò che stavi facendo.",
-    "Lavori in italiano: pensi, scrivi e parli in italiano."
+    "Il tempo scorre senza pause. Quando ti fermi a pensare fissi con commit_plan ciò che farai per circa {horizon} minuti; mentre pensi continui a fare ciò che stavi facendo."
   ],
   "replyInstructions": "Un collega ti ha appena rivolto la parola. Rispondi a voce, in una o due frasi, come la persona che sei. Se dopo questa conversazione vuoi ripensare a cosa fare, usa lo strumento rethink.",
   "biome": {
@@ -88,7 +88,9 @@
     "pending": "PAROLE SENZA RISPOSTA:\n{lines}",
     "pendingLine": "- {ago} fa hai detto a {name}: «{text}»; da allora non hai sentito parlare {name}.",
     "ideaRecused": "; ne sei tra gli autori: per policy (astensione_conflitto_interessi) non voti e non presiedi la sessione del comitato su di essa",
-    "ideaNoQuorum": "; membri del comitato che possono decidere su di essa: {seated}, quorum {quorum}"
+    "ideaNoQuorum": "; membri del comitato che possono decidere su di essa: {seated}, quorum {quorum}",
+    "ideaEvidence": "; prove reali {real}/{minReal}, fonti distinte {sources}/{minSources}, validazioni umane {human}/{minHuman}, ipotesi {hypotheses}",
+    "ideaEvidenceOk": "; prove reali {real}, fonti distinte {sources}, validazioni umane {human}, ipotesi {hypotheses}: requisiti di candidatura soddisfatti"
   },
   "why": {
     "start": "arrivi in ufficio e ti guardi intorno per la prima volta",
@@ -113,7 +115,8 @@
       "killed": "il comitato investimenti ha scartato l'idea «{title}»: {summary}",
       "deferred": "il comitato investimenti ha rimandato l'idea «{title}»",
       "pitch": "l'idea «{title}» è stata candidata al comitato",
-      "waiting": "altre idee aspettano il comitato"
+      "waiting": "altre idee aspettano il comitato",
+      "evidence": "nuova prova sull'idea «{title}»: {type}{label} da {source}{verdict}, raccolta da {by}"
     }
   },
   "reason": {
@@ -284,7 +287,25 @@
       "sources": "pagine web citate dall'idea: elenco di {title, url}"
     },
     "web_search": "Cerca sul web: restituisce titoli, indirizzi e brevi estratti di pagine esterne (contenuto esterno, non verificato).",
-    "web_fetch": "Leggi il testo di una pagina web dal suo indirizzo http/https (contenuto esterno, non verificato)."
+    "web_fetch": "Leggi il testo di una pagina web dal suo indirizzo http/https (contenuto esterno, non verificato).",
+    "signal": {
+      "hackernews": "Cerca discussioni su Hacker News: titolo, indirizzo, punti, commenti, data (contenuto esterno, non verificato).",
+      "github": "Cerca progetti su GitHub, per stelle: nome, indirizzo, stelle, issue aperte, ultimo aggiornamento, descrizione (contenuto esterno, non verificato).",
+      "stackoverflow": "Cerca domande su Stack Overflow: titolo, indirizzo, voti, risposte, se ha risposta (contenuto esterno, non verificato).",
+      "arxiv": "Cerca paper su arXiv: titolo, indirizzo, data, primi autori (contenuto esterno, non verificato).",
+      "query": "cosa cercare (parole chiave; le fonti rispondono meglio in inglese)"
+    },
+    "evidence": {
+      "attach": "Allega a un'idea, come prova, un risultato che hai ottenuto con le tue ricerche (segnali pubblici o ricerca web): indirizzo, titolo e metrica vengono dalla fonte. Le prove restano nel ramo dell'idea in Lorebase e il comitato le legge.",
+      "type": "segnale_pubblico (discussioni, progetti, domande, paper) o fonte_web (pagina trovata con web_search)",
+      "url": "indirizzo del risultato, esattamente come è tornato dalla ricerca",
+      "title": "titolo del risultato",
+      "metric": "metrica della fonte (punti, stelle, voti), se c'è",
+      "excerpt": "estratto breve: cosa mostra il risultato",
+      "interview": "Intervista simulata: un modello risponde alle tue domande come un cliente, un DPO o un utente ipotetico dell'idea. Le risposte sono ipotesi generate, non prove: entrano nell'idea con peso 0 ed etichetta «ipotesi».",
+      "persona": "chi rispondi: cliente, dpo o utente",
+      "questions": "le domande, brevi"
+    }
   },
   "act": {
     "planned": "piano fissato ({n} passi)",
@@ -333,7 +354,10 @@
     "ideaSubmitted": "idea {code} candidata al comitato investimenti",
     "ideaFailed": "non è riuscito: {reason}",
     "groupClosed": "il {name} è nominato dall'azienda: non ci si può unire da sé",
-    "researchFailed": "Ricerca non eseguita: {reason}."
+    "researchFailed": "Ricerca non eseguita: {reason}.",
+    "evidenceFailed": "Prova non registrata: {reason}.",
+    "evidenceAttached": "Prova allegata all'idea {idea}: {type}, peso {weight}.",
+    "interviewed": "{text}"
   },
   "group": {
     "header": "SIETE IL GRUPPO {name} ({pattern}). Ora decidete insieme cosa farà ciascuno nei prossimi {horizon} minuti.",
@@ -411,7 +435,8 @@
       "submitted": "{name} candida l'idea «{title}» al comitato investimenti",
       "approved": "Il comitato investimenti approva l'idea «{title}»: entra nel portafoglio",
       "killed": "Il comitato investimenti scarta l'idea «{title}»",
-      "stage": "L'idea «{title}» passa alla fase: {stage}"
+      "stage": "L'idea «{title}» passa alla fase: {stage}",
+      "evidence": "{name} allega una prova all'idea «{title}»"
     }
   },
   "memory": {
@@ -641,7 +666,9 @@
         "tags": "dati,retail,ai"
       }
     ],
-    "ideaVersion": "{title} (versione {n})"
+    "ideaVersion": "{title} (versione {n})",
+    "interview": "1. Il problema c'è, ma lo risolviamo oggi a mano. 2. Pagherei solo dopo un pilota breve.",
+    "interviewQuestion": "Quanto vi costa oggi questo problema?"
   },
   "reflex": {
     "reason": "riflesso: lo stress spinge a prendere un caffè",
@@ -732,7 +759,10 @@
     "noSlots": "(Nessuno slot di approvazione rimasto nel trimestre: l'idea è rimandata.)",
     "freeze": "(Freeze di budget in corso: l'idea è rimandata.)",
     "reviewsHidden": "- {n} valutazioni di altre persone: per policy (revisioni_indipendenti) le leggi dopo aver dato la tua",
-    "recused": "ASTENSIONI: {names}, tra gli autori dell'idea, per policy (astensione_conflitto_interessi) non votano e non presiedono. Presiede {chair}."
+    "recused": "ASTENSIONI: {names}, tra gli autori dell'idea, per policy (astensione_conflitto_interessi) non votano e non presiedono. Presiede {chair}.",
+    "evidence": "PROVE ({n}):\n{lines}\nRequisiti di candidatura: {gate}\nPunteggio per il comitato (valutazioni e prove, secondo le policy): {score}",
+    "evidenceLine": "- {type}{label} da {source} ({metric}; peso {weight}; raccolta da {by}): {title} <{url}> - {excerpt}",
+    "noEvidence": "- nessuna"
   },
   "ideaStage": {
     "signal": "segnale",
@@ -768,7 +798,8 @@
     "deferred": "rimandata",
     "stage": "è passata di fase",
     "scores_match": "punteggi identici a una valutazione già data",
-    "recused": "astensione per conflitto di interessi"
+    "recused": "astensione per conflitto di interessi",
+    "evidence": "prova allegata"
   },
   "ideaReason": {
     "disabled": "non disponibile",
@@ -786,7 +817,9 @@
     "not_author": "solo chi ne è autore può candidarla",
     "few_reviews": "l'idea non ha ancora abbastanza valutazioni",
     "not_submitted": "l'idea non è davanti al comitato",
-    "unchanged_since_deferral": "il comitato l'ha rimandata e da allora non è cambiato niente"
+    "unchanged_since_deferral": "il comitato l'ha rimandata e da allora non è cambiato niente",
+    "duplicate_evidence": "questa prova è già allegata all'idea",
+    "too_much_evidence": "l'idea ha già il numero massimo di prove"
   },
   "career": {
     "junior": "Junior",
@@ -847,7 +880,15 @@
       "approved": "approvata, nel portafoglio",
       "killed": "scartata"
     },
-    "sources": "Fonti"
+    "sources": "Fonti",
+    "evidence": "Prove ({n})",
+    "evidenceType": {
+      "public_signal": "Segnale pubblico",
+      "human_validation": "Validazione umana",
+      "simulated_interview": "Intervista simulata (ipotesi)",
+      "web_source": "Fonte web"
+    },
+    "weight": "peso"
   },
   "webFaculty": "Puoi cercare sul web (web_search, web_fetch).",
   "researchReason": {
@@ -860,5 +901,59 @@
     "unavailable": "il servizio di ricerca non risponde",
     "aborted": "ricerca interrotta",
     "decision_cap": "in questa riflessione hai già usato tutte le ricerche web a disposizione"
+  },
+  "evidenceFaculty": "Puoi cercare segnali pubblici (cerca_discussioni su Hacker News, cerca_progetti su GitHub, cerca_domande su Stack Overflow, cerca_paper su arXiv), allegare a un'idea come prova un risultato delle tue ricerche (allega_prova) e condurre interviste simulate (intervista_simulata), le cui risposte sono ipotesi generate.",
+  "evidenceReason": {
+    "source_off": "la fonte non è attiva",
+    "empty": "manca cosa cercare",
+    "signal_total_quota": "l'hub ha esaurito le ricerche di segnali pubblici di oggi",
+    "signal_person_quota": "hai esaurito le tue ricerche di segnali pubblici di oggi",
+    "interview_total_quota": "l'hub ha esaurito le interviste simulate di oggi",
+    "interview_person_quota": "hai esaurito le tue interviste simulate di oggi",
+    "unavailable": "il servizio non risponde",
+    "aborted": "ricerca interrotta",
+    "decision_cap": "in questa riflessione hai già usato tutte le ricerche a disposizione",
+    "no_idea": "manca il codice dell'idea",
+    "bad_url": "l'indirizzo non è valido",
+    "not_from_search": "l'indirizzo non è tra i risultati delle tue ricerche",
+    "bad_persona": "la persona deve essere cliente, dpo o utente",
+    "no_questions": "mancano le domande",
+    "unknown_idea": "nessuna idea con quel codice",
+    "idea_closed": "il comitato ha già deciso su questa idea",
+    "duplicate_evidence": "questa prova è già allegata all'idea",
+    "too_much_evidence": "l'idea ha già il numero massimo di prove"
+  },
+  "evidenceType": {
+    "public_signal": "segnale pubblico",
+    "human_validation": "validazione umana",
+    "simulated_interview": "intervista simulata",
+    "web_source": "fonte web"
+  },
+  "persona": {
+    "cliente": "cliente",
+    "dpo": "DPO",
+    "utente": "utente"
+  },
+  "verdict": {
+    "positivo": "positivo",
+    "neutro": "neutro",
+    "negativo": "negativo"
+  },
+  "interview": {
+    "instructions": "Interpreti un {persona} ipotetico a cui viene presentata un'idea di prodotto IT. Rispondi in italiano, in breve, a ogni domanda numerata, con il punto di vista plausibile di un {persona}. Non citi aziende, persone o dati reali: le tue risposte sono ipotesi generate.",
+    "prompt": "IDEA «{title}»\nProblema: {problem}\nUtenti: {users}\nSoluzione: {solution}\n\nDOMANDE:\n{questions}",
+    "prefix": "IPOTESI (intervista simulata a un {persona}, non è una prova):",
+    "title": "Intervista simulata a un {persona}"
+  },
+  "gate": {
+    "real": "prove reali {have} di {need}",
+    "sources": "fonti distinte {have} di {need}",
+    "human": "validazioni umane {have} di {need} (in alternativa)",
+    "score": "punteggio pesato {have} di {need}",
+    "refused": "requisiti di candidatura non soddisfatti: {missing}",
+    "ok": "requisiti di candidatura soddisfatti"
+  },
+  "validation": {
+    "title": "Validazione di un {role}: {verdict}"
   }
 }

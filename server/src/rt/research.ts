@@ -61,6 +61,8 @@ export interface ResearchHost {
   /** Day of the world (quotas are per day). */
   day(): number;
   researched(who: { id: string; name: string }, ev: ResearchEvent): void;
+  /** The results a person's search returned (title, URL, snippet): they may become evidence. */
+  found?(who: { id: string; name: string }, results: Array<{ title: string; url: string; snippet: string }>): void;
   /**
    * `anthropic-native` only: the hosted search's own model call (tokens and per-search fee), booked to the person
    * who searched; its cost is not part of that person's run.
@@ -298,7 +300,10 @@ export class ResearchDesk {
     const all = Array.isArray(body.results) ? (body.results as Array<Record<string, unknown>>) : [];
     const results = all.filter((r) => !excluded(String(r.url ?? ''), domains));
     if (Array.isArray(body.results)) body.results = results;
-    if (kind === 'web_search') this.allow(who.id, results.map((r) => String(r.url ?? '')));
+    if (kind === 'web_search') {
+      this.allow(who.id, results.map((r) => String(r.url ?? '')));
+      this.host.found?.(who, results.map((r) => ({ title: String(r.title ?? ''), url: String(r.url ?? ''), snippet: String(r.snippet ?? '') })));
+    }
     const cut = (s: unknown) => String(s ?? '').replace(/\s+/g, ' ').slice(0, this.cfg.eventSnippetChars);
     this.host.researched(who, {
       tool: kind,

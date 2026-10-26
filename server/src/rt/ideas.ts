@@ -8,6 +8,7 @@
 // (no review of one's own idea, one review per person) are enforced here.
 import { randomUUID } from 'node:crypto';
 import { type LorebaseClient, LorebaseError, type RecordItem } from '../lorebase/client.ts';
+import { type Evidence, evidenceFromRecord, evidenceRow } from './evidence.ts';
 
 export const IDEA_STAGES = ['signal', 'insight', 'concept', 'proposal', 'pitch', 'approved', 'killed'] as const;
 export type IdeaStage = (typeof IDEA_STAGES)[number];
@@ -17,7 +18,7 @@ export type Scores = Record<ScoreKey, number>;
 /** Text fields of an idea besides the title, in the order they make it complete. */
 export const IDEA_FIELDS = ['problem', 'users', 'solution', 'differentiation', 'feasibility', 'risks'] as const;
 export type IdeaField = (typeof IDEA_FIELDS)[number];
-export type IdeaAction = 'created' | 'updated' | 'reviewed' | 'submitted' | 'approved' | 'killed' | 'stage';
+export type IdeaAction = 'created' | 'updated' | 'reviewed' | 'submitted' | 'approved' | 'killed' | 'stage' | 'evidence';
 export type CommitteeDecision = 'approve' | 'kill' | 'defer';
 
 export interface At {
@@ -73,6 +74,8 @@ export interface Idea {
   signals: string[];
   /** Web pages its authors cite (title and http/https URL). */
   sources: IdeaSource[];
+  /** Evidence behind it (Evidence Records on its branch), oldest first. */
+  evidence: Evidence[];
   /** The committee's last word on it (`recused`: members who abstained for a conflict of interest, names). */
   decision: { decision: CommitteeDecision; summary: string; at: At; votes: CommitteeVote[]; recused?: string[] } | null;
 }
@@ -86,6 +89,10 @@ export interface IdeasConfig {
   enabled: boolean;
   kind: string;
   reviewKind: string;
+  /** Kind of the evidence Records (written on the idea's branch). */
+  evidenceKind: string;
+  /** Pieces of evidence one idea keeps. */
+  evidenceMax: number;
   /** Built-in upsert Operation used for every write (`import_records`). */
   writeOperation: string;
   branchPrefix: string;
@@ -263,7 +270,7 @@ export function ideaFromRecord(r: Pick<RecordItem, 'key' | 'values'>): Idea {
     champion: v.champion ? String(v.champion) : null, authors: json<string[]>(v.authors, []),
     scores: SCORE_KEYS.every((k) => typeof scores[k] === 'number') ? (scores as Scores) : null, reviews: [], branch: String(v.branch ?? ''),
     proposalId: v.proposal_id ? String(v.proposal_id) : null, quarter: String(v.quarter ?? ''), history: json<IdeaEvent[]>(v.history, []),
-    signals: json<string[]>(v.signals, []), sources: json<IdeaSource[]>(v.sources, []), decision: decision && 'decision' in decision ? (decision as Idea['decision']) : null,
+    signals: json<string[]>(v.signals, []), sources: json<IdeaSource[]>(v.sources, []), evidence: [], decision: decision && 'decision' in decision ? (decision as Idea['decision']) : null,
   };
 }
 
@@ -336,16 +343,18 @@ export class IdeaBook {
   }
 
   /** Queues a write of the idea's full state (and, optionally, one review) on its branch. */
-  private persist(i: Idea, review?: IdeaReview, after?: () => Promise<void>): Promise<void> {
+  private persist(i: Idea, review?: IdeaReview, after?: () => Promise<void>, evidence?: Evidence): Promise<void> {
     const row = ideaRow(i, this.session);
     const reviewRow = review && {
       code: `${i.code}--${slug(review.by)}`, idea: i.code, reviewer: review.by, ...review.scores, comment: review.comment, day: review.at.day, minute: Math.floor(review.at.minute),
     };
+    const evidenceRec = evidence && evidenceRow(evidence, this.session);
     const prev = this.chains.get(i.code) ?? Promise.resolve();
     const next = prev.then(async () => {
       try {
         await this.retry(() => this.client.execute(this.cfg.writeOperation, { kind: this.cfg.kind, rows: [row] }, { branch: i.branch, message: `Idea ${i.code}: ${i.stage}`, idempotencyKey: randomUUID() }));
         if (reviewRow) await this.retry(() => this.client.execute(this.cfg.writeOperation, { kind: this.cfg.reviewKind, rows: [reviewRow] }, { branch: i.branch, message: `Review of ${i.code} by ${review!.by}`, idempotencyKey: randomUUID() }));
+        if (evidenceRec) await this.retry(() => this.client.execute(this.cfg.writeOperation, { kind: this.cfg.evidenceKind, rows: [evidenceRec] }, { branch: i.branch, message: `Evidence for ${i.code}: ${evidence!.type} by ${evidence!.collected_by}`, idempotencyKey: randomUUID() }));
         if (after) await this.retry(after);
         this.writes++;
         this.lastError = undefined;
@@ -391,7 +400,7 @@ export class IdeaBook {
     const idea: Idea = {
       code, title, ...fields, tags: tagsFrom(input.tags, this.cfg.tagsMax, this.cfg.tagMaxChars), stage: stageFromFields(fields), champion: author, authors: [author],
       scores: null, reviews: [], branch: `${this.cfg.branchPrefix}${code}`, proposalId: null, quarter: ctx.quarter, history: [], signals: ctx.signals.slice(0, this.cfg.signalsMax),
-      sources: sourcesFrom(input.sources, this.cfg.sourcesMax, this.cfg.sourceTitleMaxChars), decision: null,
+      sources: sourcesFrom(input.sources, this.cfg.sourcesMax, this.cfg.sourceTitleMaxChars), evidence: [], decision: null,
     };
     this.note(idea, ctx.at, author, 'created');
     try {
@@ -466,8 +475,29 @@ export class IdeaBook {
     return i;
   }
 
+  /**
+   * A piece of evidence for an idea (anyone may bring it; the idea must not be decided). The same URL, or the same
+   * person speaking for the same role, is kept once: a new validation replaces the old one. Returns it or an error code.
+   */
+  addEvidence(code: string, ev: Omit<Evidence, 'code' | 'idea'>): Evidence | string {
+    const i = this.get(code);
+    if (!i) return 'unknown_idea';
+    if (isClosed(i)) return 'idea_closed';
+    if (ev.url && i.evidence.some((x) => x.url === ev.url)) return 'duplicate_evidence';
+    const same = (x: Evidence) => ev.type === 'human_validation' && x.type === 'human_validation' && x.collected_by === ev.collected_by && x.role === ev.role;
+    const kept = i.evidence.filter((x) => !same(x));
+    if (kept.length >= this.cfg.evidenceMax) return 'too_much_evidence';
+    const prev = i.evidence.find(same);
+    const e: Evidence = { ...ev, idea: i.code, code: prev?.code ?? `${i.code}--ev${(++this.seq).toString(36)}${Date.now().toString(36).slice(-3)}` };
+    i.evidence = [...kept, e];
+    this.note(i, ev.collected_at, ev.collected_by, 'evidence', `${ev.type}: ${ev.title}`);
+    void this.persist(i, undefined, undefined, e);
+    this.events.changed(i, 'evidence', ev.collected_by);
+    return e;
+  }
+
   /** Puts a complete, reviewed idea before the committee: opens its Proposal into main. */
-  async submit(code: string, by: string, ctx: { at: At; clock: number; minReviewers: number }): Promise<Idea | string> {
+  async submit(code: string, by: string, ctx: { at: At; clock: number; minReviewers: number; gate?: (i: Idea) => string | undefined }): Promise<Idea | string> {
     const i = this.get(code);
     if (!i) return 'unknown_idea';
     if (i.stage === 'pitch') return 'already_submitted';
@@ -477,6 +507,9 @@ export class IdeaBook {
     if (i.reviews.length < ctx.minReviewers) return 'few_reviews';
     // A deferred idea goes back only after something changed (a field or a review).
     if (i.history.at(-1)?.action === 'deferred') return 'unchanged_since_deferral';
+    // Policy requisiti_candidatura_*: the evidence the idea must carry (the reason says what is missing).
+    const gate = ctx.gate?.(i);
+    if (gate) return gate;
     await (this.chains.get(i.code) ?? Promise.resolve());
     if (!i.proposalId) {
       try {
@@ -555,6 +588,14 @@ export class IdeaBook {
       out.portfolio++;
     }
     attach(await read(this.cfg.reviewKind, this.main));
+    const attachEvidence = (items: RecordItem[]) => {
+      for (const r of items) {
+        const ev = evidenceFromRecord(r.values);
+        const i = this.ideas.get(ev.idea);
+        if (i && !i.evidence.some((x) => x.code === ev.code)) i.evidence.push(ev);
+      }
+    };
+    attachEvidence(await read(this.cfg.evidenceKind, this.main));
     const open = await this.client.listProposals('open').catch(() => []);
     for (const b of await this.client.listBranches().catch(() => [])) {
       if (!b.name.startsWith(this.cfg.branchPrefix)) continue;
@@ -566,6 +607,7 @@ export class IdeaBook {
       if (i.stage === 'pitch' && !i.proposalId) i.stage = 'proposal';
       this.ideas.set(i.code, i);
       attach((await read(this.cfg.reviewKind, b.name)).filter((r) => String(r.values.idea) === i.code));
+      attachEvidence((await read(this.cfg.evidenceKind, b.name)).filter((r) => String(r.values.idea) === i.code));
       out.pipeline++;
     }
     for (const i of this.ideas.values()) {
@@ -593,6 +635,14 @@ export function exportMarkdown(ideas: Idea[], l: ExportLabel, weights: Scores, c
     }
     for (const r of i.reviews) lines.push(`  - ${r.by}: ${r.comment || '-'}`);
     if (i.sources?.length) lines.push(`- ${l('sources')}: ${i.sources.map((s) => `[${s.title.replace(/[[\]]/g, '')}](${s.url})`).join(', ')}`);
+    if (i.evidence?.length) {
+      lines.push(`- ${l('evidence', { n: i.evidence.length })}:`);
+      for (const e of i.evidence) {
+        const what = e.url ? `[${e.title.replace(/[[\]]/g, '')}](${e.url})` : e.title;
+        const metric = e.metric !== null ? `, ${e.metric_name} ${e.metric}` : '';
+        lines.push(`  - ${l(`evidenceType.${e.type}`)} (${e.source}${metric}; ${l('weight')} ${e.weight}${e.label ? `; ${e.label}` : ''}): ${what}${e.excerpt ? ` - ${e.excerpt.slice(0, 200)}` : ''} (${e.collected_by})`);
+      }
+    }
     if (i.decision) lines.push(`- ${l('decision')}: ${l(`decisions.${i.decision.decision}`)}${i.decision.summary ? ` - ${i.decision.summary}` : ''}`);
     lines.push('');
     return lines.join('\n');

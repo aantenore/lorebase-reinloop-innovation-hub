@@ -38,6 +38,9 @@ import { type Family, type Opinion, Society, Testimonies } from './society.ts';
 import { RULE_KEYS } from '../world/engine.ts';
 import { type LawProposal, LawDesk, lawDraft } from './law-proposals.ts';
 import { ResearchDesk, type ResearchEvent, type ResearchSource } from './research.ts';
+import { committeeScore, type Evidence, EvidenceDesk, evidenceScore, evidenceWeight, gateStatus, type GateStatus, PERSONAS, VERDICTS } from './evidence.ts';
+import { signalBackend } from './signals.ts';
+import { modelRef } from './decide.ts';
 
 type Msg = Record<string, unknown> & { type: string };
 /** One search or fetch as kept for the inspector and GET /api/research. */
@@ -78,6 +81,8 @@ export class Game {
   private readonly researchBy = new Map<string, ResearchLine[]>();
   private readonly researchAll: Array<ResearchLine & { agentId: string; name: string }> = [];
   readonly research: ResearchDesk | undefined;
+  /** Public signals, evidence and simulated interviews (offline: deterministic mock results). */
+  readonly evidence: EvidenceDesk | undefined;
   readonly observatoryView: Observatory;
   private lastFlows: import('./economy.ts').FlowEdge[] = [];
   private lastFlowsMs = 0;
@@ -103,6 +108,8 @@ export class Game {
     decisions: 0, groupDecisions: 0, replies: 0, failures: 0, thoughts: 0,
     /** Failed runs by kind and reason; thoughts by guessed language; committee seats left for a conflict; same five scores as another review. */
     failureReasons: {} as Record<string, number>, thoughtLangs: {} as Record<string, number>, recusals: 0, scoreMatches: 0,
+    /** Submissions refused by the candidacy requirements; human validations received. */
+    gateRefusals: 0, validations: 0,
   };
   /** Set while a reply is spoken, so a reply never triggers another reply. */
   private speakingReply = false;
@@ -155,14 +162,37 @@ export class Game {
       },
       day: () => this.world.day,
       researched: (who, ev) => this.onResearch(who, ev),
+      found: (who, rows) => this.evidence?.remember(who.id, rows.map((r) => ({ url: r.url, type: 'web_source', source: 'web', title: r.title, metric: null, metric_name: '', excerpt: r.snippet.slice(0, game.evidence.excerptMaxChars) }))),
       // The hosted search's model call, booked to the person who searched (it counts toward the budget).
       searchUsage: (who, model, usage, costUsd) => this.usage.track({ id: `${who.id}:web`, name: `${who.name}/web_search`, model, tier: 'research' }, { status: 'completed', usage, costUsd }),
     }, this.t, cfg.models);
+    this.evidence = game.evidence.enabled ? new EvidenceDesk(game.evidence, {
+      policy: (key) => this.policyNum(key),
+      day: () => this.world.day,
+      now: () => this.now(),
+      attach: (who, ev) => {
+        const { idea, ...rest } = ev;
+        return this.ideas.addEvidence(idea, { ...rest, collected_at: this.now() });
+      },
+      ideaOpen: (code) => {
+        const i = this.ideas.get(code);
+        if (!i) return 'unknown_idea';
+        if (isClosed(i)) return 'idea_closed';
+        return i;
+      },
+      signaled: (who, ev) => this.onResearch(who, { tool: ev.tool as ResearchEvent['tool'], query: ev.query, results: ev.results, snippets: ev.snippets, cached: ev.cached }),
+      interviewModel: () => modelRef({ mock: this.mock, world: () => this.world }, cfg.modelOverride ?? (cfg.models as Record<string, string>)[game.evidence.interview.tier] ?? game.evidence.interview.tier, () => ({
+        text: this.t('rt.mock.interview'),
+      }), game.mock.replyDelayMs),
+      ranModel: (who, res) => this.usage.track(who, res as Parameters<UsageLedger['track']>[1]),
+    }, this.t, signalBackend(game.evidence.signals, this.mock)) : undefined;
+    if (this.evidence) console.log(`[evidence] public signals: ${this.evidence.impl} (${game.evidence.signals.sources.join(', ')})`);
     this.observatoryView = new Observatory({
       client: this.client, mnemo: this.mnemo, branch: cfg.lorebase.branch, revision: () => this.revision, usage: this.usage,
       agents: () => this.world.living().filter((e) => e.kind === 'agent').map((e) => ({ id: e.id, name: e.name, key: memoryKey(e.name) })),
       stats: () => ({
         ...this.stats, running: this.limiter.running,
+        ...(this.evidence ? { signalSearches: this.evidence.stats.searches, signalCached: this.evidence.stats.cached, signalRefused: this.evidence.stats.refused, signalErrors: this.evidence.stats.errors, evidenceAttached: this.evidence.stats.attached, interviews: this.evidence.stats.interviews } : {}),
         ...(this.research ? { webSearches: this.research.stats.searches, webFetches: this.research.stats.fetches, webCached: this.research.stats.cached, webRefused: this.research.stats.refused, webCapped: this.research.stats.capped, webErrors: this.research.stats.errors } : {}), budgetMaxUsd: game.budget.maxUsd, budgetPaused: this.budgetPaused ? 1 : 0 }),
     }, game.observatory);
     this.world = this.newWorld();
@@ -270,6 +300,7 @@ export class Game {
       mock: this.mock,
       brain: this.brain,
       research: this.research,
+      evidence: this.evidence,
       roleOf: (code) => this.roles.find((r) => r.key === code),
       roleTitle: (code) => this.roles.find((r) => r.key === code)?.title ?? code,
       groups: () => this.groupViews(),
@@ -1433,10 +1464,20 @@ export class Game {
       return t('rt.observation.ideaLine', {
         code: i.code, title: i.title, stage: t(`rt.ideaStage.${i.stage}`), champion: i.champion ?? '-', authors: i.authors.join(', '),
         reviews: i.reviews.length, mine: `${mine(i) ? t('rt.observation.ideaMine') : reviewed ? t('rt.observation.ideaReviewed') : ''}${recused ? t('rt.observation.ideaRecused') : ''}${short}`,
-        missing: isOpen(i) && missing.length ? t('rt.observation.ideaMissing', { fields: missing.map((k) => t(`rt.ideaField.${k}`)).join(', ') }) : '',
+        missing: `${isOpen(i) && missing.length ? t('rt.observation.ideaMissing', { fields: missing.map((k) => t(`rt.ideaField.${k}`)).join(', ') }) : ''}${isOpen(i) ? this.evidenceLine(i) : ''}`,
       });
     });
     return t('rt.observation.ideas', { lines: lines.join('\n') });
+  }
+
+  /** An idea's evidence against the candidacy requirements, as a person perceives it (facts, numbers). */
+  private evidenceLine(i: Idea): string {
+    const g = this.gateOf(i);
+    if (!g || !this.evidence) return '';
+    const r = this.evidence.requirements();
+    return this.t(g.pass ? 'rt.observation.ideaEvidenceOk' : 'rt.observation.ideaEvidence', {
+      real: g.real, minReal: r.minReal, sources: g.sources, minSources: r.minSources, human: g.human, minHuman: r.minHuman, hypotheses: g.hypotheses,
+    });
   }
 
   private ideaReason(code: string): string {
@@ -1492,7 +1533,16 @@ export class Game {
         return { ok: true, text: t('rt.act.ideaReviewed', { code: out.code }) };
       },
       submit: async (e, code) => {
-        const out = await this.ideas.submit(code, e.name, { at: this.now(), clock: this.world.clock, minReviewers: this.world.r('min_idea_reviewers') });
+        const out = await this.ideas.submit(code, e.name, {
+          at: this.now(), clock: this.world.clock, minReviewers: this.world.r('min_idea_reviewers'),
+          gate: (i) => {
+            const g = this.gateOf(i);
+            if (!g || g.pass) return undefined;
+            this.stats.gateRefusals++;
+            console.log(`[ideas] ${i.code}: candidacy refused (${g.missing.map((m) => `${m.code} ${m.have}/${m.need}`).join(', ')})`);
+            return t('rt.gate.refused', { missing: this.gateText(g) });
+          },
+        });
         if (typeof out === 'string') return fail(out);
         return { ok: true, text: t('rt.act.ideaSubmitted', { code: out.code }) };
       },
@@ -1506,9 +1556,42 @@ export class Game {
         return this.ideas.list().map((i): IdeaBrief => ({
           code: i.code, title: i.title, stage: i.stage, mine: i.champion === e.name || i.authors.includes(e.name), reviewedByMe: i.reviews.some((r) => r.by === e.name),
           reviews: i.reviews.length, minReviewers: this.world.r('min_idea_reviewers'), missing: IDEA_FIELDS.filter((k) => !i[k]), openByMe, maxOpen,
+          evidence: i.evidence.length, gatePass: this.gateOf(i)?.pass ?? true,
         }));
       },
     };
+  }
+
+  /** Numeric value of a policy (Lorebase `Rule`), undefined when it does not exist. */
+  private policyNum(key: string): number | undefined {
+    const v = Number(this.laws.find((x) => x.key === key)?.value);
+    return Number.isFinite(v) ? v : undefined;
+  }
+
+  /** Where an idea stands against the candidacy requirements (policies requisiti_candidatura_*). */
+  private gateOf(i: Idea): GateStatus | undefined {
+    if (!this.evidence) return undefined;
+    return gateStatus(i.evidence ?? [], this.evidence.requirements(), weightedScore(i.scores, this.weights()));
+  }
+
+  /** The committee's score of an idea: reviews and evidence, mixed by policy (reviews only without evidence policies). */
+  private ideaScore(i: Idea): number | null {
+    const reviews = weightedScore(i.scores, this.weights());
+    if (!this.evidence) return reviews;
+    const s = this.evidence.scoring();
+    return committeeScore(reviews, evidenceScore(i.evidence ?? [], s.full), s.weight);
+  }
+
+  /** An idea as clients see it: its state plus where it stands against the candidacy requirements. */
+  private ideaDto(i: Idea): Idea & { gate?: GateStatus & { need: { minReal: number; minSources: number; minHuman: number; minScore: number } } } {
+    const g = this.gateOf(i);
+    return g && this.evidence ? { ...i, gate: { ...g, need: this.evidence.requirements() } } : i;
+  }
+
+  /** The missing requirements as a factual sentence. */
+  private gateText(g: GateStatus): string {
+    const t = this.t;
+    return g.missing.map((m) => t(`rt.gate.${m.code}`, { have: m.have, need: m.need })).join('; ');
   }
 
   /** Whether a policy (Lorebase `Rule`) is on: value 1 or more. A missing policy is off. */
@@ -1532,7 +1615,19 @@ export class Game {
       ? t('rt.committee.reviewsHidden', { n: i.reviews.length })
       : i.reviews.map((r) => t('rt.committee.reviewLine', { by: r.by, ...r.scores, comment: r.comment || '-' })).join('\n') || t('rt.committee.noReviews');
     const weighted = hideReviews ? null : weightedScore(i.scores, this.weights());
-    return t('rt.committee.idea', {
+    const g = this.gateOf(i);
+    const ev = i.evidence ?? [];
+    const shown = ev.slice(-this.game.evidence.readMax);
+    const evidence = !this.evidence ? '' : t('rt.committee.evidence', {
+      n: ev.length,
+      lines: shown.map((x) => t('rt.committee.evidenceLine', {
+        type: t(`rt.evidenceType.${x.type}`), source: x.source, title: x.title, url: x.url || '-', metric: x.metric !== null ? `${x.metric_name} ${x.metric}` : '-', weight: x.weight,
+        by: x.collected_by, label: x.label ? ` [${x.label}]` : '', excerpt: x.excerpt.slice(0, 160) || '-',
+      })).join('\n') || t('rt.committee.noEvidence'),
+      gate: g ? (g.pass ? t('rt.gate.ok') : this.gateText(g)) : '-',
+      score: hideReviews ? '-' : (this.ideaScore(i) ?? '-'),
+    });
+    return `${t('rt.committee.idea', {
       code: i.code, title: i.title, stage: t(`rt.ideaStage.${i.stage}`), champion: i.champion ?? '-', authors: i.authors.join(', ') || '-', tags: i.tags.join(', ') || '-',
       ...Object.fromEntries(IDEA_FIELDS.map((k) => [k, i[k] || '-'])), signals: i.signals.map((c) => this.itemName(c)).join(', ') || '-',
       sources: (i.sources ?? []).map((x) => `${x.title} (${x.url})`).join('; ') || '-',
@@ -1541,14 +1636,14 @@ export class Game {
         const note = hideReviews && (h.action === 'reviewed' || h.action === 'scores_match') ? '' : h.note;
         return `${h.by}: ${t(`rt.ideaAction.${h.action}`)}${note ? ` (${note})` : ''}`;
       }).join('; ') || '-',
-    });
+    })}${evidence ? `\n${evidence}` : ''}`;
   }
 
   /** Something happened to an idea: clients, news, Chronicle, memories, the company's quarter and fame. */
   private onIdea(idea: Idea, action: IdeaAction, by: string): void {
     const t = this.t;
     const w = this.world;
-    this.broadcast({ type: 'idea', idea, action });
+    this.broadcast({ type: 'idea', idea: this.ideaDto(idea), action });
     const actor = this.byName(by);
     const vars = { name: by, title: idea.title, code: idea.code, stage: t(`rt.ideaStage.${idea.stage}`) };
     const text = t(`rt.events.idea.${action}`, vars);
@@ -1614,6 +1709,26 @@ export class Game {
       case 'stage':
         if (idea.stage === 'proposal' && idea.history.at(-1)?.action === 'deferred') tell('rt.why.idea.deferred');
         break;
+      case 'evidence': {
+        const ev = idea.evidence.at(-1);
+        if (!ev) break;
+        this.broadcast({ type: 'evidence', ideaCode: idea.code, evidence: ev });
+        console.log(`[evidence] ${idea.code}: ${ev.type} ${ev.source} by ${ev.collected_by} (weight ${ev.weight})${ev.url ? ` ${ev.url}` : ''}`);
+        const news = t('rt.why.idea.evidence', { ...vars, type: t(`rt.evidenceType.${ev.type}`), source: ev.source, by: ev.collected_by, label: ev.label ? ` [${ev.label}]` : '', verdict: ev.verdict ? `, ${ev.verdict}` : '', role: ev.role ?? '' });
+        this.live(actor, 'idea', news);
+        tell('rt.why.idea.evidence');
+        // A human validation is also news for the people within earshot of the player.
+        if (ev.type === 'human_validation') {
+          const player = this.byName(ev.collected_by);
+          const r = this.world.r('speech_radius');
+          if (player) for (const b of this.world.living()) {
+            if (b.kind !== 'agent' || Math.hypot(b.x - player.x, b.y - player.y) > r) continue;
+            if (authors.includes(b.name)) continue;
+            this.perceive(b, { kind: 'idea', text: news });
+          }
+        }
+        break;
+      }
     }
   }
 
@@ -1646,7 +1761,7 @@ export class Game {
   /** Offline stand-in for the committee: the policy-weighted score of the reviews decides, a little different per member. */
   private committeeMock(idea: Idea): CommitteeMock {
     const m = this.game.mock;
-    const score = weightedScore(idea.scores, this.weights()) ?? 0;
+    const score = this.ideaScore(idea) ?? 0;
     const verdict = (x: number): CommitteeDecision => (x >= m.committeeApproveAt ? 'approve' : x < m.committeeKillBelow ? 'kill' : 'defer');
     const t = this.t;
     return {
@@ -1738,13 +1853,40 @@ export class Game {
   }
 
   /** GET /api/ideas?stage=&tag=&author= */
-  ideaList(f: IdeaFilter): Idea[] {
-    return this.ideas.list(f);
+  ideaList(f: IdeaFilter) {
+    return this.ideas.list(f).map((i) => this.ideaDto(i));
   }
 
   /** GET /api/ideas/:code */
-  ideaView(code: string): Idea | undefined {
-    return this.ideas.get(code);
+  ideaView(code: string) {
+    const i = this.ideas.get(code);
+    return i && this.ideaDto(i);
+  }
+
+  /**
+   * POST /api/ideas/:code/validation: a player in the hub validates an idea speaking as a customer, DPO or user.
+   * The player must be in the world and within speech range of a person of the hub. Returns the evidence or an error.
+   */
+  validateIdea(code: string, body: Record<string, unknown>): { ok: true; evidence: Evidence } | { ok: false; status: number; error: string } {
+    if (!this.evidence) return { ok: false, status: 503, error: 'evidence off' };
+    const player = this.world.entities.get(String(body.player ?? ''));
+    if (!player || player.kind !== 'player' || !player.alive) return { ok: false, status: 403, error: 'not a player in the hub' };
+    const r = this.world.r('speech_radius');
+    if (!this.world.living().some((b) => b.kind === 'agent' && Math.hypot(b.x - player.x, b.y - player.y) <= r)) return { ok: false, status: 409, error: 'no one of the hub within earshot' };
+    const role = String(body.role ?? '').toLowerCase();
+    const verdict = String(body.verdict ?? '').toLowerCase();
+    if (!(PERSONAS as readonly string[]).includes(role)) return { ok: false, status: 400, error: `role must be one of ${PERSONAS.join(', ')}` };
+    if (!(VERDICTS as readonly string[]).includes(verdict)) return { ok: false, status: 400, error: `verdict must be one of ${VERDICTS.join(', ')}` };
+    const comment = String(body.comment ?? '').replace(/[\u0000-\u001f]+/g, ' ').trim().slice(0, this.game.evidence.validation.commentMaxChars);
+    const t = this.t;
+    const out = this.ideas.addEvidence(code, {
+      type: 'human_validation', source: 'player', url: '', title: t('rt.validation.title', { role: t(`rt.persona.${role}`), verdict: t(`rt.verdict.${verdict}`) }),
+      metric: null, metric_name: '', excerpt: comment, collected_by: player.name, collected_at: this.now(),
+      weight: evidenceWeight('human_validation', this.evidence.weights()), label: '', role, verdict,
+    });
+    if (typeof out === 'string') return { ok: false, status: out === 'unknown_idea' ? 404 : 409, error: out };
+    this.stats.validations++;
+    return { ok: true, evidence: out };
   }
 
   /** GET /api/ideas/export.md */
@@ -1976,7 +2118,7 @@ export class Game {
       economy: this.economyDto(),
       society: this.societyView(full),
       company: this.companyDto(),
-      ideas: this.ideas.list(),
+      ideas: this.ideas.list().map((i) => this.ideaDto(i)),
     };
   }
 

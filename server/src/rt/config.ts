@@ -10,6 +10,7 @@ import type { CompanyConfig } from './company.ts';
 import type { EconomyConfig } from './economy-book.ts';
 import type { IdeasConfig } from './ideas.ts';
 import type { ResearchConfig } from './research.ts';
+import type { EvidenceConfig } from './evidence.ts';
 import type { MapConfig, MovementConfig } from './world.ts';
 
 export type GroupPattern = 'orchestrator' | 'council' | 'router' | 'chain' | 'mentor' | 'assembly' | 'crowd';
@@ -189,6 +190,8 @@ export interface GameConfig {
     judgeChance: number; lawChance: number;
     /** Ideas: chances of proposing, reviewing and enriching per decision; how many seeds `rt.mock.ideas.<n>` exist. */
     ideaChance: number; reviewChance: number; enrichChance: number; ideaSeeds: number;
+    /** Evidence: chance of a public signal search and attachment, and of a simulated interview. */
+    evidenceChance: number; interviewChance: number;
     /** Committee stand-in: approve from this weighted score, kill below that one, else defer. */
     committeeApproveAt: number; committeeKillBelow: number;
     /** Which company roles explore, gather, build or look after colleagues in offline plans. */
@@ -222,6 +225,8 @@ export interface GameConfig {
   promptCache: { enabled: boolean; ttl: CacheTtl; groupTtl?: CacheTtl };
   /** Web research (reinloop web tools): backend, limits, cache; quotas and excluded domains are policies. */
   research: ResearchConfig;
+  /** Evidence of ideas: public signals (reinloop signalTools), simulated interviews, human validations; numbers that bind are policies. */
+  evidence: EvidenceConfig;
 }
 
 export type CacheTtl = '5m' | '1h';

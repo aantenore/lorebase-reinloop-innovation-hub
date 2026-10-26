@@ -116,7 +116,7 @@ function gatherSpots(t: Translate, w: RtWorld, here: { x: number; y: number }, r
   return t('rt.look.gather', { spots: spots.length ? spots.join('; ') : t('rt.look.nothing') });
 }
 
-export function rtInstructions(t: Translate, e: Pick<RtEntity, 'name' | 'personality' | 'role'>, role: Role | undefined, plan: { horizon: number }, web = false): string {
+export function rtInstructions(t: Translate, e: Pick<RtEntity, 'name' | 'personality' | 'role'>, role: Role | undefined, plan: { horizon: number }, web = false, evidence = false): string {
   const base = t('rt.instructions', {
     name: e.name,
     personality: e.personality || '-',
@@ -125,7 +125,7 @@ export function rtInstructions(t: Translate, e: Pick<RtEntity, 'name' | 'persona
     horizon: Math.round(plan.horizon),
   });
   // Stable per person: the whole text is part of the cached prompt prefix.
-  return web ? `${base}\n${t('rt.webFaculty')}` : base;
+  return [base, web ? t('rt.webFaculty') : '', evidence ? t('rt.evidenceFaculty') : ''].filter(Boolean).join('\n');
 }
 
 /** Which laws changed since the person last thought (a fact it perceives); empty when none. */

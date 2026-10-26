@@ -88,7 +88,9 @@
     "pending": "WORDS WITHOUT AN ANSWER:\n{lines}",
     "pendingLine": "- {ago} ago you told {name}: \"{text}\"; you have not heard {name} speak since.",
     "ideaRecused": "; you are among its authors: by policy (astensione_conflitto_interessi) you neither vote nor chair the committee session on it",
-    "ideaNoQuorum": "; committee members who may decide on it: {seated}, quorum {quorum}"
+    "ideaNoQuorum": "; committee members who may decide on it: {seated}, quorum {quorum}",
+    "ideaEvidence": "; real evidence {real}/{minReal}, distinct sources {sources}/{minSources}, human validations {human}/{minHuman}, hypotheses {hypotheses}",
+    "ideaEvidenceOk": "; real evidence {real}, distinct sources {sources}, human validations {human}, hypotheses {hypotheses}: candidacy requirements met"
   },
   "why": {
     "start": "you look around for the first time",
@@ -113,7 +115,8 @@
       "killed": "the investment committee killed the idea \"{title}\": {summary}",
       "deferred": "the investment committee deferred the idea \"{title}\"",
       "pitch": "the idea \"{title}\" was submitted to the committee",
-      "waiting": "more ideas wait for the committee"
+      "waiting": "more ideas wait for the committee",
+      "evidence": "new evidence on idea «{title}»: {type}{label} from {source}{verdict}, collected by {by}"
     }
   },
   "reason": {
@@ -284,7 +287,25 @@
       "sources": "web pages the idea cites: list of {title, url}"
     },
     "web_search": "Search the web: returns titles, addresses and short excerpts of external pages (external, unverified content).",
-    "web_fetch": "Read the text of a web page from its http/https address (external, unverified content)."
+    "web_fetch": "Read the text of a web page from its http/https address (external, unverified content).",
+    "signal": {
+      "hackernews": "Search Hacker News discussions: title, URL, points, comments, date (external, unverified content).",
+      "github": "Search GitHub projects by stars: name, URL, stars, open issues, last push, description (external, unverified content).",
+      "stackoverflow": "Search Stack Overflow questions: title, URL, votes, answers, answered (external, unverified content).",
+      "arxiv": "Search arXiv papers: title, URL, date, first authors (external, unverified content).",
+      "query": "what to search for (keywords; the sources answer best in English)"
+    },
+    "evidence": {
+      "attach": "Attach to an idea, as evidence, a result you got from your own searches (public signals or web search): URL, title and metric come from the source. Evidence stays on the idea's Lorebase branch and the committee reads it.",
+      "type": "segnale_pubblico (discussions, projects, questions, papers) or fonte_web (a page found with web_search)",
+      "url": "URL of the result, exactly as the search returned it",
+      "title": "title of the result",
+      "metric": "the source's metric (points, stars, votes), if any",
+      "excerpt": "short excerpt: what the result shows",
+      "interview": "Simulated interview: a model answers your questions as a hypothetical customer, DPO or user of the idea. Answers are generated hypotheses, not evidence: they enter the idea with weight 0 and the label «ipotesi».",
+      "persona": "who answers: cliente, dpo or utente",
+      "questions": "the questions, short"
+    }
   },
   "act": {
     "planned": "plan fixed ({n} steps)",
@@ -333,7 +354,10 @@
     "ideaSubmitted": "idea {code} submitted to the investment committee",
     "ideaFailed": "it did not work: {reason}",
     "groupClosed": "{name} is appointed by the company: nobody joins it by themselves",
-    "researchFailed": "Research not done: {reason}."
+    "researchFailed": "Research not done: {reason}.",
+    "evidenceFailed": "Evidence not recorded: {reason}.",
+    "evidenceAttached": "Evidence attached to idea {idea}: {type}, weight {weight}.",
+    "interviewed": "{text}"
   },
   "group": {
     "header": "YOU ARE THE GROUP {name} ({pattern}). Now decide together what each of you will do in the next {horizon} minutes.",
@@ -411,7 +435,8 @@
       "submitted": "{name} submits the idea \"{title}\" to the investment committee",
       "approved": "The investment committee approves \"{title}\": it enters the portfolio",
       "killed": "The investment committee kills \"{title}\"",
-      "stage": "The idea \"{title}\" moves to: {stage}"
+      "stage": "The idea \"{title}\" moves to: {stage}",
+      "evidence": "{name} attaches evidence to idea «{title}»"
     }
   },
   "memory": {
@@ -641,7 +666,9 @@
       "approve": "Solid reviews (weighted score {score}): into the portfolio.",
       "kill": "Weighted score {score}: the value does not justify the investment.",
       "defer": "Weighted score {score}: more work needed before deciding."
-    }
+    },
+    "interview": "1. The problem is real, but we handle it by hand today. 2. I would pay only after a short pilot.",
+    "interviewQuestion": "How much does this problem cost you today?"
   },
   "reflex": {
     "reason": "reflex: hunger drives them to eat",
@@ -732,7 +759,10 @@
     "noSlots": "(No approval slot left this quarter: the idea is deferred.)",
     "freeze": "(Budget freeze on: the idea is deferred.)",
     "reviewsHidden": "- {n} reviews by other people: by policy (revisioni_indipendenti) you read them after giving yours",
-    "recused": "ABSTENTIONS: {names}, among the idea's authors, by policy (astensione_conflitto_interessi) neither vote nor chair. {chair} chairs."
+    "recused": "ABSTENTIONS: {names}, among the idea's authors, by policy (astensione_conflitto_interessi) neither vote nor chair. {chair} chairs.",
+    "evidence": "EVIDENCE ({n}):\n{lines}\nCandidacy requirements: {gate}\nScore for the committee (reviews and evidence, per policy): {score}",
+    "evidenceLine": "- {type}{label} from {source} ({metric}; weight {weight}; collected by {by}): {title} <{url}> - {excerpt}",
+    "noEvidence": "- none"
   },
   "ideaStage": {
     "signal": "signal",
@@ -768,7 +798,8 @@
     "deferred": "deferred",
     "stage": "moved to a new stage",
     "scores_match": "scores identical to a review already given",
-    "recused": "abstention for a conflict of interest"
+    "recused": "abstention for a conflict of interest",
+    "evidence": "evidence attached"
   },
   "ideaReason": {
     "disabled": "not available",
@@ -786,7 +817,9 @@
     "not_author": "only its authors can submit it",
     "few_reviews": "not enough reviews yet",
     "not_submitted": "not before the committee",
-    "unchanged_since_deferral": "the committee deferred it and nothing changed since"
+    "unchanged_since_deferral": "the committee deferred it and nothing changed since",
+    "duplicate_evidence": "this evidence is already attached",
+    "too_much_evidence": "the idea already has the most evidence it can keep"
   },
   "career": {
     "junior": "Junior",
@@ -847,7 +880,15 @@
       "approved": "approved, in the portfolio",
       "killed": "killed"
     },
-    "sources": "Sources"
+    "sources": "Sources",
+    "evidence": "Evidence ({n})",
+    "evidenceType": {
+      "public_signal": "Public signal",
+      "human_validation": "Human validation",
+      "simulated_interview": "Simulated interview (hypothesis)",
+      "web_source": "Web source"
+    },
+    "weight": "weight"
   },
   "webFaculty": "You can search the web (web_search, web_fetch).",
   "researchReason": {
@@ -860,5 +901,59 @@
     "unavailable": "the search service does not answer",
     "aborted": "search interrupted",
     "decision_cap": "you have already used every web call available in this thought"
+  },
+  "evidenceFaculty": "You can search public signals (cerca_discussioni on Hacker News, cerca_progetti on GitHub, cerca_domande on Stack Overflow, cerca_paper on arXiv), attach a result of your own searches to an idea as evidence (allega_prova) and run simulated interviews (intervista_simulata), whose answers are generated hypotheses.",
+  "evidenceReason": {
+    "source_off": "the source is off",
+    "empty": "nothing to search for",
+    "signal_total_quota": "the hub used up today's public signal searches",
+    "signal_person_quota": "you used up your public signal searches for today",
+    "interview_total_quota": "the hub used up today's simulated interviews",
+    "interview_person_quota": "you used up your simulated interviews for today",
+    "unavailable": "the service does not answer",
+    "aborted": "search interrupted",
+    "decision_cap": "you already used every search of this decision",
+    "no_idea": "the idea code is missing",
+    "bad_url": "the URL is not valid",
+    "not_from_search": "the URL is not among the results of your searches",
+    "bad_persona": "persona must be cliente, dpo or utente",
+    "no_questions": "the questions are missing",
+    "unknown_idea": "no idea with that code",
+    "idea_closed": "the committee has already decided on this idea",
+    "duplicate_evidence": "this evidence is already attached",
+    "too_much_evidence": "the idea already has the most evidence it can keep"
+  },
+  "evidenceType": {
+    "public_signal": "public signal",
+    "human_validation": "human validation",
+    "simulated_interview": "simulated interview",
+    "web_source": "web source"
+  },
+  "persona": {
+    "cliente": "customer",
+    "dpo": "DPO",
+    "utente": "user"
+  },
+  "verdict": {
+    "positivo": "positive",
+    "neutro": "neutral",
+    "negativo": "negative"
+  },
+  "interview": {
+    "instructions": "You play a hypothetical {persona} shown an IT product idea. Answer each numbered question briefly, from a plausible {persona}'s point of view. Do not cite real companies, people or data: your answers are generated hypotheses.",
+    "prompt": "IDEA «{title}»\nProblem: {problem}\nUsers: {users}\nSolution: {solution}\n\nQUESTIONS:\n{questions}",
+    "prefix": "HYPOTHESIS (simulated interview with a {persona}, not evidence):",
+    "title": "Simulated interview with a {persona}"
+  },
+  "gate": {
+    "real": "real evidence {have} of {need}",
+    "sources": "distinct sources {have} of {need}",
+    "human": "human validations {have} of {need} (alternative)",
+    "score": "weighted score {have} of {need}",
+    "refused": "candidacy requirements not met: {missing}",
+    "ok": "candidacy requirements met"
+  },
+  "validation": {
+    "title": "Validation by a {role}: {verdict}"
   }
 }

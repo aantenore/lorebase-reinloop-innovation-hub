@@ -5,7 +5,7 @@
 //   - laws not in lorebase/rules.seed.yaml are repealed, seed laws get their seed value and wording back
 //     (missing ones are re-created), roles get their seed values back;
 //   - breakthroughs made and their methods leave main (back to the hidden branch, rebuilt by the seed);
-//   - Chronicle (newsletter), Insight (playbooks), Team, Idea and Review records are archived on
+//   - Chronicle (newsletter), Insight (playbooks), Team, Idea, Review and Evidence records are archived on
 //     `archive/<timestamp>` and removed from main (the portfolio starts empty again);
 //   - stale branches (playbook/, policy/, breakthrough/, idea/, seed/, reset/, probe/) and their open
 //     Proposals are closed.
@@ -30,7 +30,7 @@ const lb = cfg.lorebase;
 const main = lb.branch;
 const client = new LorebaseClient(lb.url, lb.domain);
 const STALE_PREFIXES = [game.insights.branchPrefix, lb.proposalBranchPrefix, game.society.lawProposals.branchPrefix, game.economy.discoveryBranchPrefix, game.ideas.branchPrefix, 'seed/', 'reset/', 'probe/'];
-const ARCHIVE_KINDS = [game.chronicle.kind, game.insights.kind, game.society.families.kind, game.ideas.kind, game.ideas.reviewKind];
+const ARCHIVE_KINDS = [game.chronicle.kind, game.insights.kind, game.society.families.kind, game.ideas.kind, game.ideas.reviewKind, game.ideas.evidenceKind];
 type Row = Record<string, unknown>;
 const seed = parseYaml(readFileSync(resolve(ROOT, 'lorebase/rules.seed.yaml'), 'utf8')) as { rules: Row[]; roles: Row[] };
 
