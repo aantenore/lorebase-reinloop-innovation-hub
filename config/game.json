@@ -178,6 +178,10 @@
     "timeoutGameMinutes": 90,
     "timeoutMinMs": 45000,
     "timeoutMs": 90000,
+    "closingTurn": {
+      "enabled": true,
+      "maxTurns": 2
+    },
     "maxConcurrent": 4,
     "memoryItems": 12,
     "inboxItems": 8,
@@ -689,7 +693,16 @@
     "retryBaseMs": 1000,
     "committee": {
       "groupName": "Comitato Investimenti",
-      "maxPerSession": 3
+      "maxPerSession": 3,
+      "maxVoters": 0,
+      "ballotMaxTurns": 3,
+      "criteriaPrefix": "criterio_comitato_",
+      "phases": [
+        "concept",
+        "pilot",
+        "scale"
+      ],
+      "demandsMax": 4
     },
     "sourcesMax": 8,
     "sourceTitleMaxChars": 120,
@@ -698,7 +711,11 @@
       "independentReviews": "revisioni_indipendenti",
       "committeeNotAuthor": "comitato_non_coautore",
       "committeeAlternates": "supplenti_comitato_per_anzianita",
-      "slotsExpire": "slot_scadono_a_fine_trimestre"
+      "slotsExpire": "slot_scadono_a_fine_trimestre",
+      "criteria": "criteri_comitato",
+      "approvalPhase": "fase_approvazione",
+      "deferralCost": "costo_del_rinvio",
+      "portfolioTarget": "obiettivo_portfolio_trimestre"
     }
   },
   "company": {
@@ -772,6 +789,7 @@
       ],
       "maxResults": 5,
       "maxResultsCap": 8,
+      "hackernews": { "partialMatch": true },
       "maxChars": 240,
       "timeoutMs": 10000,
       "cacheTtlMs": 86400000,

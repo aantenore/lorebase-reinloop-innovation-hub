@@ -13,6 +13,12 @@ export interface SignalBackendOptions {
   timeoutMs: number;
   /** Empty: reinloop's default User-Agent. */
   userAgent?: string;
+  /**
+   * Hacker News (Algolia): a story must contain every word of the query; with `partialMatch` on, a query that finds
+   * nothing is asked again with every word optional (Algolia `optionalWords`, no typo tolerance), and those results carry
+   * `match: "partial"`.
+   */
+  hackernews?: { partialMatch: boolean };
 }
 
 /** The tools of a signal backend, keyed by reinloop's tool names (search_discussions, ...). */
@@ -47,10 +53,53 @@ function mockSource(source: SignalSourceName): SignalSource {
   return { name: source, tool: SOURCE_TOOL[source], description: `Offline ${source} results.`, search: async (query, { maxResults }) => mockSignalItems(source, query, maxResults) };
 }
 
+const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+const plain = (s: unknown, max: number) => String(s ?? '')
+  .replace(/&(#\d+|[a-z]+);/gi, (m, e: string) => (e[0] === '#' ? String.fromCodePoint(Number(e.slice(1)) || 32) : ENTITIES[e.toLowerCase()] ?? m))
+  .replace(/\s+/g, ' ').trim().slice(0, max);
+
+/** The words of a query as Algolia sees them (for `optionalWords`). Pure. */
+export function queryWords(query: string): string[] {
+  return query.split(/[\s,;]+/).map((w) => w.trim()).filter(Boolean);
+}
+
+/**
+ * Hacker News stories through the Algolia HN API, like reinloop's source, plus the partial-match fallback: when no story
+ * contains every word, the same query with every word optional (ranked by how many words match), results marked partial.
+ */
+export function hackerNewsSource(partialMatch: boolean): SignalSource {
+  return {
+    name: 'hackernews',
+    tool: SOURCE_TOOL.hackernews,
+    description: 'Search Hacker News stories (Algolia HN API, English-language content).',
+    async search(query, { maxResults, get, maxChars }) {
+      const base = { query, tags: 'story', hitsPerPage: String(maxResults) };
+      const url = (p: Record<string, string>) => `https://hn.algolia.com/api/v1/search?${new URLSearchParams(p)}`;
+      let hits = ((await get(url(base))) as { hits?: Array<Record<string, unknown>> } | undefined)?.hits ?? [];
+      const words = queryWords(query);
+      let partial = false;
+      if (!hits.length && partialMatch && words.length > 1) {
+        hits = ((await get(url({ ...base, optionalWords: words.join(' '), typoTolerance: 'false' }))) as { hits?: Array<Record<string, unknown>> } | undefined)?.hits ?? [];
+        partial = hits.length > 0;
+      }
+      return hits.map((h) => ({
+        title: plain(h.title, maxChars),
+        url: typeof h.url === 'string' && h.url ? h.url : `https://news.ycombinator.com/item?id=${String(h.objectID)}`,
+        points: Number(h.points ?? 0),
+        comments: Number(h.num_comments ?? 0),
+        created_at: String(h.created_at ?? ''),
+        hn_url: `https://news.ycombinator.com/item?id=${String(h.objectID)}`,
+        ...(partial ? { match: 'partial' } : {}),
+      }));
+    },
+  };
+}
+
 /** The signal tools (reinloop `signalTools`), on mock sources offline. */
 export function signalBackend(opts: SignalBackendOptions, mock: boolean): { impl: 'reinloop' | 'mock'; tools: SignalToolSet } {
+  const real = (s: SignalSourceName): SignalSourceName | SignalSource => (s === 'hackernews' && opts.hackernews ? hackerNewsSource(opts.hackernews.partialMatch) : s);
   const tools = signalTools({
-    sources: mock ? opts.sources.map(mockSource) : opts.sources,
+    sources: mock ? opts.sources.map(mockSource) : opts.sources.map(real),
     maxResults: opts.maxResults, maxResultsCap: opts.maxResultsCap, maxChars: opts.maxChars, timeoutMs: opts.timeoutMs,
     ...(opts.userAgent ? { userAgent: opts.userAgent } : {}),
   });

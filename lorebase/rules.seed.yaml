@@ -519,6 +519,51 @@ rules:
     unit: "policy"
     category: ideas
     text: "Con valore 1, gli slot di approvazione non usati in un trimestre si perdono alla sua chiusura. Con 0 passano al trimestre successivo."
+  - code: criteri_comitato
+    value: 1
+    unit: "policy"
+    category: ideas
+    text: "Con valore 1, il comitato investimenti vota sui criteri elencati dalle policy criterio_comitato_* (quelle con valore 1): ogni voto dà un giudizio per criterio, un voto kill o defer nomina almeno un criterio non soddisfatto, e le richieste che non corrispondono a un criterio sono registrate nel verbale come fuori policy. Con 0 il voto è libero."
+  - code: criterio_comitato_prove_del_problema
+    value: 1
+    unit: "criterio"
+    category: ideas
+    text: "Il problema è documentato da prove allegate all'idea (segnali pubblici, fonti web, validazioni) che ne mostrano l'esistenza presso gli utenti indicati."
+  - code: criterio_comitato_concorrenza
+    value: 1
+    unit: "criterio"
+    category: ideas
+    text: "L'idea descrive le alternative esistenti (prodotti, progetti, pratiche) e in cosa se ne differenzia."
+  - code: criterio_comitato_fattibilita
+    value: 1
+    unit: "criterio"
+    category: ideas
+    text: "L'idea è realizzabile, nella fase finanziata dalla policy fase_approvazione, con le competenze e i mezzi dell'hub."
+  - code: criterio_comitato_rischio
+    value: 1
+    unit: "criterio"
+    category: ideas
+    text: "I rischi (dati, regolazione, sicurezza, dipendenze) sono individuati e la loro entità è compatibile con la fase finanziata dalla policy fase_approvazione."
+  - code: criterio_comitato_coerenza_strategica
+    value: 1
+    unit: "criterio"
+    category: ideas
+    text: "L'idea è coerente con i temi strategici dell'azienda."
+  - code: fase_approvazione
+    value: 1
+    unit: "fase"
+    category: ideas
+    text: "Fase che un'approvazione del comitato finanzia. Valore 1 (concept): approvare significa finanziare l'idea come esplorazione di concept; la prova di clienti paganti appartiene a una fase successiva (pilota), fuori dal perimetro del comitato. Valore 2: pilota con clienti. Valore 3: scala."
+  - code: costo_del_rinvio
+    value: 1
+    unit: "slot"
+    category: ideas
+    text: "Slot di approvazione del trimestre che consuma ogni rinvio (defer) di un'idea che soddisfa i requisiti di candidatura: la sessione del comitato su di essa usa la capacità del trimestre. Con 0 il rinvio non consuma slot."
+  - code: obiettivo_portfolio_trimestre
+    value: 3
+    unit: "concept"
+    category: ideas
+    text: "Concept esplorati (idee approvate dal comitato) che l'azienda si attende dal portafoglio in ogni trimestre."
   - code: segnali_pubblici_per_persona_al_giorno
     value: 16
     unit: "ricerche"

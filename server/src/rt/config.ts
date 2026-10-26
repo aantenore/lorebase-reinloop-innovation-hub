@@ -138,6 +138,11 @@ export interface GameConfig {
     timeoutGameMinutes: number;
     timeoutMinMs: number;
     timeoutMs: number;
+    /**
+     * A plan run that ends (or runs out of turns or tool calls) without commit_plan gets one closing run on the same
+     * conversation, of at most `maxTurns` turns, where only commit_plan answers (the other tools say the decision is closed).
+     */
+    closingTurn: { enabled: boolean; maxTurns: number };
     maxConcurrent: number;
     memoryItems: number;
     inboxItems: number;

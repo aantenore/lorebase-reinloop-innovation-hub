@@ -2,7 +2,7 @@
 // join_group, leave_group; the run ends as soon as a plan is committed) and a quick REPLY call
 // when spoken to (streamed text, optional `rethink`). Each person uses its own model; the mock
 // provider is only an offline fallback.
-import { agent, type MockTurn, mockProvider, type ModelRef, type ModelRequest, type Sink, type Tool, tool } from 'reinloop';
+import { agent, type Message, type MockTurn, mockProvider, type ModelRef, type ModelRequest, type RunResult, type Sink, type Tool, tool } from 'reinloop';
 import type { SimConfig } from '../config.ts';
 import type { Translate } from '../i18n.ts';
 import type { Role, RuleChange } from '../lorebase/rules.ts';
@@ -47,6 +47,8 @@ export interface DecideHost {
   deliberated(g: { id: string; pattern: string }, memberId: string, role: string, text: string): void;
   /** Sinks every model run reports to (run logs kept in mnemo). */
   runSinks(): Sink[];
+  /** A plan run needed its closing run (counted); `committed`: it ended with a plan. */
+  closed?(e: RtEntity, committed: boolean): void;
   /** A model run ended (usage and cost per agent, for the Observatory). */
   ranModel(who: { id: string; name: string; model: string; tier: string }, res: { status: string; usage?: TokenUsage; costUsd?: number }): void;
   /** A person consulted Lorebase (shown to clients). */
@@ -489,28 +491,51 @@ export async function decide(host: DecideHost, e: RtEntity, why: string, stop?: 
     // The plan is all this call is for: the run ends without another model turn.
     return { content: t('rt.act.planned', { n: steps.length }), stop: true };
   });
-  const runner = agent({
+  // Closing run: the same tools are listed (the cached prompt prefix stays valid), only commit_plan answers.
+  let closing = false;
+  const runner = (budget: { maxTurns: number; maxToolCalls?: number }) => agent({
     name: e.id,
     model: modelRef(host, e.model, (req) => mockDecision(host, e, tc, req), cfg.mock.thinkDelayMs),
     params: { ...cfg.decisions.modelParams.plan, ...cacheParams(cfg), maxTokens: tc.maxOutputTokens },
     instructions: rtInstructions(t, e, host.roleOf(e.role), { horizon }, !!host.research, !!host.evidence),
     tools: [commit, ...socialTools(host, e), ...faculties(host, e, tc)],
-    budget: { maxTurns: tc.maxTurns, maxToolCalls: tc.maxConsults + tc.maxTurns * 4 },
+    budget,
     toolSettings: { concurrency: 1 },
+    middleware: [{ name: 'closing-turn', beforeTool: (call) => (closing && call.name !== 'commit_plan' ? { deny: t('rt.act.decisionClosed') } : undefined) }],
   });
   const prompt = rtObservation(t, w, e, why, host.groups(), host.roleTitle, limitsOf(cfg), host.changedLaws(e), host.perceived);
   // What the body went through is counted again from this thought on.
   w.resetBody(e);
   const signal = AbortSignal.any([AbortSignal.timeout(decisionTimeoutMs(cfg, w)), ...(stop ? [stop] : [])]);
-  const handle = runner.stream(prompt, { signal, sinks: host.runSinks() });
-  let thought = '';
-  for await (const ev of handle) if (ev.type === 'thinking_delta') thought += (ev.data as { text: string }).text;
-  const res = await handle.result;
-  host.ranModel(e, res);
-  // With thinking display `omitted` (config) there is no summary: the plan reason is the visible thought (commitPlan).
-  if (thought.trim()) host.reasoned(e, thought.trim().slice(0, textMax));
+  const once = async (input: string | Message[], budget: { maxTurns: number; maxToolCalls?: number }): Promise<RunResult> => {
+    const handle = runner(budget).stream(input, { signal, sinks: host.runSinks() });
+    let thought = '';
+    for await (const ev of handle) if (ev.type === 'thinking_delta') thought += (ev.data as { text: string }).text;
+    const res = await handle.result;
+    host.ranModel(e, res);
+    // With thinking display `omitted` (config) there is no summary: the plan reason is the visible thought (commitPlan).
+    if (thought.trim()) host.reasoned(e, thought.trim().slice(0, textMax));
+    return res;
+  };
+  let res = await once(prompt, { maxTurns: tc.maxTurns, maxToolCalls: tc.maxConsults + tc.maxTurns * 4 });
+  const ct = cfg.decisions.closingTurn;
+  if (!committed && ct?.enabled && closable(res) && !signal.aborted) {
+    closing = true;
+    res = await once(closingInput(res.messages, t('rt.observation.closingTurn')), { maxTurns: ct.maxTurns });
+    host.closed?.(e, !!committed);
+  }
   if (committed) return committed;
   return { error: res.status === 'completed' ? 'no plan committed' : `${res.status}${res.reason ? `: ${res.reason}` : ''}` };
+}
+
+/** A plan run that may get a closing run: it ended on its own, or on its turn or tool-call budget. Pure. */
+export function closable(res: Pick<RunResult, 'status' | 'reason'>): boolean {
+  return res.status === 'completed' || (res.status === 'stopped' && /^budget:(maxTurns|maxToolCalls)$/.test(res.reason ?? ''));
+}
+
+/** The conversation of a run followed by the closing notice (providers merge it with trailing tool results). Pure. */
+export function closingInput(messages: Message[], notice: string): Message[] {
+  return [...messages, { role: 'user', parts: [{ type: 'text', text: notice }] }];
 }
 
 export interface Reply {

@@ -18,13 +18,14 @@
 // voters) on `groups.memberTier`, and at most `groups.maxProposers` of them are consulted.
 // How they decided is reconstructed from reinloop run events (a sink) into `lastDecision.trace`.
 import {
-  agent, definePattern, type EasyAgent, type MemberFailure, memberFailures, type MockTurn, type ModelRequest, type RunEvent, type RunResult, safeToolName, type Sink, team, tool,
+  agent, definePattern, type EasyAgent, type MemberFailure, memberFailures, type MockTurn, type ModelRequest, type RunEvent, type RunResult, safeToolName, type Sink, team, type Tool, tool,
 } from 'reinloop';
 import type { Translate } from '../i18n.ts';
 import type { GameConfig, GroupPattern } from './config.ts';
 import { AGENT_PATTERNS, cacheParams } from './config.ts';
 import { type DecideHost, decisionTier, decisionTimeoutMs, type Failure, faculties, ideaTools, limitsOf, modelRef, normalizeSteps, planSchema } from './decide.ts';
 import type { CommitteeDecision, CommitteeVote } from './ideas.ts';
+import { type Ballot, type BallotError, type BallotLabels, ballotSchema, type ChairDecision, chairSchema, checkBallot, checkChair, type Criterion, DECISIONS } from './committee.ts';
 import type { Tier } from '../world/types.ts';
 import { flatSteps, hasHabit, mockGroupPlan, mockSteps } from './mock.ts';
 import type { PlanStep } from './plan.ts';
@@ -69,6 +70,14 @@ export interface CommitteeOutcome {
   decision: CommitteeDecision;
   summary: string;
   votes: CommitteeVote[];
+  /** Policy criteri_comitato: criteria the decision names as unmet, demands recorded outside the criteria. */
+  unmet?: string[];
+  outOfPolicy?: string[];
+}
+
+/** The committee's policy for one session: the criteria it votes on (empty: free votes). */
+export interface CommitteePolicy {
+  criteria: Criterion[];
 }
 
 /** Offline stand-ins for the committee's members and chair. */
@@ -96,7 +105,6 @@ const SEP = '__';
 /** Structured outputs of the judges and the voters. */
 const VERDICT = { type: 'object', properties: { pass: { type: 'boolean' }, feedback: { type: 'string' } }, required: ['pass', 'feedback'] };
 const BALLOT = { type: 'object', properties: { choice: { type: 'integer' }, reason: { type: 'string' } }, required: ['choice', 'reason'] };
-const DECISIONS: CommitteeDecision[] = ['approve', 'kill', 'defer'];
 /** Structured outputs of the committee: a member's vote, the chair's decision. */
 const IDEA_BALLOT = { type: 'object', properties: { vote: { enum: DECISIONS }, reason: { type: 'string' } }, required: ['vote', 'reason'] };
 const IDEA_VERDICT = { type: 'object', properties: { decision: { enum: DECISIONS }, summary: { type: 'string' } }, required: ['decision', 'summary'] };
@@ -358,6 +366,8 @@ export class GroupManager {
     opts: {
       json?: boolean; structured?: boolean; deciding?: boolean; output?: Record<string, unknown>; extra?: string; description?: string;
       mock: (req: ModelRequest, i: number) => MockTurn; turns?: number; members?: RtEntity[];
+      /** These tools only (a ballot): no faculties, no format, `turns` turns. */
+      only?: Tool[];
     },
   ): EasyAgent {
     const deciding = opts.deciding === true;
@@ -367,8 +377,8 @@ export class GroupManager {
     const tc = this.cfg.decisions.tiers[tier];
     const name = `${m.id}${SEP}${role}`;
     this.models.set(name, model);
-    const bare = opts.structured === true;
-    const tools = bare ? [] : [...(opts.json ? [this.planTool(counts.max)] : []), ...faculties(this.host, m, tc), ...ideaTools(this.host, m)];
+    const bare = opts.structured === true || !!opts.only;
+    const tools = opts.only ?? (bare ? [] : [...(opts.json ? [this.planTool(counts.max)] : []), ...faculties(this.host, m, tc), ...ideaTools(this.host, m)]);
     const format = bare ? '' : opts.json ? this.formatText(opts.members ?? [m], tier) : this.t('rt.group.proposeFormat');
     const p = this.cfg.decisions.modelParams;
     return agent({
@@ -615,20 +625,57 @@ export class GroupManager {
     });
   }
 
+  /** Labels of the ballot and chair tools (i18n). */
+  private ballotLabels(): BallotLabels {
+    const t = this.t;
+    return {
+      criteria: t('rt.committee.ballot.criteria'), criterion: (c) => c.text, met: t('rt.committee.ballot.met'), note: t('rt.committee.ballot.note'),
+      vote: t('rt.committee.ballot.vote'), reason: t('rt.committee.ballot.reason'), outOfPolicy: t('rt.committee.ballot.outOfPolicy'),
+      unmet: t('rt.committee.ballot.unmet'), summary: t('rt.committee.ballot.summary'),
+    };
+  }
+
+  /** Why a ballot or a chair's decision cannot be recorded (a fact about the policy). */
+  private ballotError(err: BallotError, criteria: Criterion[]): string {
+    const t = this.t;
+    const all = criteria.map((c) => c.key).join(', ');
+    if (err.error === 'missing') return t('rt.committee.ballot.missing', { criteria: err.missing.join(', ') });
+    if (err.error === 'unknown') return t('rt.committee.ballot.unknown', { names: err.unknown.join(', '), criteria: all });
+    if (err.error === 'need_unmet') return t('rt.committee.ballot.needUnmet', { criteria: all });
+    return t('rt.committee.ballot.badVote');
+  }
+
+  /** A tool whose valid call ends the run with its data; an invalid one says why (the run may try again). */
+  private recordTool<T>(name: string, description: string, schema: Record<string, unknown>, check: (args: Record<string, unknown>) => T | BallotError, criteria: Criterion[]): Tool {
+    return tool<Record<string, unknown>>(name, description, schema, (args) => {
+      const out = check(args ?? {});
+      if (out && typeof out === 'object' && 'error' in out) return { content: this.ballotError(out as BallotError, criteria), isError: true };
+      return { content: this.t('rt.committee.ballot.recorded'), stop: true, data: out };
+    });
+  }
+
   /**
-   * The committee decides on one submitted idea (`brief`: the idea, its reviews and the company's facts).
-   * Every consulted member votes (structured output, members' tier); in an assembly the esteem-weighted
-   * plurality decides, otherwise the chair (the leader, own model) decides after reading the votes.
+   * The committee decides on one submitted idea (`brief`: the idea, its reviews, the company's facts and the committee's
+   * policy). Every seated member votes, up to `ideas.committee.maxVoters` (0: all), on the members' tier; in an assembly
+   * the esteem-weighted plurality decides, otherwise the chair (the leader, own model) decides after reading the votes.
+   * With policy criteria (`policy.criteria`), ballots and the chair's decision are tool calls checked against them
+   * (committee.ts); without, they are structured outputs.
    * `seated`: who sits in this session, chair first (the host leaves out members with a conflict of interest);
    * default every living member, the leader first.
    */
-  async reviewIdea(g: Group, brief: string, mock: CommitteeMock, seated?: RtEntity[]): Promise<CommitteeOutcome | Failure> {
+  async reviewIdea(g: Group, brief: string, mock: CommitteeMock, seated?: RtEntity[], policy?: CommitteePolicy): Promise<CommitteeOutcome | Failure> {
     const members = seated ?? this.livingMembers(g);
     if (!members.length) return { error: 'no living members' };
     const t = this.t;
     const signal = AbortSignal.timeout(decisionTimeoutMs(this.cfg, this.host.world()));
     const sinks = this.host.runSinks();
-    const voting = this.consulted(members);
+    const cc = this.cfg.ideas.committee;
+    const voting = this.consulted(members, cc.maxVoters ?? 0);
+    const criteria = policy?.criteria ?? [];
+    const withCriteria = criteria.length > 0;
+    const max = this.cfg.groups.traceMaxChars;
+    const limits = { maxChars: max, demandsMax: cc.demandsMax ?? 4 };
+    const labels = this.ballotLabels();
     let costUsd = 0;
     const run = async (who: RtEntity, a: EasyAgent, task: string, role: TraceRole) => {
       const res = await a.run(task, { sinks, signal });
@@ -637,33 +684,78 @@ export class GroupManager {
       this.host.ranModel({ id: model === who.model ? `${g.id}/${who.id}` : `${g.id}/${who.id}:${model}`, name: `${g.name}/${who.name}`, model, tier: `group:${g.pattern}` }, res);
       return { res, role };
     };
+    const mockBallot = (m: RtEntity) => {
+      const v = mock.vote(m);
+      const first = criteria[0]?.key;
+      return { criteri: Object.fromEntries(criteria.map((c) => [c.key, { soddisfatto: v.vote === 'approve' || c.key !== first, nota: v.reason }])), voto: v.vote, motivo: v.reason };
+    };
     const ballots = await Promise.all(voting.map((m) => {
-      const voter = this.member(m, g, 'voter', { structured: true, output: IDEA_BALLOT, mock: () => ({ text: JSON.stringify(mock.vote(m)) }) });
-      return run(m, voter, t('rt.committee.voteTask', { brief, name: m.name, id: m.id, group: g.name }), 'voter');
+      const voter = withCriteria
+        ? this.member(m, g, 'voter', {
+          only: [this.recordTool('vota_idea', t('rt.committee.ballot.tool'), ballotSchema(criteria, labels), (a) => checkBallot(a, criteria, limits), criteria)],
+          turns: cc.ballotMaxTurns ?? 3,
+          mock: () => ({ toolCalls: [{ name: 'vota_idea', args: mockBallot(m) }] }),
+        })
+        : this.member(m, g, 'voter', { structured: true, output: IDEA_BALLOT, mock: () => ({ text: JSON.stringify(mock.vote(m)) }) });
+      return run(m, voter, t(withCriteria ? 'rt.committee.voteTaskCriteria' : 'rt.committee.voteTask', { brief, name: m.name, id: m.id, group: g.name }), 'voter');
     }));
-    const max = this.cfg.groups.traceMaxChars;
     const votes: CommitteeVote[] = [];
     ballots.forEach(({ res }, k) => {
+      const m = voting[k]!;
+      const ok = res.status === 'completed' || res.status === 'stopped';
+      if (withCriteria) {
+        const b = ok ? (res.data as Ballot | undefined) : undefined;
+        if (!b?.vote) return;
+        votes.push({ member: m.id, name: m.name, vote: b.vote, reason: b.reason, criteria: b.criteria, unmet: b.unmet, outOfPolicy: b.outOfPolicy });
+        this.host.deliberated(g, m.id, 'voter', `${b.vote}: ${b.reason}`.slice(0, max));
+        return;
+      }
       const d = res.status === 'completed' ? (res.data as { vote?: unknown; reason?: unknown } | undefined) : undefined;
       const vote = asDecision(d?.vote);
       if (!vote) return;
       const reason = String(d?.reason ?? '').slice(0, max);
-      votes.push({ member: voting[k]!.id, vote, reason });
-      this.host.deliberated(g, voting[k]!.id, 'voter', `${vote}: ${reason}`);
+      votes.push({ member: m.id, name: m.name, vote, reason });
+      this.host.deliberated(g, m.id, 'voter', `${vote}: ${reason}`);
     });
-    const named = (v: CommitteeVote) => members.find((m) => m.id === v.member)?.name ?? v.member;
+    const named = (v: CommitteeVote) => v.name ?? members.find((m) => m.id === v.member)?.name ?? v.member;
+    const union = (xs: Array<string[] | undefined>) => [...new Set(xs.flatMap((x) => x ?? []))];
     if (g.pattern === 'assembly') {
       if (!votes.length) return { error: 'no valid vote' };
       const weighted = weightedWinner(votes.map((v) => DECISIONS.indexOf(v.vote)), votes.map((v) => this.host.voteWeight(v.member)), DECISIONS.length);
       const decision = DECISIONS[weighted.winner] ?? 'defer';
-      const summary = votes.filter((v) => v.vote === decision).map((v) => `${named(v)}: ${v.reason}`).join(' ').slice(0, this.cfg.decisions.textMaxChars);
+      const side = votes.filter((v) => v.vote === decision);
+      const summary = side.map((v) => `${named(v)}: ${v.reason}`).join(' ').slice(0, this.cfg.decisions.textMaxChars);
       console.log(`[committee ${g.name}] assembly: ${decision} (${votes.length} vote(s)), estimated cost $${costUsd.toFixed(4)}`);
-      return { decision, summary, votes };
+      return { decision, summary, votes, ...(withCriteria ? { unmet: decision === 'approve' ? [] : union(side.map((v) => v.unmet)), outOfPolicy: union(votes.map((v) => v.outOfPolicy)) } : {}) };
     }
     const chair = members[0]!;
-    const lines = votes.length ? votes.map((v) => t('rt.committee.voteLine', { name: named(v), vote: t(`rt.committee.vote.${v.vote}`), reason: v.reason })).join('\n') : t('rt.committee.noVotes');
+    const none = t('rt.committee.none');
+    const lines = votes.length
+      ? votes.map((v) => (withCriteria
+        ? t('rt.committee.voteLineCriteria', { name: named(v), vote: t(`rt.committee.vote.${v.vote}`), reason: v.reason, unmet: v.unmet?.join(', ') || none, extra: v.outOfPolicy?.join('; ') || none })
+        : t('rt.committee.voteLine', { name: named(v), vote: t(`rt.committee.vote.${v.vote}`), reason: v.reason }))).join('\n')
+      : t('rt.committee.noVotes');
+    const task = t(withCriteria ? 'rt.committee.chairTaskCriteria' : 'rt.committee.chairTask', { brief, votes: lines, name: chair.name, id: chair.id, group: g.name });
+    if (withCriteria) {
+      const mockChair = () => {
+        const c = mock.chair(votes);
+        const unmet = c.decision === 'approve' ? [] : union(votes.map((v) => v.unmet));
+        return { decisione: c.decision, criteri_non_soddisfatti: unmet.length || c.decision === 'approve' ? unmet : criteria.slice(0, 1).map((x) => x.key), sintesi: c.summary };
+      };
+      const judge = this.member(chair, g, 'leader', {
+        deciding: true, turns: cc.ballotMaxTurns ?? 3,
+        only: [this.recordTool('decidi_idea', t('rt.committee.ballot.chairTool'), chairSchema(criteria, labels), (a) => checkChair(a, criteria, { ...limits, maxChars: this.cfg.decisions.textMaxChars }), criteria)],
+        mock: () => ({ toolCalls: [{ name: 'decidi_idea', args: mockChair() }] }),
+      });
+      const { res } = await run(chair, judge, task, 'leader');
+      const d = res.status === 'completed' || res.status === 'stopped' ? (res.data as ChairDecision | undefined) : undefined;
+      if (!d?.decision) return { error: `chair ${chair.name}: ${res.status}${res.reason ? ` (${res.reason})` : ''}` };
+      this.host.deliberated(g, chair.id, 'leader', `${d.decision}: ${d.summary}`.slice(0, max));
+      console.log(`[committee ${g.name}] ${g.pattern}: ${d.decision} (${votes.length} vote(s)), estimated cost $${costUsd.toFixed(4)}`);
+      return { decision: d.decision, summary: d.summary, votes, unmet: d.unmet, outOfPolicy: union([d.outOfPolicy, ...votes.map((v) => v.outOfPolicy)]) };
+    }
     const judge = this.member(chair, g, 'leader', { structured: true, deciding: true, output: IDEA_VERDICT, mock: () => ({ text: JSON.stringify(mock.chair(votes)) }) });
-    const { res } = await run(chair, judge, t('rt.committee.chairTask', { brief, votes: lines, name: chair.name, id: chair.id, group: g.name }), 'leader');
+    const { res } = await run(chair, judge, task, 'leader');
     const d = res.status === 'completed' ? (res.data as { decision?: unknown; summary?: unknown } | undefined) : undefined;
     const decision = asDecision(d?.decision);
     if (!decision) return { error: `chair ${chair.name}: ${res.status}${res.reason ? ` (${res.reason})` : ''}` };

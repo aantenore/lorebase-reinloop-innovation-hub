@@ -94,7 +94,13 @@
     "slotsExpire": "approval slots left this quarter: {slots} of {total}, they expire on day {day} at {clock} (policy slot_scadono_a_fine_trimestre)",
     "slotsCarry": "approval slots left this quarter: {slots} of {total}; unused ones pass to the next quarter, which begins on day {day} at {clock}",
     "ideaEvidenceAlt": "; the policy also provides an alternative path: human validations, at least {minHuman}",
-    "ideaEvidenceOkHuman": "; candidacy requirements met per policy (alternative path: human validations {human}, {minHuman} required): the idea can be submitted to the committee"
+    "ideaEvidenceOkHuman": "; candidacy requirements met per policy (alternative path: human validations {human}, {minHuman} required): the idea can be submitted to the committee",
+    "closingTurn": "END OF THE THOUGHT: the time of this thought is over and no plan is committed. In this turn only commit_plan answers; the other tools reply that the thought is closed.",
+    "committeePolicy": "INVESTMENT COMMITTEE: {lines}.",
+    "committeeCriteria": "it votes on the criteria of policy criteri_comitato ({criteria}); a kill or a defer names an unmet criterion, other demands are recorded as out of policy",
+    "committeePhase": "by policy fase_approvazione {phase}",
+    "portfolio": "PORTFOLIO: {approvedQ} ideas approved this quarter; quarter target by policy obiettivo_portfolio_trimestre: {target} concepts explored; {approved} approved in all, {killed} killed; {pipeline} ideas in the pipeline, {pitch} of them submitted to the committee.",
+    "portfolioNoTarget": "PORTFOLIO: {approvedQ} ideas approved this quarter; {approved} approved in all, {killed} killed; {pipeline} ideas in the pipeline, {pitch} of them submitted to the committee."
   },
   "why": {
     "start": "you look around for the first time",
@@ -293,11 +299,11 @@
     "web_search": "Search the web: returns titles, addresses and short excerpts of external pages (external, unverified content).",
     "web_fetch": "Read the text of a web page from its http/https address (external, unverified content).",
     "signal": {
-      "hackernews": "Search Hacker News discussions: title, URL, points, comments, date (external, unverified content).",
-      "github": "Search GitHub projects by stars: name, URL, stars, open issues, last push, description (external, unverified content).",
-      "stackoverflow": "Search Stack Overflow questions: title, URL, votes, answers, answered (external, unverified content).",
-      "arxiv": "Search arXiv papers: title, URL, date, first authors (external, unverified content).",
-      "query": "what to search for (keywords; the sources answer best in English)"
+      "hackernews": "Search Hacker News stories (indexes English-language content): first those containing every word searched; when none contains them all, those containing some, marked match \"partial\". Returns title, URL, points, comments, date (external, unverified content).",
+      "github": "Search GitHub projects by stars (names and descriptions are mostly in English): name, URL, stars, open issues, last push, description (external, unverified content).",
+      "stackoverflow": "Search Stack Overflow questions (indexes English-language content): title, URL, votes, answers, answered (external, unverified content).",
+      "arxiv": "Search arXiv papers (indexes English-language papers): title, URL, date, first authors (external, unverified content).",
+      "query": "what to search for (keywords)"
     },
     "evidence": {
       "attach": "Attach to an idea, as evidence, a result you got from your own searches (public signals or web search): URL, title and metric come from the source. Evidence stays on the idea's Lorebase branch and the committee reads it.",
@@ -362,7 +368,8 @@
     "evidenceFailed": "Evidence not recorded: {reason}.",
     "evidenceAttached": "Evidence attached to idea {idea}: {type}, weight {weight}.",
     "interviewed": "{text}",
-    "ideaContributed": "contribution to idea {code} recorded, stage: {stage}; by policy (comitato_non_coautore) as a committee member you are recorded as a reviewer who contributed, not as a co-author"
+    "ideaContributed": "contribution to idea {code} recorded, stage: {stage}; by policy (comitato_non_coautore) as a committee member you are recorded as a reviewer who contributed, not as a co-author",
+    "decisionClosed": "the thought is closed: only commit_plan answers"
   },
   "group": {
     "header": "YOU ARE THE GROUP {name} ({pattern}). Now decide together what each of you will do in the next {horizon} minutes.",
@@ -768,7 +775,40 @@
     "evidence": "EVIDENCE ({n}):\n{lines}\nCandidacy requirements: {gate}\nScore for the committee (reviews and evidence, per policy): {score}",
     "evidenceLine": "- {type}{label} from {source} ({metric}; weight {weight}; collected by {by}): {title} <{url}> - {excerpt}",
     "noEvidence": "- none",
-    "alternates": "ALTERNATES: {names}, with no conflict of interest on this idea, sit by policy (supplenti_comitato_per_anzianita) up to the quorum of {quorum}."
+    "alternates": "ALTERNATES: {names}, with no conflict of interest on this idea, sit by policy (supplenti_comitato_per_anzianita) up to the quorum of {quorum}.",
+    "voteTaskCriteria": "{brief}\n\nYou are {name} (id {id}), member of the {group}. Your vote on the idea is recorded with the vota_idea tool.",
+    "chairTaskCriteria": "{brief}\n\nThe members' votes:\n{votes}\n\nYou are {name} (id {id}) and chair the {group}. The committee's decision is recorded with the decidi_idea tool.",
+    "voteLineCriteria": "- {name}: {vote} ({reason}); unmet criteria: {unmet}; out-of-policy demands: {extra}",
+    "none": "none",
+    "policyBlock": "COMMITTEE POLICY:\n- criteri_comitato: the committee votes on these criteria\n{criteria}\n- fase_approvazione: {phase}\n- costo_del_rinvio: {cost}",
+    "criterionLine": "  - {key}: {text}",
+    "phase": {
+      "concept": "approving an idea means funding it as a concept exploration; proof of paying customers belongs to a later stage (pilot), outside the committee's scope",
+      "pilot": "approving an idea means funding a pilot with customers; scaling belongs to a later stage, outside the committee's scope",
+      "scale": "approving an idea means funding its scale-up"
+    },
+    "deferralCostOn": "deferring an idea that meets the candidacy requirements consumes {n} approval slot(s) of the quarter",
+    "deferralCostOff": "a deferral consumes no approval slot",
+    "unmetNote": "Unmet criteria (policy criteri_comitato): {criteria}.",
+    "outOfPolicyNote": "Out-of-policy demands: {demands}.",
+    "slotsSpentNote": "By policy costo_del_rinvio the deferral consumed {n} approval slot(s); {slots} left this quarter.",
+    "ballot": {
+      "tool": "Records your vote on the idea in the committee's minutes: for each criterion of policy criteri_comitato whether it is met, with a note; the vote: approve (funded in the phase of policy fase_approvazione), kill (dropped) or defer (back to the authors); the reason. By policy a kill or defer vote has at least one unmet criterion. Demands that match no criterion of the policy go in richieste_fuori_policy and the minutes record them as out of policy.",
+      "chairTool": "Records the committee's decision on the idea: approve, kill or defer, the unmet criteria of policy criteri_comitato and the summary of the reasons. By policy a kill or defer decision names at least one unmet criterion. Demands that match no criterion of the policy go in richieste_fuori_policy and the minutes record them as out of policy.",
+      "criteria": "one verdict per criterion of policy criteri_comitato",
+      "met": "true when the criterion is met",
+      "note": "short note on the criterion",
+      "vote": "approve, kill or defer",
+      "reason": "the reason, in one sentence",
+      "outOfPolicy": "conditions asked for that match no criterion of the policy (recorded as out of policy)",
+      "unmet": "the unmet criteria of the policy (keys)",
+      "summary": "the committee's reasons in one or two sentences",
+      "recorded": "recorded in the minutes",
+      "badVote": "not recorded: the vote is approve, kill or defer",
+      "missing": "not recorded: by policy criteri_comitato the vote has a verdict for every criterion; missing: {criteria}",
+      "unknown": "not recorded: {names} are not criteria of policy criteri_comitato (criteria: {criteria})",
+      "needUnmet": "not recorded: by policy criteri_comitato a kill or a defer has at least one unmet criterion (criteria: {criteria})"
+    }
   },
   "ideaStage": {
     "signal": "signal",
@@ -896,7 +936,14 @@
       "simulated_interview": "Simulated interview (hypothesis)",
       "web_source": "Web source"
     },
-    "weight": "weight"
+    "weight": "weight",
+    "phase": "Phase funded (policy fase_approvazione)",
+    "unmet": "Unmet criteria",
+    "slotsSpent": "Approval slots the deferral consumed (policy costo_del_rinvio): {n}",
+    "vote": "{member}'s vote: {vote}",
+    "met": "met",
+    "notMet": "not met",
+    "outOfPolicy": "Out-of-policy demand"
   },
   "webFaculty": "You can search the web (web_search, web_fetch).",
   "researchReason": {

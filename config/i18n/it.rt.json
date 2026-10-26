@@ -94,7 +94,13 @@
     "slotsExpire": "slot di approvazione rimasti questo trimestre: {slots} su {total}, scadono il giorno {day} alle {clock} (policy slot_scadono_a_fine_trimestre)",
     "slotsCarry": "slot di approvazione rimasti questo trimestre: {slots} su {total}; quelli non usati passano al trimestre successivo, che comincia il giorno {day} alle {clock}",
     "ideaEvidenceAlt": "; la policy prevede anche una strada alternativa: validazioni umane, almeno {minHuman}",
-    "ideaEvidenceOkHuman": "; requisiti di candidatura soddisfatti per policy (strada alternativa: validazioni umane {human}, ne servono {minHuman}): l'idea può essere candidata al comitato"
+    "ideaEvidenceOkHuman": "; requisiti di candidatura soddisfatti per policy (strada alternativa: validazioni umane {human}, ne servono {minHuman}): l'idea può essere candidata al comitato",
+    "closingTurn": "FINE DELLA RIFLESSIONE: il tempo di questa riflessione è finito e nessun piano è fissato. In questo turno risponde solo commit_plan; gli altri strumenti rispondono che la riflessione è chiusa.",
+    "committeePolicy": "COMITATO INVESTIMENTI: {lines}.",
+    "committeeCriteria": "vota sui criteri della policy criteri_comitato ({criteria}); un kill o un defer nomina un criterio non soddisfatto, le altre richieste sono registrate come fuori policy",
+    "committeePhase": "per policy fase_approvazione {phase}",
+    "portfolio": "PORTAFOGLIO: {approvedQ} idee approvate in questo trimestre; obiettivo del trimestre per policy obiettivo_portfolio_trimestre: {target} concept esplorati; {approved} approvate in tutto, {killed} scartate; in pipeline {pipeline} idee, di cui {pitch} candidate al comitato.",
+    "portfolioNoTarget": "PORTAFOGLIO: {approvedQ} idee approvate in questo trimestre; {approved} approvate in tutto, {killed} scartate; in pipeline {pipeline} idee, di cui {pitch} candidate al comitato."
   },
   "why": {
     "start": "arrivi in ufficio e ti guardi intorno per la prima volta",
@@ -293,11 +299,11 @@
     "web_search": "Cerca sul web: restituisce titoli, indirizzi e brevi estratti di pagine esterne (contenuto esterno, non verificato).",
     "web_fetch": "Leggi il testo di una pagina web dal suo indirizzo http/https (contenuto esterno, non verificato).",
     "signal": {
-      "hackernews": "Cerca discussioni su Hacker News: titolo, indirizzo, punti, commenti, data (contenuto esterno, non verificato).",
-      "github": "Cerca progetti su GitHub, per stelle: nome, indirizzo, stelle, issue aperte, ultimo aggiornamento, descrizione (contenuto esterno, non verificato).",
-      "stackoverflow": "Cerca domande su Stack Overflow: titolo, indirizzo, voti, risposte, se ha risposta (contenuto esterno, non verificato).",
-      "arxiv": "Cerca paper su arXiv: titolo, indirizzo, data, primi autori (contenuto esterno, non verificato).",
-      "query": "cosa cercare (parole chiave; le fonti rispondono meglio in inglese)"
+      "hackernews": "Cerca storie su Hacker News (indicizza contenuti in inglese): prima quelle che contengono tutte le parole cercate; se nessuna le contiene tutte, quelle che ne contengono alcune, marcate match \"partial\". Restituisce titolo, indirizzo, punti, commenti, data (contenuto esterno, non verificato).",
+      "github": "Cerca progetti su GitHub per stelle (nomi e descrizioni sono per lo più in inglese): nome, indirizzo, stelle, issue aperte, ultimo aggiornamento, descrizione (contenuto esterno, non verificato).",
+      "stackoverflow": "Cerca domande su Stack Overflow (indicizza contenuti in inglese): titolo, indirizzo, voti, risposte, se ha risposta (contenuto esterno, non verificato).",
+      "arxiv": "Cerca paper su arXiv (indicizza paper in inglese): titolo, indirizzo, data, primi autori (contenuto esterno, non verificato).",
+      "query": "cosa cercare (parole chiave)"
     },
     "evidence": {
       "attach": "Allega a un'idea, come prova, un risultato che hai ottenuto con le tue ricerche (segnali pubblici o ricerca web): indirizzo, titolo e metrica vengono dalla fonte. Le prove restano nel ramo dell'idea in Lorebase e il comitato le legge.",
@@ -362,7 +368,8 @@
     "evidenceFailed": "Prova non registrata: {reason}.",
     "evidenceAttached": "Prova allegata all'idea {idea}: {type}, peso {weight}.",
     "interviewed": "{text}",
-    "ideaContributed": "contributo all'idea {code} registrato, fase: {stage}; per policy (comitato_non_coautore) come membro del comitato sei registrato come revisore che ha contribuito, non come co-autore"
+    "ideaContributed": "contributo all'idea {code} registrato, fase: {stage}; per policy (comitato_non_coautore) come membro del comitato sei registrato come revisore che ha contribuito, non come co-autore",
+    "decisionClosed": "la riflessione è chiusa: risponde solo commit_plan"
   },
   "group": {
     "header": "SIETE IL GRUPPO {name} ({pattern}). Ora decidete insieme cosa farà ciascuno nei prossimi {horizon} minuti.",
@@ -768,7 +775,40 @@
     "evidence": "PROVE ({n}):\n{lines}\nRequisiti di candidatura: {gate}\nPunteggio per il comitato (valutazioni e prove, secondo le policy): {score}",
     "evidenceLine": "- {type}{label} da {source} ({metric}; peso {weight}; raccolta da {by}): {title} <{url}> - {excerpt}",
     "noEvidence": "- nessuna",
-    "alternates": "SUPPLENTI: {names}, senza conflitto di interessi su questa idea, siedono per policy (supplenti_comitato_per_anzianita) fino al quorum di {quorum}."
+    "alternates": "SUPPLENTI: {names}, senza conflitto di interessi su questa idea, siedono per policy (supplenti_comitato_per_anzianita) fino al quorum di {quorum}.",
+    "voteTaskCriteria": "{brief}\n\nSei {name} (id {id}), membro del {group}. Il tuo voto sull'idea si registra con lo strumento vota_idea; i testi sono in italiano.",
+    "chairTaskCriteria": "{brief}\n\nI voti dei membri:\n{votes}\n\nSei {name} (id {id}) e presiedi il {group}. La decisione del comitato si registra con lo strumento decidi_idea; i testi sono in italiano.",
+    "voteLineCriteria": "- {name}: {vote} ({reason}); criteri non soddisfatti: {unmet}; richieste fuori policy: {extra}",
+    "none": "nessuno",
+    "policyBlock": "POLICY DEL COMITATO:\n- criteri_comitato: il comitato vota su questi criteri\n{criteria}\n- fase_approvazione: {phase}\n- costo_del_rinvio: {cost}",
+    "criterionLine": "  - {key}: {text}",
+    "phase": {
+      "concept": "approvare un'idea significa finanziarla come esplorazione di concept; la prova di clienti paganti appartiene a una fase successiva (pilota), fuori dal perimetro del comitato",
+      "pilot": "approvare un'idea significa finanziarne un pilota con clienti; la scala appartiene a una fase successiva, fuori dal perimetro del comitato",
+      "scale": "approvare un'idea significa finanziarne la scala"
+    },
+    "deferralCostOn": "rinviare un'idea che soddisfa i requisiti di candidatura consuma {n} slot di approvazione del trimestre",
+    "deferralCostOff": "il rinvio non consuma slot di approvazione",
+    "unmetNote": "Criteri non soddisfatti (policy criteri_comitato): {criteria}.",
+    "outOfPolicyNote": "Richieste fuori policy: {demands}.",
+    "slotsSpentNote": "Per policy costo_del_rinvio il rinvio ha consumato {n} slot di approvazione; ne restano {slots} nel trimestre.",
+    "ballot": {
+      "tool": "Registra il tuo voto sull'idea nel verbale del comitato: per ogni criterio della policy criteri_comitato se è soddisfatto, con una nota; il voto: approve (finanziata nella fase della policy fase_approvazione), kill (scartata) o defer (torna agli autori); il motivo. Per policy un voto kill o defer ha almeno un criterio non soddisfatto. Le richieste che non corrispondono a un criterio della policy stanno in richieste_fuori_policy e il verbale le registra come fuori policy.",
+      "chairTool": "Registra la decisione del comitato sull'idea: approve, kill o defer, i criteri della policy criteri_comitato non soddisfatti e la sintesi della motivazione. Per policy una decisione kill o defer nomina almeno un criterio non soddisfatto. Le richieste che non corrispondono a un criterio della policy stanno in richieste_fuori_policy e il verbale le registra come fuori policy.",
+      "criteria": "un giudizio per ogni criterio della policy criteri_comitato",
+      "met": "true se il criterio è soddisfatto",
+      "note": "nota breve sul criterio, in italiano",
+      "vote": "approve, kill o defer",
+      "reason": "il motivo, in una frase, in italiano",
+      "outOfPolicy": "condizioni chieste che non corrispondono a un criterio della policy (registrate come fuori policy)",
+      "unmet": "i criteri della policy non soddisfatti (chiavi)",
+      "summary": "la motivazione del comitato in una o due frasi, in italiano",
+      "recorded": "registrato nel verbale",
+      "badVote": "non registrato: il voto è approve, kill o defer",
+      "missing": "non registrato: per policy criteri_comitato il voto ha un giudizio per ogni criterio; mancano: {criteria}",
+      "unknown": "non registrato: {names} non sono criteri della policy criteri_comitato (criteri: {criteria})",
+      "needUnmet": "non registrato: per policy criteri_comitato un kill o un defer ha almeno un criterio non soddisfatto (criteri: {criteria})"
+    }
   },
   "ideaStage": {
     "signal": "segnale",
@@ -896,7 +936,14 @@
       "simulated_interview": "Intervista simulata (ipotesi)",
       "web_source": "Fonte web"
     },
-    "weight": "peso"
+    "weight": "peso",
+    "phase": "Fase finanziata (policy fase_approvazione)",
+    "unmet": "Criteri non soddisfatti",
+    "slotsSpent": "Slot di approvazione consumati dal rinvio (policy costo_del_rinvio): {n}",
+    "vote": "Voto di {member}: {vote}",
+    "met": "soddisfatto",
+    "notMet": "non soddisfatto",
+    "outOfPolicy": "Richiesta fuori policy"
   },
   "webFaculty": "Puoi cercare sul web (web_search, web_fetch).",
   "researchReason": {

@@ -44,8 +44,14 @@ export interface IdeaEvent {
 export interface CommitteeVote {
   /** Entity id of the committee member. */
   member: string;
+  /** Name of the member (for the record). */
+  name?: string;
   vote: CommitteeDecision;
   reason: string;
+  /** Policy criteri_comitato: the member's verdict on each criterion, the unmet ones, demands outside the criteria. */
+  criteria?: Record<string, { met: boolean; note: string }>;
+  unmet?: string[];
+  outOfPolicy?: string[];
 }
 
 export interface Idea {
@@ -76,8 +82,15 @@ export interface Idea {
   sources: IdeaSource[];
   /** Evidence behind it (Evidence Records on its branch), oldest first. */
   evidence: Evidence[];
-  /** The committee's last word on it (`recused`: members who abstained for a conflict of interest, names). */
-  decision: { decision: CommitteeDecision; summary: string; at: At; votes: CommitteeVote[]; recused?: string[] } | null;
+  /**
+   * The committee's last word on it (`recused`: members who abstained for a conflict of interest, names; `unmet`: the
+   * policy criteria the decision names as unmet; `outOfPolicy`: demands recorded outside the policy criteria; `phase`:
+   * what an approval funds, policy fase_approvazione; `slotsSpent`: slots a deferral consumed, policy costo_del_rinvio).
+   */
+  decision: {
+    decision: CommitteeDecision; summary: string; at: At; votes: CommitteeVote[]; recused?: string[];
+    unmet?: string[]; outOfPolicy?: string[]; phase?: string; slotsSpent?: number;
+  } | null;
 }
 
 export interface IdeaSource {
@@ -117,6 +130,16 @@ export interface IdeasConfig {
     groupName: string;
     /** Ideas reviewed per committee session. */
     maxPerSession: number;
+    /** Members who vote on an idea (0: every seated member). */
+    maxVoters: number;
+    /** Turns of a ballot or chair run (a ballot the policy refuses can be cast again). */
+    ballotMaxTurns: number;
+    /** Code prefix of the criterion policies (criteri_comitato). */
+    criteriaPrefix: string;
+    /** Phases an approval can fund, by value of policy fase_approvazione (1 = the first). */
+    phases: string[];
+    /** Demands outside the policy kept per ballot. */
+    demandsMax: number;
   };
   /**
    * Policy keys (Lorebase `Rule` records, value >= 1 means on): `conflictOfInterest` keeps the champion and the
@@ -131,6 +154,14 @@ export interface IdeasConfig {
     committeeAlternates: string;
     /** Unused approval slots are lost at the end of the quarter (off: they carry over). */
     slotsExpire: string;
+    /** On: ballots give a verdict per criterion (rules `committee.criteriaPrefix*`), a vote that does not approve names an unmet one. */
+    criteria: string;
+    /** What an approval funds (value indexes `committee.phases`). */
+    approvalPhase: string;
+    /** Approval slots a deferral of an idea that meets the candidacy requirements consumes. */
+    deferralCost: string;
+    /** Approved ideas (concepts explored) the company expects from the portfolio in a quarter. */
+    portfolioTarget: string;
   };
 }
 
@@ -544,12 +575,16 @@ export class IdeaBook {
    * kill: stage killed with the reason, the Proposal closed (the branch keeps the record); defer: back to
    * proposal (the Proposal stays open for a later submission).
    */
-  decide(code: string, decision: CommitteeDecision, summary: string, votes: CommitteeVote[], at: At, by: string, recused: string[] = []): Idea | string {
+  decide(
+    code: string, decision: CommitteeDecision, summary: string, votes: CommitteeVote[], at: At, by: string, recused: string[] = [],
+    record: { unmet?: string[]; outOfPolicy?: string[]; phase?: string; slotsSpent?: number } = {},
+  ): Idea | string {
     const i = this.get(code);
     if (!i) return 'unknown_idea';
     if (i.stage !== 'pitch') return 'not_submitted';
     const text = clean(summary, this.cfg.textMaxChars);
-    i.decision = { decision, summary: text, at, votes, ...(recused.length ? { recused } : {}) };
+    const extra = Object.fromEntries(Object.entries(record).filter(([, v]) => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== '' && v !== 0)));
+    i.decision = { decision, summary: text, at, votes, ...(recused.length ? { recused } : {}), ...extra };
     if (recused.length) this.note(i, at, by, 'recused', recused.join(', '));
     this.submittedAt.delete(i.code);
     const proposal = i.proposalId;
@@ -655,7 +690,19 @@ export function exportMarkdown(ideas: Idea[], l: ExportLabel, weights: Scores, c
         lines.push(`  - ${l(`evidenceType.${e.type}`)} (${e.source}${metric}; ${l('weight')} ${e.weight}${e.label ? `; ${e.label}` : ''}): ${what}${e.excerpt ? ` - ${e.excerpt.slice(0, 200)}` : ''} (${e.collected_by})`);
       }
     }
-    if (i.decision) lines.push(`- ${l('decision')}: ${l(`decisions.${i.decision.decision}`)}${i.decision.summary ? ` - ${i.decision.summary}` : ''}`);
+    if (i.decision) {
+      const d = i.decision;
+      lines.push(`- ${l('decision')}: ${l(`decisions.${d.decision}`)}${d.summary ? ` - ${d.summary}` : ''}`);
+      if (d.phase) lines.push(`  - ${l('phase')}: ${d.phase}`);
+      if (d.unmet?.length) lines.push(`  - ${l('unmet')}: ${d.unmet.join(', ')}`);
+      if (d.slotsSpent) lines.push(`  - ${l('slotsSpent', { n: d.slotsSpent })}`);
+      for (const v of d.votes) {
+        const crit = v.criteria ? Object.entries(v.criteria).map(([k, c]) => `${k} ${c.met ? l('met') : l('notMet')}`).join(', ') : '';
+        lines.push(`  - ${l('vote', { member: v.name ?? v.member, vote: l(`decisions.${v.vote}`) })}${crit ? ` (${crit})` : ''}: ${v.reason || '-'}`);
+        for (const x of v.outOfPolicy ?? []) lines.push(`    - ${l('outOfPolicy')}: ${x}`);
+      }
+      for (const x of d.outOfPolicy ?? []) lines.push(`  - ${l('outOfPolicy')}: ${x}`);
+    }
     lines.push('');
     return lines.join('\n');
   };

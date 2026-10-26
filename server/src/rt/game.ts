@@ -25,7 +25,7 @@ import { Chronicle, type ChronicleEvent } from './chronicle.ts';
 import { type Insight, InsightBook } from './insights.ts';
 import { AGENT_PATTERNS, type GameConfig, type GroupPattern } from './config.ts';
 import { type DecideHost, decide, type IdeaBrief, type IdeaDesk, reply, type ToolOutcome } from './decide.ts';
-import { type CommitteeMock, type Group, GroupManager, type JointPlan } from './groups.ts';
+import { type CommitteeMock, type CommitteePolicy, type Group, GroupManager, type JointPlan } from './groups.ts';
 import { AgentMind, GroupMind, Limiter, type MindHost, type Perception } from './mind.ts';
 import { type Plan, type PlanStep, tileOf } from './plan.ts';
 import { type GroupView, proclamation, textLanguage } from './prompt.ts';
@@ -40,6 +40,7 @@ import { type LawProposal, LawDesk, lawDraft } from './law-proposals.ts';
 import { ResearchDesk, type ResearchEvent, type ResearchSource } from './research.ts';
 import { committeeScore, type Evidence, EvidenceDesk, evidenceScore, evidenceWeight, gateStatus, type GateStatus, PERSONAS, VERDICTS } from './evidence.ts';
 import { signalBackend } from './signals.ts';
+import { approvalPhase, type Criterion, criteriaFrom, criteriaTally } from './committee.ts';
 import { modelRef } from './decide.ts';
 
 type Msg = Record<string, unknown> & { type: string };
@@ -112,6 +113,10 @@ export class Game {
     gateRefusals: 0, validations: 0,
     /** Plan reasons (the visible thoughts) by guessed language. */
     reasonLangs: {} as Record<string, number>,
+    /** Plan runs that needed a closing run (decisions.closingTurn), and those that committed a plan in it. */
+    closingRuns: 0, closingCommitted: 0,
+    /** Committee: ballots per criterion (met / unmet), demands recorded outside the policy, slots spent by deferrals. */
+    criteriaMet: {} as Record<string, number>, criteriaUnmet: {} as Record<string, number>, outOfPolicy: 0, deferralSlots: 0,
   };
   /** Set while a reply is spoken, so a reply never triggers another reply. */
   private speakingReply = false;
@@ -330,6 +335,10 @@ export class Game {
       },
       runSinks: () => this.mnemo.runSinks(),
       ranModel: (who, res) => this.usage.track(who, res),
+      closed: (_e, committed) => {
+        this.stats.closingRuns++;
+        if (committed) this.stats.closingCommitted++;
+      },
       deliberated: (g, memberId, role, text) => {
         const name = this.world.entities.get(memberId)?.name ?? memberId;
         this.broadcastPrivileged({ type: 'deliberation', groupId: g.id, pattern: g.pattern, member: memberId, role, text });
@@ -615,8 +624,8 @@ export class Game {
     if (lines.length) out.push(t('rt.observation.offers', { offers: lines.join('\n') }));
     const heard = this.society.hearsayOf(e.id);
     if (heard.length) out.push(t('rt.observation.hearsay', { lines: heard.map((x) => t('rt.observation.hearsayLine', { from: x.from, about: this.society.people.get(x.about)?.name ?? x.about, text: x.text })).join('\n') }));
-    out.push(this.companyLine(e), this.ideasBlock(e));
-    return out;
+    out.push(this.companyLine(e), this.portfolioLine(), this.committeePolicyLine(), this.ideasBlock(e));
+    return out.filter(Boolean);
   }
 
   /** GET /api/society (opinions only for privileged callers). */
@@ -1634,6 +1643,64 @@ export class Game {
     return Number.isFinite(v) && v >= 1;
   }
 
+  /** The value of a policy (Lorebase `Rule`), undefined when it is missing. */
+  private policyValue(key: string): number | undefined {
+    const v = Number(this.laws.find((x) => x.key === key)?.value);
+    return Number.isFinite(v) ? v : undefined;
+  }
+
+  /** What the committee decides on (policies criteri_comitato, fase_approvazione, costo_del_rinvio). */
+  private committeePolicy(): { criteria: Criterion[]; phase: string; deferralCost: number } {
+    const p = this.game.ideas.policies;
+    const c = this.game.ideas.committee;
+    return {
+      criteria: p.criteria && this.policyOn(p.criteria) ? criteriaFrom(this.laws, c.criteriaPrefix) : [],
+      phase: p.approvalPhase && this.policyValue(p.approvalPhase) !== undefined ? approvalPhase(this.policyValue(p.approvalPhase), c.phases ?? []) : '',
+      deferralCost: Math.max(0, Math.floor((p.deferralCost && this.policyValue(p.deferralCost)) || 0)),
+    };
+  }
+
+  /** The committee's policy as a fact for everyone (one line; empty without those policies). */
+  private committeePolicyLine(): string {
+    const t = this.t;
+    const c = this.committeePolicy();
+    const parts = [
+      c.criteria.length ? t('rt.observation.committeeCriteria', { criteria: c.criteria.map((x) => x.key.replace(/_/g, ' ')).join(', ') }) : '',
+      c.phase ? t('rt.observation.committeePhase', { phase: t(`rt.committee.phase.${c.phase}`) }) : '',
+      this.game.ideas.policies.deferralCost && this.policyValue(this.game.ideas.policies.deferralCost) !== undefined ? this.deferralCostText(c.deferralCost) : '',
+    ].filter(Boolean);
+    return parts.length ? t('rt.observation.committeePolicy', { lines: parts.join('; ') }) : '';
+  }
+
+  private deferralCostText(n: number): string {
+    return n > 0 ? this.t('rt.committee.deferralCostOn', { n }) : this.t('rt.committee.deferralCostOff');
+  }
+
+  /** The committee's policy as its members read it in a session: every criterion with its text, the phase, the cost of a deferral. */
+  private committeePolicyBrief(): string {
+    const t = this.t;
+    const c = this.committeePolicy();
+    if (!c.criteria.length && !c.phase) return '';
+    return t('rt.committee.policyBlock', {
+      criteria: c.criteria.length ? c.criteria.map((x) => t('rt.committee.criterionLine', { key: x.key, text: x.text })).join('\n') : t('rt.committee.none'),
+      phase: c.phase ? t(`rt.committee.phase.${c.phase}`) : '-',
+      cost: this.deferralCostText(c.deferralCost),
+    });
+  }
+
+  /** The portfolio as a fact: approved this quarter against the policy's target, in all, killed, in the pipeline. */
+  private portfolioLine(): string {
+    const key = this.game.ideas.policies.portfolioTarget;
+    const target = key ? this.policyValue(key) : undefined;
+    const all = this.ideas.list();
+    if (target === undefined && !all.length) return '';
+    const s = this.company.stats;
+    return this.t(target === undefined ? 'rt.observation.portfolioNoTarget' : 'rt.observation.portfolio', {
+      approvedQ: s.approved, target: target ?? 0, approved: all.filter((i) => i.stage === 'approved').length, killed: all.filter((i) => i.stage === 'killed').length,
+      pipeline: all.filter((i) => !isClosed(i)).length, pitch: all.filter((i) => i.stage === 'pitch').length,
+    });
+  }
+
   /** Policy revisioni_indipendenti: the other reviews stay hidden from a non-author until they review it. */
   private hidesReviews(i: Idea, name: string): boolean {
     return !isClosed(i) && this.policyOn(this.game.ideas.policies.independentReviews) && !seesReviews(i, name);
@@ -1839,9 +1906,12 @@ export class Game {
           console.log(`[committee ${g.name}] no quorum (${seated.length}/${w.r('committee_quorum')}${recused.length ? `, recused ${recused.map((m) => m.name).join(', ')}` : ''}): ${idea.code} waits`);
           return;
         }
+        const policy = this.committeePolicy();
         const brief = [
           this.ideaText(idea),
           t('rt.committee.company', { quarter: quarterLabel(w.quarter()), slots: this.slotsText(), freeze: t(w.isFreeze() ? 'rt.observation.freezeOn' : 'rt.observation.freezeOff') }),
+          this.portfolioLine(),
+          this.committeePolicyBrief(),
           recused.length ? t('rt.committee.recused', { names: recused.map((m) => m.name).join(', '), chair: seated[0]!.name }) : '',
           alternates.length ? t('rt.committee.alternates', { names: alternates.map((m) => m.name).join(', '), quorum: w.r('committee_quorum') }) : '',
         ].filter(Boolean).join('\n\n');
@@ -1853,7 +1923,7 @@ export class Game {
           this.stats.alternates += alternates.length;
           console.log(`[committee ${g.name}] ${idea.code}: alternates ${alternates.map((m) => m.name).join(', ')} (below quorum)`);
         }
-        const out = await this.groups.reviewIdea(g, brief, this.committeeMock(idea), seated);
+        const out = await this.groups.reviewIdea(g, brief, this.committeeMock(idea), seated, { criteria: policy.criteria } satisfies CommitteePolicy);
         if ('error' in out) {
           console.warn(`[committee ${g.name}] ${idea.code}: ${out.error}`);
           return;
@@ -1864,8 +1934,25 @@ export class Game {
           decision = 'defer';
           summary = `${summary} ${t(`rt.committee.${blocked}`)}`.trim();
         }
+        // Policy costo_del_rinvio: deferring an idea that meets the candidacy requirements consumes approval slots.
+        const gatePass = this.gateOf(idea)?.pass ?? true;
+        const slotsSpent = decision === 'defer' && !blocked && gatePass && policy.deferralCost > 0 ? this.company.spendSlots(w.r('quarter_idea_slots'), policy.deferralCost) : 0;
+        if (decision === 'defer') this.company.stats.deferred++;
+        const outOfPolicy = out.outOfPolicy ?? [];
+        const unmet = out.unmet ?? [];
+        if (unmet.length) summary = `${summary} ${t('rt.committee.unmetNote', { criteria: unmet.join(', ') })}`.trim();
+        if (outOfPolicy.length) summary = `${summary} ${t('rt.committee.outOfPolicyNote', { demands: outOfPolicy.join('; ') })}`.trim();
+        if (slotsSpent) summary = `${summary} ${t('rt.committee.slotsSpentNote', { n: slotsSpent, slots: this.slotsLeft() })}`.trim();
+        for (const [k, v] of Object.entries(criteriaTally(out.votes.map((x) => ({ criteria: x.criteria ?? {} }))))) {
+          this.stats.criteriaMet[k] = (this.stats.criteriaMet[k] ?? 0) + v.met;
+          this.stats.criteriaUnmet[k] = (this.stats.criteriaUnmet[k] ?? 0) + v.unmet;
+        }
+        this.stats.outOfPolicy += outOfPolicy.length;
+        this.stats.deferralSlots += slotsSpent;
         const lead = seated[0]?.name ?? g.name;
-        const done = this.ideas.decide(idea.code, decision, summary, out.votes, this.now(), lead, recused.map((m) => m.name));
+        const done = this.ideas.decide(idea.code, decision, summary, out.votes, this.now(), lead, recused.map((m) => m.name), {
+          unmet, outOfPolicy, phase: decision === 'approve' ? policy.phase : undefined, slotsSpent,
+        });
         if (typeof done === 'string') {
           console.warn(`[committee ${g.name}] ${idea.code}: ${done}`);
           continue;
@@ -1877,7 +1964,8 @@ export class Game {
         this.broadcastCommittee({ type: 'committee', groupId: g.id, ideaCode: idea.code, decision, votes: out.votes, summary });
         for (const id of [...g.members, ...alternates.map((m) => m.id)]) this.live(w.entities.get(id), 'committee', t('rt.memory.committee', { title: idea.title, decision: t(`rt.committee.vote.${decision}`), summary }));
         for (const m of recused) this.live(m, 'committee', t('rt.memory.recused', { title: idea.title }));
-        console.log(`[committee ${g.name}] ${idea.code}: ${decision}${summary ? ` (${summary.slice(0, 120)})` : ''}`);
+        if (slotsSpent) this.broadcast({ type: 'company', ...this.companyDto() });
+        console.log(`[committee ${g.name}] ${idea.code}: ${decision}${unmet.length ? ` unmet ${unmet.join(',')}` : ''}${outOfPolicy.length ? ` out-of-policy ${outOfPolicy.length}` : ''}${slotsSpent ? ` slots spent ${slotsSpent}` : ''}${summary ? ` (${summary.slice(0, 120)})` : ''}`);
       }
       // What is left waits for the committee's next session (its cooldown applies).
       if (this.ideas.pitches().length) this.groupMinds.get(g.id)?.perceive(t('rt.why.idea.waiting'), false);

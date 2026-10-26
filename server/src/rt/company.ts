@@ -1,6 +1,6 @@
 // The company around the people: quarters (four parts of the year, rule winter_every_ticks), the
 // freeze (the year's winter), the idea slots of the quarter (rule quarter_idea_slots minus the ideas
-// approved in it, plus the slots carried over when policy slot_scadono_a_fine_trimestre is off), the strategic themes (texts of the policies in `themeCategory`) and the career
+// approved in it and those deferrals consumed, plus the slots carried over when policy slot_scadono_a_fine_trimestre is off), the strategic themes (texts of the policies in `themeCategory`) and the career
 // ladder (fame thresholds from `promotion_*` rules, never demoted). Facts only: nothing here decides.
 import type { Rule } from '../lorebase/rules.ts';
 import type { EntityKind, RtRuleKey } from './world.ts';
@@ -20,6 +20,9 @@ export interface QuarterStats {
   submitted: number;
   approved: number;
   killed: number;
+  deferred: number;
+  /** Approval slots consumed by deferrals (policy costo_del_rinvio). */
+  slotsSpent: number;
 }
 
 export interface QuarterTurn {
@@ -30,7 +33,7 @@ export interface QuarterTurn {
   began: string;
 }
 
-const empty = (): QuarterStats => ({ proposed: 0, submitted: 0, approved: 0, killed: 0 });
+const empty = (): QuarterStats => ({ proposed: 0, submitted: 0, approved: 0, killed: 0, deferred: 0, slotsSpent: 0 });
 
 /** Quarter label, e.g. Q2. Pure. */
 export const quarterLabel = (q: number) => `Q${Math.min(4, Math.max(1, Math.round(q)))}`;
@@ -80,7 +83,14 @@ export class Company {
   }
 
   slotsLeft(slots: number): number {
-    return Math.max(0, Math.floor(slots) + this.carried - this.stats.approved);
+    return Math.max(0, Math.floor(slots) + this.carried - this.stats.approved - this.stats.slotsSpent);
+  }
+
+  /** A deferral consumes up to `n` approval slots of the quarter (policy costo_del_rinvio); returns how many it took. */
+  spendSlots(slots: number, n: number): number {
+    const take = Math.max(0, Math.min(Math.floor(n), this.slotsLeft(slots)));
+    this.stats.slotsSpent += take;
+    return take;
   }
 
   /** Slots of the current quarter: the policy's count plus what was carried over. */
