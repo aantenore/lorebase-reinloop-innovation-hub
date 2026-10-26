@@ -90,6 +90,7 @@
     "ideaWaiting": "; candidata al comitato: in attesa di seduta da {ago}",
     "ideaWaitingSince": "; candidata al comitato: in attesa di seduta",
     "ideaNextSession": "; prossima seduta prevista il giorno {day} alle {clock} (policy cadenza_sedute_comitato_ore)",
+    "ideaSessionNow": "; la seduta del comitato è in corso",
     "ideaMetSince": "; soddisfa i requisiti di candidatura da {ago}; non è candidata al comitato",
     "pending": "PAROLE SENZA RISPOSTA:\n{lines}",
     "pendingLine": "- {ago} fa hai detto a {name}: «{text}»; da allora non hai sentito parlare {name}.",

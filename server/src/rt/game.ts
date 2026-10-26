@@ -1567,7 +1567,10 @@ export class Game {
       const at = this.ideas.submittedClock(i.code);
       const next = this.nextSessionAt();
       const wait = at ? t('rt.observation.ideaWaiting', { ago: this.span(now - at) }) : t('rt.observation.ideaWaitingSince');
-      const nextText = next === undefined ? '' : t('rt.observation.ideaNextSession', { day: Math.floor(next / DAY_MINUTES) + 1, clock: clockOf(next) });
+      // A session already convened (due or deciding) is the fact, not the next point of the grid.
+      const nextText = next === undefined ? '' : this.sessionDue || this.committeeBusy
+        ? t('rt.observation.ideaSessionNow')
+        : t('rt.observation.ideaNextSession', { day: Math.floor(next / DAY_MINUTES) + 1, clock: clockOf(next) });
       return `${wait}${nextText}`;
     }
     const since = this.requirementsSince(i);

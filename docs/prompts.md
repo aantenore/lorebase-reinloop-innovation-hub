@@ -87,7 +87,8 @@ Two blocks, facts only:
   run 3 "validazioni umane 0" next to "soddisfatti" was read as a missing requirement.
 - Where an idea stands towards the committee, as time facts: a submitted idea "candidata al comitato: in attesa di
   seduta da 3 ore; prossima seduta prevista il giorno 2 alle 14:00 (policy cadenza_sedute_comitato_ore)"
-  (`rt.observation.ideaWaiting`, `ideaNextSession`: the next point of the policy's grid); an open idea meeting the
+  (`rt.observation.ideaWaiting`, `ideaNextSession`: the next point of the policy's grid; while a session is convened
+  or deciding, `ideaSessionNow`: "la seduta del comitato è in corso"); an open idea meeting the
   candidacy requirements "soddisfa i requisiti di candidatura da 2 giorni; non è candidata al comitato"
   (`rt.observation.ideaMetSince`, since the first time the world saw the requirements met in this run).
 - New evidence is news for the authors and, for a player's validation, for the people within earshot

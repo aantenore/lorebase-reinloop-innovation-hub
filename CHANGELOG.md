@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Live run 6 recorded: `docs/run-report.md` (Run 6 and "Findings across runs 1-6" at the top), `docs/evidence/run6/`,
+  `docs/portfolio-run6.md`; idea board, idea detail and board mode screenshots from run 6.
+- While a committee session is convened or deciding, perception says so (`rt.observation.ideaSessionNow`) instead of
+  naming the next grid point (seen in run 6).
 - Page reads have their own quotas: policies `letture_web_per_persona_al_giorno` (12) and `letture_web_totali_al_giorno`
   (60), apart from the search quotas (`research.policies.readsPerPerson`, `readsTotal`). With `anthropic-native`,
   `web_fetch` now reads pages through Anthropic's hosted fetch tool (`research.anthropicFetch`; one call per page,

@@ -1,0 +1,251 @@
+{
+    "lorebase": {
+        "url": "http://127.0.0.1:8280",
+        "domain": "hub",
+        "branch": "main",
+        "revision": "abac080e6d2962c2633d7d777b6610a34127aa097fa2b116d359da465394cbfe",
+        "counts": {
+            "Signal": 40,
+            "Role": 8,
+            "Recipe": 11,
+            "Resource": 15,
+            "Chronicle": 35,
+            "Insight": 2,
+            "Rule": 128
+        }
+    },
+    "mnemo": {
+        "connected": true,
+        "memories": 3496,
+        "perAgent": [
+            {
+                "agentId": "a1",
+                "name": "Livia",
+                "count": 288,
+                "avgFidelity": 0.94,
+                "gists": 0
+            },
+            {
+                "agentId": "a2",
+                "name": "Matteo",
+                "count": 453,
+                "avgFidelity": 0.972,
+                "gists": 0
+            },
+            {
+                "agentId": "a3",
+                "name": "Giulia",
+                "count": 481,
+                "avgFidelity": 0.971,
+                "gists": 0
+            },
+            {
+                "agentId": "a4",
+                "name": "Enea",
+                "count": 437,
+                "avgFidelity": 0.967,
+                "gists": 0
+            },
+            {
+                "agentId": "a5",
+                "name": "Sara",
+                "count": 456,
+                "avgFidelity": 0.97,
+                "gists": 0
+            },
+            {
+                "agentId": "a6",
+                "name": "Bruno",
+                "count": 457,
+                "avgFidelity": 0.969,
+                "gists": 0
+            },
+            {
+                "agentId": "a7",
+                "name": "Irene",
+                "count": 460,
+                "avgFidelity": 0.968,
+                "gists": 0
+            },
+            {
+                "agentId": "a8",
+                "name": "Dario",
+                "count": 464,
+                "avgFidelity": 0.97,
+                "gists": 0
+            }
+        ],
+        "dbBytes": 25051136,
+        "lastCompaction": null,
+        "embedder": {
+            "name": "transformers:Xenova/multilingual-e5-small:q8",
+            "dim": 384,
+            "fallback": false
+        }
+    },
+    "reinloop": {
+        "decisions": 391,
+        "groupDecisions": 65,
+        "replies": 307,
+        "failures": 2,
+        "thoughts": 0,
+        "failureReasons": {
+            "reply: failed: terminated": 1,
+            "decide: interrupted: The operation was aborted due to timeout": 1
+        },
+        "thoughtLangs": {},
+        "recusals": 0,
+        "alternates": 0,
+        "scoreMatches": 1,
+        "gateRefusals": 0,
+        "validations": 0,
+        "reasonLangs": {
+            "it": 372
+        },
+        "closingRuns": 7,
+        "closingCommitted": 7,
+        "criteriaMet": {
+            "coerenza_strategica": 6,
+            "concorrenza": 5,
+            "fattibilita": 6,
+            "prove_del_problema": 0,
+            "rischio": 6
+        },
+        "criteriaUnmet": {
+            "coerenza_strategica": 0,
+            "concorrenza": 1,
+            "fattibilita": 0,
+            "prove_del_problema": 6,
+            "rischio": 0
+        },
+        "outOfPolicy": 8,
+        "deferralSlots": 2,
+        "running": 4,
+        "signalSearches": 21,
+        "signalCached": 0,
+        "signalRefused": 20,
+        "signalRefusals": {
+            "cerca_discussioni:decision_cap": 9,
+            "cerca_paper:decision_cap": 9,
+            "cerca_progetti:decision_cap": 1,
+            "intervista_simulata:unavailable": 1
+        },
+        "signalErrors": 1,
+        "evidenceAttached": 7,
+        "interviews": 0,
+        "webSearches": 40,
+        "webFetches": 4,
+        "webCached": 1,
+        "webRefused": 132,
+        "webRefusals": {
+            "web_search:person_quota": 27,
+            "web_search:total_quota": 80,
+            "web_fetch:unavailable": 1,
+            "web_fetch:decision_cap": 11,
+            "web_search:decision_cap": 5,
+            "web_fetch:not_from_search": 24
+        },
+        "webCapped": 16,
+        "webErrors": 1,
+        "budgetMaxUsd": 2.5,
+        "budgetPaused": 0,
+        "runs": 888,
+        "tokens": {
+            "input": 24568783,
+            "output": 1124209
+        },
+        "costUsd": {
+            "total": 1.776127,
+            "byModel": {
+                "anthropic/claude-haiku-5-5": 1.294624,
+                "claude-haiku-5-5": 0.481502
+            },
+            "byTier": {
+                "haiku": 1.157578,
+                "group:orchestrator": 0.121948,
+                "research": 0.481502,
+                "group:council": 0.015098
+            },
+            "byTool": {
+                "minds": {
+                    "runs": 843,
+                    "costUsd": 1.294218,
+                    "share": 0.729
+                },
+                "web_search": {
+                    "runs": 40,
+                    "costUsd": 0.477065,
+                    "share": 0.269
+                },
+                "web_fetch": {
+                    "runs": 4,
+                    "costUsd": 0.004437,
+                    "share": 0.002
+                },
+                "intervista_simulata": {
+                    "runs": 1,
+                    "costUsd": 0.000406,
+                    "share": 0
+                },
+                "segnali_pubblici": {
+                    "runs": 21,
+                    "costUsd": 0,
+                    "share": 0
+                }
+            }
+        },
+        "cache": {
+            "readTokens": 19497783,
+            "writeTokens": 4477775,
+            "write1hTokens": 0,
+            "hitRatio": 0.7936,
+            "savedUsd": 1.642856,
+            "byModel": {
+                "anthropic/claude-haiku-5-5": {
+                    "readTokens": 19497783,
+                    "writeTokens": 4477775,
+                    "write1hTokens": 0,
+                    "hitRatio": 0.8131,
+                    "savedUsd": 1.642856
+                },
+                "claude-haiku-5-5": {
+                    "readTokens": 0,
+                    "writeTokens": 0,
+                    "write1hTokens": 0,
+                    "hitRatio": 0,
+                    "savedUsd": 0
+                }
+            },
+            "byTier": {
+                "haiku": {
+                    "readTokens": 17867975,
+                    "writeTokens": 4102211,
+                    "write1hTokens": 0,
+                    "hitRatio": 0.8131,
+                    "savedUsd": 1.505562
+                },
+                "group:orchestrator": {
+                    "readTokens": 1578091,
+                    "writeTokens": 331699,
+                    "write1hTokens": 0,
+                    "hitRatio": 0.8261,
+                    "savedUsd": 0.133736
+                },
+                "research": {
+                    "readTokens": 0,
+                    "writeTokens": 0,
+                    "write1hTokens": 0,
+                    "hitRatio": 0,
+                    "savedUsd": 0
+                },
+                "group:council": {
+                    "readTokens": 51717,
+                    "writeTokens": 43865,
+                    "write1hTokens": 0,
+                    "hitRatio": 0.5407,
+                    "savedUsd": 0.003558
+                }
+            }
+        }
+    }
+}

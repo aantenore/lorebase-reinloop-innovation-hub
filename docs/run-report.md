@@ -1,3 +1,33 @@
+# Findings across runs 1-6
+
+Six live runs of 19 to 30 real minutes each, eight haiku/sonnet minds, $13.24 in all ($1.81 to $3.01 a run).
+
+- **What reinloop gave.** The agent loop, tools and structured outputs the hub is made of: plans, replies, the
+  council pattern of the committee, `vota_idea` ballots with a verdict per criterion, closing runs (27 plans lost in
+  run 4, 0 since), web and public-signal tools behind the hub's own desk, prompt caching (hit ratio 0.77-0.79 every
+  run, saving about as much as the run cost) and a cost ledger per tool that showed hosted search at 25-43% of spend (runs 3-6).
+- **What Lorebase gave.** Every number is a policy record, changed through branches and Proposals; schema changes
+  (`Signal.url`) and the world reset go through the same governed flow; each idea lives on its own branch with its
+  Reviews and Evidence, and reaches `main` only on approval. Six runs, five decisions, **no approval**: `main` never
+  received an Idea, so the portfolio path past the committee is untested live.
+- **Emergent committee behaviour.** All five decisions were deferrals (runs 1, 4, 6), never a kill or an approval.
+  The demand the committee made kept changing shape as policies closed the previous one: verified spend and
+  willingness to pay (runs 1-4), a paying customer (run 4), the primary legal text and a DPO (run 5), and with
+  criteria on the ballot, `prove_del_problema` alone (run 6: 6 of 6 ballots unmet, every other criterion met).
+  When a deferral cost a slot, the committee moved the stop upstream and asked the author not to submit (run 5); with
+  a published session schedule, the author submitted and planned around the session hour (run 6). Reviewers caught
+  duplicates and copied scores on their own.
+- **Levers that worked.** Italian working language through i18n (English thoughts in run 2, Italian from run 3);
+  closing runs; criteria as policy (reasons became structured and comparable); refusal counters by cause (they
+  showed the hub-wide search quota, not reads, as the binding limit); Hacker News partial match (31 of 31 searches
+  answered in run 5); facts about time (slot expiry, session schedule) entered the plans within minutes.
+- **Levers that did not.** A cost on deferral (it produced avoidance, not decisions); tighter web quotas (the same
+  primary source was asked for in runs 5 and 6 and never read); the official-source path on signals (the regulatory
+  signal never reached the people writing the regulatory idea); the human-validation alternative of the candidacy
+  rule (no player joined in any run, and the committee's remaining demand is exactly a validation with users).
+- **Costs.** Minds 57-76% of spend in runs 3-6, hosted search the rest (a search about $0.012, a page read about $0.001, public
+  signals free); budget stops only in run 2. Cost per committee decision: about $2.6 across the six runs.
+
 # Run report: live run 1 (web research, prompt caching, economy profile)
 
 Date: 2026-10-26, 09:04-09:34 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy`
@@ -503,3 +533,93 @@ Nothing approved or killed. Full text in [portfolio-run5.md](portfolio-run5.md).
 A run with the web quotas sized so a primary source can be read (`web_fetch` on a URL already found), or a player
 validation, and a fact in perception about how long a submitted idea waits for a session, to see whether the
 committee votes on the criteria once an idea is in front of it.
+
+# Run 6: reads apart from searches, a committee on a schedule, official sources on signals
+
+Date: 2026-10-26, 13:46-14:17 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (all
+haiku, clock x3), `GAME_BUDGET_USD=2.5`, commit 1a3ca61, reinloop 474f0b5. New since run 5: page reads have their own
+daily quotas (`letture_web_per_persona_al_giorno` 12, `letture_web_totali_al_giorno` 60; searches stay at 3 and 10)
+and, with `anthropic-native`, actually exist (hosted `web_fetch`, one small call per page restricted to its host; run 5
+had no reader at all, so "the EUR-Lex pages were found but nobody read them" could not have gone otherwise);
+refusals counted by tool and cause; committee sessions every 2 game hours on a fixed grid (`cadenza_sedute_comitato_ore`),
+with "in attesa di seduta da X; prossima seduta prevista il giorno D alle HH:MM" and "soddisfa i requisiti di
+candidatura da X" in perception; `Signal.url` in the schema, set on the four regulatory seed signals (AI Act on
+EUR-Lex), readable with `web_fetch` by whoever carries the signal or read it on an idea. No player joined. Stop rule:
+30 real minutes or five committee decisions: **time came first**.
+
+Evidence: [docs/evidence/run6/](evidence/run6/) ([summary.json](evidence/run6/summary.json),
+[committee.md](evidence/run6/committee.md), [evidence.md](evidence/run6/evidence.md),
+[research.md](evidence/run6/research.md), [conversations.md](evidence/run6/conversations.md),
+[lorebase-log.md](evidence/run6/lorebase-log.md), [portfolio.md](evidence/run6/portfolio.md)). Progress log:
+[docs/run-progress.log](run-progress.log) (`run6` lines, with refusals by tool and cause). Export:
+[docs/portfolio-run6.md](portfolio-run6.md). Screenshots refreshed from this run: idea board, idea detail, board mode.
+
+## Runs 1 to 6
+
+| | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 |
+|---|---|---|---|---|---|---|
+| Real time, stop | 30 min, time | 19 min, budget | 28 min, time | 30 min, time | 30 min, time | 30 min, time |
+| Decisions | 213 + 29 group | 293 + 48 group | 468 + 69 group | 500 + 81 group | 438 + 73 group | 403 + 67 group, 307 replies, 888 runs |
+| Failures | 8 | 6 | 7 | 29 (27 no plan) | 1 | 2 (a reply cut, a decision timeout); 0 no plan (7 closing runs, 7 plans) |
+| Ideas created | 2 | 3 | 2 | 1 | 1 | 2 (near duplicates, same author) |
+| Submitted | 1 | 0 | 0 | 2 (same idea) | 0 | **2** |
+| Decided | 1 defer | 0 | 0 | 2 defer | 0 | **2 defer** (2 slots consumed) |
+| Votes per criterion | - | - | - | - | none cast | 6 ballots: `prove_del_problema` unmet 6/6; `concorrenza` met 5, unmet 1; the other three met 6/6 |
+| Out-of-policy demands | - | - | - | not recorded | 0 | 8 (official date of art. 12, merge the duplicates, market sizing, log integrity) |
+| Cost | $2.33 | $3.01 | $2.27 | $1.93 | $1.89 | **$1.81: minds $1.32 (73%), web search $0.48 (26%), web fetch $0.004, interviews $0.0004, signals $0** |
+| Tokens in / out | 10.78 M / 0.43 M | 15.03 M / 0.63 M | 24.55 M / 1.16 M | 27.62 M / 1.15 M | 25.69 M / 1.17 M | 24.57 M / 1.12 M |
+| Prompt cache | hit 0.785 | hit 0.781 | hit 0.768 | hit 0.781 | hit 0.787 | hit 0.793, saved $1.64 |
+| Web searches / reads | 29 / 7 | 10 / - | 86 / - | 40 / - | 53 / 0 (no reader) | 40 / **4** |
+| Web refusals | 22 | - | - | 102 + 7 capped | 102 + 3 capped | 133 + 16 capped: search hub quota 81, search person quota 27, search cap 5; read `not_from_search` 24, read cap 11, read error 1; **read quotas 0** |
+| Public signal searches | - | - | 38 | 47 | 40 | 21 (refused 20: per-decision cap 19, interview unavailable 1) |
+| Evidence | - | - | 12 | 8 | 9 | 7 (web 3, Hacker News 4) |
+| Thoughts language | - | en 293 | it 438 | it 462 | it 411 | it 372 |
+
+## Portfolio
+
+Nothing approved or killed. Full text in [portfolio-run6.md](portfolio-run6.md); ballots in
+[committee.md](evidence/run6/committee.md).
+
+- **Audit trail on-premise per decisioni AI (art. 12) con connettori legacy** (`s6zr1`; champion and author Giulia;
+  reviews Livia, Dario, Irene: impact 6.3, feasibility 5.7, novelty 4, fit 7, risk 5.3). Pitch: an immutable
+  on-premise log of every AI decision (input, output, model version) with connectors to the customer's legacy
+  systems and audit-ready reports, for the logging duty of art. 12 of the AI Act; no data leaves the customer.
+  Evidence 3 (2 web pages on art. 12, 1 Hacker News launch). Submitted day 3 06:10, decided at the 08:00 session
+  (recorded 09:46): **defer**, Livia, Matteo, Dario all defer, all three `prove_del_problema` unmet, the other four
+  criteria met.
+- **Audit trail on-premise per decisioni AI con connettori legacy** (`x5zy5`; same author, same pitch with
+  insurers added; 5 reviews: impact 5.8, feasibility 5.8, novelty 3.4, fit 7.2, risk 5.6). Evidence 4 (3 Hacker
+  News stories, 1 web page). Submitted day 4 08:42, decided at the 10:00 session (recorded 12:14): **defer**,
+  Livia and Matteo defer, Dario kill (`prove_del_problema` and `concorrenza` unmet); chair's unmet criterion
+  `prove_del_problema`; demands out of policy: merge with `s6zr1`, a sized market with source and year.
+
+## What changed, what it showed
+
+- **The committee sat and voted on the criteria.** Six ballots, every one a verdict per criterion; the gap is one
+  criterion, `prove_del_problema`: the members read every Hacker News launch as competition, the art. 12 pages as
+  the rule, and the customer signals in the idea text as claims without a source. The reason is the same as run 1's
+  "willingness to pay is untested", now in the policy's own words.
+- **Submission was the author's again.** In run 5 the committee talked the author out of submitting; in run 6
+  Giulia submitted twice, including the duplicate Matteo had told her not to submit, and asked later to withdraw it
+  (no tool does that). The session schedule entered the plans («facciamo in tempo per la seduta delle 12:00»).
+- **Reads were possible but never on the right page.** 4 reads (law-firm and vendor pages), none refused by the read
+  quotas: reads stopped at `not_from_search` (24) and at the per-decision cap (11), and searches ran out on the hub's
+  daily quota (81 refusals, the single largest cause). The official-source path did not fire: both ideas carry the
+  three customer signals, no conversation mentions an official source, and the members kept saying «EUR-Lex non è
+  raggiungibile» while searches were used up.
+- **Cost.** $1.81; a page read costs about $0.001 against about $0.012 for a search.
+
+## Problems seen
+
+- The next-session fact named the following grid point while a session was still deciding (Livia: «seduta alle
+  12:00» at 11:32, with the 10:00 session under way): fixed after the run, the line now says the session is in
+  progress (`rt.observation.ideaSessionNow`).
+- A session decides 1.8 to 2.2 game hours after it starts: the ballots queue behind the four-run limiter.
+- The hub-wide search quota (10 per game day) is the binding constraint of research; the per-person one is second.
+- EUR-Lex's ELI page read through the hosted fetch is the notice (about 4,000 characters), not the article text.
+- A near-duplicate idea took a session and a slot; reviewers flagged it (`scores_match`, «duplicato»), no rule acts on it.
+
+## Next useful step
+
+A player validation or a source of problem evidence the committee accepts (`prove_del_problema`), since every other
+criterion is met; and the regulatory signals where the people who write regulatory ideas pick them up.

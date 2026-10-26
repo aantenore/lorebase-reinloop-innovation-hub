@@ -90,6 +90,7 @@
     "ideaWaiting": "; submitted to the committee: waiting for a session for {ago}",
     "ideaWaitingSince": "; submitted to the committee: waiting for a session",
     "ideaNextSession": "; next session scheduled on day {day} at {clock} (policy cadenza_sedute_comitato_ore)",
+    "ideaSessionNow": "; the committee session is under way",
     "ideaMetSince": "; meets the candidacy requirements for {ago}; not submitted to the committee",
     "pending": "WORDS WITHOUT AN ANSWER:\n{lines}",
     "pendingLine": "- {ago} ago you told {name}: \"{text}\"; you have not heard {name} speak since.",

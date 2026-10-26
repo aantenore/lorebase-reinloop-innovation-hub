@@ -14,7 +14,8 @@ which holds the history of the engine (real-time world, minds, groups, society, 
 
 Live runs (budget-capped, real models, web research on): [docs/run-report.md](docs/run-report.md), evidence in
 [docs/evidence/run1/](docs/evidence/run1/), [run2/](docs/evidence/run2/), [run3/](docs/evidence/run3/),
-[run4/](docs/evidence/run4/) and [run5/](docs/evidence/run5/).
+[run4/](docs/evidence/run4/), [run5/](docs/evidence/run5/) and [run6/](docs/evidence/run6/); the report opens with the
+findings across runs 1-6.
 
 ## Screenshots
 
@@ -22,16 +23,16 @@ Live runs (budget-capped, real models, web research on): [docs/run-report.md](do
 *Il campus in tempo reale / The office campus in real time*
 
 ![Idea board](docs/screenshots/idea-board.png)
-*La bacheca delle idee per fase / The idea board by stage*
+*La bacheca delle idee per fase (run 6: due idee rinviate dal comitato) / The idea board by stage (run 6: two ideas deferred by the committee)*
 
 ![Idea detail](docs/screenshots/idea-detail.png)
-*Un'idea con le sue prove per tipo, pesi e requisiti di candidatura (run 3) / An idea with its evidence by type, weights and candidacy requirements (run 3)*
+*Un'idea con le sue prove per tipo, pesi e requisiti di candidatura (run 6) / An idea with its evidence by type, weights and candidacy requirements (run 6)*
 
 ![Web research](docs/screenshots/research.png)
 *Le ricerche web di una persona nell'ispettore, con i link ai risultati / A person's web research in the inspector, with links to the results*
 
 ![Board mode](docs/screenshots/board-mode.png)
-*Modalità Board: conversazioni e menti (run 4: gli slot che scadono sono un fatto della percezione) / Board mode: conversations and minds (run 4: expiring slots are a fact of perception)*
+*Modalità Board: conversazioni (run 6: il comitato e la fonte EUR-Lex dell'art. 12) / Board mode: conversations (run 6: the committee and the EUR-Lex source of art. 12)*
 
 ![Playbook](docs/screenshots/playbook.png)
 *Il playbook dei ruoli, proposto e revisionato dai pari / Role playbooks, proposed and peer-reviewed*
@@ -396,8 +397,19 @@ the requirements was held back before submission, so the committee never sat.
   [committee.md](docs/evidence/run5/committee.md), [conversations.md](docs/evidence/run5/conversations.md),
   [research.md](docs/evidence/run5/research.md), [lorebase-log.md](docs/evidence/run5/lorebase-log.md)
 
-- [run-progress.log](docs/run-progress.log) and the screenshots above (the idea detail with its evidence is from run 3, board mode from run 4) (all live except the idea board, from an
-  offline run with more ideas)
+Live run 6 (2026-10-26, 30 real minutes, $1.81: minds $1.32, hosted web search $0.48, page reads $0.004), section
+"Run 6" of [docs/run-report.md](docs/run-report.md): page reads with their own quotas, refusals by tool and cause,
+committee sessions on a schedule with waiting time and next session in perception, official sources on regulatory
+signals; two submissions, two deferrals on `prove_del_problema` (6 of 6 ballots), every other criterion met.
+
+- [committee.md](docs/evidence/run6/committee.md) (votes per criterion), [evidence.md](docs/evidence/run6/evidence.md),
+  [summary.json](docs/evidence/run6/summary.json) (adds `webRefusals`, `signalRefusals`),
+  [portfolio.md](docs/evidence/run6/portfolio.md) (also [docs/portfolio-run6.md](docs/portfolio-run6.md)),
+  [research.md](docs/evidence/run6/research.md), [conversations.md](docs/evidence/run6/conversations.md),
+  [lorebase-log.md](docs/evidence/run6/lorebase-log.md)
+
+- [run-progress.log](docs/run-progress.log) and the screenshots above (idea board, idea detail and board mode are from
+  run 6; the others from earlier live runs)
 
 ## Known limits
 
