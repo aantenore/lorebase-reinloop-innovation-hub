@@ -12,7 +12,11 @@ import {
 } from './economy.ts';
 import { type Activity, advance, type Anim, type Dir, type ExecContext, type Plan, prepareStep, tileOf } from './plan.ts';
 
-export type Biome = 'grass' | 'forest' | 'water' | 'rock' | 'sand';
+/**
+ * Tile biome. The campus layout uses the names in `map.campus` (e.g. office, meeting, lab, lounge, wall,
+ * garden, plaza); the legacy noise layout uses grass, forest, water, rock, sand.
+ */
+export type Biome = string;
 export type EntityTier = 'opus' | 'sonnet' | 'haiku' | 'human';
 export type EntityKind = 'agent' | 'player' | 'crowd';
 export type AgeStage = 'child' | 'adult' | 'elder';
@@ -33,6 +37,10 @@ export const RT_RULE_KEYS = [
   'esteem_prior', 'esteem_prior_weight', 'opinion_half_life_days', 'esteem_judge_weight', 'reputation_inheritance', 'fame_gift',
   'fame_recipe_supply', 'fame_insight_accepted', 'fame_discovery', 'fame_law_enacted', 'fame_half_life_days', 'esteem_vote_weight',
   'insight_review_esteem_factor', 'insight_solo_approve_esteem', 'law_proposal_min_esteem', 'fame_law_respected', 'fame_law_breached',
+  // company: ideas, committee, careers
+  'quarter_idea_slots', 'min_idea_reviewers', 'committee_quorum', 'weight_impact', 'weight_feasibility', 'weight_novelty', 'weight_fit',
+  'weight_risk', 'freeze_blocks_approvals', 'max_open_ideas_per_person', 'fame_idea_proposed', 'fame_idea_approved', 'fame_review_given',
+  'promotion_senior_fame', 'promotion_principal_fame', 'promotion_fellow_fame',
 ] as const;
 export type RtRuleKey = (typeof RT_RULE_KEYS)[number];
 
@@ -56,7 +64,32 @@ export interface RtTile {
   shelterWear: number;
 }
 
+/**
+ * Office campus: the inner area is cut into a 3x3 grid of zones separated by corridors (`corridor` tiles wide,
+ * biome `corridorBiome`); the centre zone is the plaza, the eight others take `zones` in row order. Each zone is
+ * walled (`wallBiome`, blocked) with a door of `doorWidth` tiles on every side facing a corridor; zones listed in
+ * `split` get an inner wall with a door (two rooms). `fixtures` seeds structure levels (`shelter`): every n-th tile
+ * of a biome (`every`, `level`) and/or the centre of each room (`center`). `border` tiles of `borderBiome` ring the
+ * campus. `elev` gives the elevation per biome (default 1).
+ */
+export interface CampusConfig {
+  border: number;
+  borderBiome: string;
+  corridor: number;
+  corridorBiome: string;
+  centerBiome: string;
+  wallBiome: string;
+  doorWidth: number;
+  zones: string[];
+  split: string[];
+  fixtures: Record<string, { every?: number; level?: number; center?: number }>;
+  elev: Record<string, number>;
+}
+
 export interface MapConfig {
+  /** `campus` (office campus, `campus` below) or `noise` (legacy terrain from value noise). */
+  layout?: 'campus' | 'noise';
+  campus?: CampusConfig;
   width: number;
   height: number;
   noiseScale: number;
@@ -279,6 +312,23 @@ export class RtWorld {
     return seasonOf(this.seasonTurn, this.rules);
   }
 
+  /** Quarter of the year (1-4): the year (rule winter_every_ticks seasonal turns) in four equal parts. */
+  quarter(): number {
+    const year = Math.max(1, Math.round(this.r('winter_every_ticks')));
+    const p = ((this.seasonTurn % year) + year) % year;
+    return Math.min(4, Math.floor((p * 4) / year) + 1);
+  }
+
+  /** Year count since the world began (1-based), for quarter labels. */
+  year(): number {
+    return Math.floor(this.seasonTurn / Math.max(1, Math.round(this.r('winter_every_ticks')))) + 1;
+  }
+
+  /** The freeze (budget crunch) is the winter of the year. */
+  isFreeze(): boolean {
+    return this.season() === 'winter';
+  }
+
   isNight(): boolean {
     const m = this.minute;
     const dawn = this.r('dawn_minute');
@@ -289,6 +339,96 @@ export class RtWorld {
   // ---- map ----------------------------------------------------------------
 
   private generate(): void {
+    if (this.map.layout === 'campus' && this.map.campus) this.generateCampus(this.map.campus);
+    else this.generateNoise();
+    this.regionSeed = this.rng.next();
+    this.seedSpawnFood();
+  }
+
+  /** The office campus (see CampusConfig): zones, walls, doors, corridors, fixtures. Deterministic. */
+  private generateCampus(c: CampusConfig): void {
+    const m = this.map;
+    const W = m.width;
+    const H = m.height;
+    const grid: string[][] = Array.from({ length: H }, () => Array.from({ length: W }, () => c.borderBiome));
+    const level: number[][] = Array.from({ length: H }, () => Array.from({ length: W }, () => 0));
+    const set = (x: number, y: number, b: string) => {
+      if (x >= 0 && y >= 0 && x < W && y < H) grid[y]![x] = b;
+    };
+    // Spans of the 3 columns and 3 rows of zones inside the border, separated by corridors.
+    const spans = (from: number, to: number): Array<[number, number]> => {
+      const size = to - from + 1 - 2 * c.corridor;
+      const base = Math.floor(size / 3);
+      const extra = size - base * 3;
+      const out: Array<[number, number]> = [];
+      let at = from;
+      for (let i = 0; i < 3; i++) {
+        const len = base + (i === 1 ? extra : 0);
+        out.push([at, at + len - 1]);
+        at += len + c.corridor;
+      }
+      return out;
+    };
+    const cols = spans(c.border, W - 1 - c.border);
+    const rows = spans(c.border, H - 1 - c.border);
+    for (let y = c.border; y <= H - 1 - c.border; y++) for (let x = c.border; x <= W - 1 - c.border; x++) set(x, y, c.corridorBiome);
+    let z = 0;
+    for (let r = 0; r < 3; r++) {
+      for (let q = 0; q < 3; q++) {
+        const [x0, x1] = cols[q]!;
+        const [y0, y1] = rows[r]!;
+        if (r === 1 && q === 1) {
+          for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, c.centerBiome);
+          continue;
+        }
+        const biome = c.zones[z++ % Math.max(1, c.zones.length)] ?? c.centerBiome;
+        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, x === x0 || x === x1 || y === y0 || y === y1 ? c.wallBiome : biome);
+        const door = (len0: number, len1: number) => {
+          const mid = Math.floor((len0 + len1) / 2);
+          const start = mid - Math.floor((c.doorWidth - 1) / 2);
+          return Array.from({ length: Math.max(1, c.doorWidth) }, (_, i) => start + i).filter((v) => v > len0 && v < len1);
+        };
+        // Doors on the sides facing a corridor (towards the centre zone and the neighbours).
+        if (q < 2) for (const y of door(y0, y1)) set(x1, y, biome);
+        if (q > 0) for (const y of door(y0, y1)) set(x0, y, biome);
+        if (r < 2) for (const x of door(x0, x1)) set(x, y1, biome);
+        if (r > 0) for (const x of door(x0, x1)) set(x, y0, biome);
+        const rooms: Array<[number, number, number, number]> = [];
+        if (c.split.includes(biome) && x1 - x0 >= 6) {
+          const mx = Math.floor((x0 + x1) / 2);
+          for (let y = y0; y <= y1; y++) set(mx, y, c.wallBiome);
+          for (const y of door(y0, y1)) set(mx, y, biome);
+          rooms.push([x0, y0, mx, y1], [mx, y0, x1, y1]);
+        } else rooms.push([x0, y0, x1, y1]);
+        const fx = c.fixtures[biome];
+        if (!fx) continue;
+        let n = 0;
+        for (const [rx0, ry0, rx1, ry1] of rooms) {
+          for (let y = ry0 + 1; y < ry1; y++) {
+            for (let x = rx0 + 1; x < rx1; x++) {
+              if (grid[y]![x] !== biome) continue;
+              if (fx.every && fx.level && n++ % fx.every === 0 && x > rx0 + 1 && x < rx1 - 1 && y > ry0 + 1 && y < ry1 - 1) level[y]![x] = fx.level;
+            }
+          }
+          if (fx.center) level[Math.floor((ry0 + ry1) / 2)]![Math.floor((rx0 + rx1) / 2)] = fx.center;
+        }
+      }
+    }
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const biome = grid[y]![x]!;
+        const cap = m.capacity[biome] ?? { food: 0, wood: 0 };
+        const fill = m.initialFill[0] + this.rng.next() * (m.initialFill[1] - m.initialFill[0]);
+        const blocked = m.blocked.includes(biome);
+        this.tiles.push({
+          x, y, biome, elev: c.elev[biome] ?? 1, food: round2(cap.food * fill), wood: round2(cap.wood * fill),
+          shelter: blocked ? 0 : level[y]![x]!, structures: {}, shelterWear: 0,
+        });
+      }
+    }
+  }
+
+  private generateNoise(): void {
     const m = this.map;
     const elevation = valueNoise(this.rng, m.width, m.height, m.noiseScale);
     const moisture = valueNoise(this.rng, m.width, m.height, m.noiseScale);
@@ -298,18 +438,21 @@ export class RtWorld {
         const biome: Biome = e < m.waterBelow ? 'water' : e > m.rockAbove ? 'rock' : e < m.sandBelow ? 'sand' : moisture[y]![x]! > m.forestAbove ? 'forest' : 'grass';
         const elev = biome === 'water' ? 0 : 1 + Math.floor(clamp((e - m.waterBelow) / (1 - m.waterBelow), 0, 0.999) * m.elevationSteps);
         const fill = m.initialFill[0] + this.rng.next() * (m.initialFill[1] - m.initialFill[0]);
-        const cap = m.capacity[biome];
+        const cap = m.capacity[biome] ?? { food: 0, wood: 0 };
         this.tiles.push({ x, y, biome, elev, food: round2(cap.food * fill), wood: round2(cap.wood * fill), shelter: 0, structures: {}, shelterWear: 0 });
       }
     }
-    this.regionSeed = this.rng.next();
+  }
+
+  private seedSpawnFood(): void {
+    const m = this.map;
     const sf = m.spawnFood;
     if (!sf || sf.radius < 0) return;
     const cx = Math.floor(this.width / 2);
     const cy = Math.floor(this.height / 2);
     for (const t of this.tiles) {
       if (Math.max(Math.abs(t.x - cx), Math.abs(t.y - cy)) > sf.radius || m.blocked.includes(t.biome)) continue;
-      t.food = round2(Math.max(t.food, m.capacity[t.biome].food * sf.fill, sf.minFood));
+      t.food = round2(Math.max(t.food, (m.capacity[t.biome]?.food ?? 0) * sf.fill, sf.minFood));
     }
   }
 
@@ -888,7 +1031,7 @@ export class RtWorld {
     const rate = this.r('regrowth_per_tick') * this.winterFactor();
     if (rate <= 0) return;
     for (const t of this.tiles) {
-      const cap = this.map.capacity[t.biome];
+      const cap = this.map.capacity[t.biome] ?? { food: 0, wood: 0 };
       const food = round2(Math.min(cap.food, t.food + cap.food * rate));
       const wood = round2(Math.min(cap.wood, t.wood + cap.wood * rate));
       if (food !== t.food || wood !== t.wood) {

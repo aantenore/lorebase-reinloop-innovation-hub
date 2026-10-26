@@ -5,7 +5,7 @@
 // the MCP tools. No tasks, goals or strategy. Texts come from config/i18n.
 import type { Translate } from '../i18n.ts';
 import type { Role, RuleChange } from '../lorebase/rules.ts';
-import { knownRecipes } from './economy.ts';
+import { CATEGORY_PREFIX, knownRecipes, resolveInputs, STATION_SHELTER } from './economy.ts';
 import { tileOf } from './plan.ts';
 import { type BodyCause, DAY_MINUTES, type RtEntity, type RtWorld } from './world.ts';
 
@@ -33,8 +33,11 @@ export interface PromptLimits {
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const signed = (n: number) => `${n > 0 ? '+' : ''}${round1(n)}`;
 const itemName = (w: RtWorld, code: string) => w.catalog.resources.get(code)?.name ?? code;
+/** An item by name and code; a `@<category>` recipe input reads as "any item of that category". */
 const bagText = (t: Translate, w: RtWorld, bag: Record<string, number>) =>
-  Object.entries(bag).map(([code, n]) => t('rt.observation.itemLine', { amount: Math.round(n * 100) / 100, name: itemName(w, code), code })).join(', ');
+  Object.entries(bag).map(([code, n]) => code.startsWith(CATEGORY_PREFIX)
+    ? t('rt.observation.anyLine', { amount: Math.round(n * 100) / 100, category: t(`rt.category.${code.slice(CATEGORY_PREFIX.length)}`), code })
+    : t('rt.observation.itemLine', { amount: Math.round(n * 100) / 100, name: itemName(w, code), code })).join(', ');
 
 /** The largest stocks a person carries (tools included), for those who see it. */
 export function carriedTop(t: Translate, w: RtWorld, b: RtEntity, max: number): string {
@@ -76,11 +79,16 @@ export function recipesBlock(t: Translate, w: RtWorld, e: RtEntity, limits: Pick
   if (!mine.length) return '';
   const lines = mine.map((r) => {
     const lack: Record<string, number> = {};
-    for (const [k, n] of Object.entries(r.inputs)) if ((e.inventory[k] ?? 0) < n) lack[k] = n - Math.floor(e.inventory[k] ?? 0);
+    if (!resolveInputs(w.catalog, e, r.inputs)) {
+      for (const [k, n] of Object.entries(r.inputs)) {
+        const have = k.startsWith(CATEGORY_PREFIX) ? (resolveInputs(w.catalog, e, { [k]: n }) ? n : 0) : Math.floor(e.inventory[k] ?? 0);
+        if (have < n) lack[k] = n - have;
+      }
+    }
     for (const k of r.tools) if (!e.tools.some((x) => x.item === k)) lack[k] = 1;
     const needs = [
       ...(r.tools.length ? [t('rt.recipes.tools', { list: r.tools.map((k) => `${itemName(w, k)} (${k})`).join(', ') })] : []),
-      ...(r.station ? [t('rt.recipes.station', { name: itemName(w, r.station), code: r.station })] : []),
+      ...(r.station ? [t('rt.recipes.station', { name: r.station === STATION_SHELTER ? t('rt.recipes.shelter') : itemName(w, r.station), code: r.station })] : []),
     ].join('; ');
     return t('rt.recipes.line', {
       name: r.name, code: r.code, inputs: bagText(t, w, r.inputs), outputs: bagText(t, w, r.outputs), needs: needs ? `; ${needs}` : '',
@@ -143,7 +151,7 @@ export function timeLine(t: Translate, w: RtWorld): string {
       ? t('rt.observation.noWinter')
       : t('rt.observation.winterIn', { minutes: Math.round((year - winterTurns - p) * w.r('season_turn_minutes') - ((w.clock - w.epoch) % w.r('season_turn_minutes'))) });
   return t('rt.observation.header', {
-    day: w.day, clock: w.clockText(), daypart: t(`rt.daypart.${w.isNight() ? 'night' : 'day'}`), season: t(`season.${season}`), winter,
+    day: w.day, clock: w.clockText(), daypart: t(`rt.daypart.${w.isNight() ? 'night' : 'day'}`), season: t(`season.${season}`), winter, quarter: `Q${w.quarter()}`,
   });
 }
 

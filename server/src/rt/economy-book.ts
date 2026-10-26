@@ -6,13 +6,14 @@
 // graph records who found what and when.
 import { randomUUID } from 'node:crypto';
 import type { LorebaseClient, RecordItem } from '../lorebase/client.ts';
-import { type Catalog, type Discovery, type RecipeDef, recipeFrom, resourceFrom, type TechDef, techFrom } from './economy.ts';
+import { CATEGORY_PREFIX, type Catalog, type Discovery, type RecipeDef, recipeFrom, resourceFrom, type TechDef, techFrom } from './economy.ts';
 
 export interface EconomyConfig {
   enabled: boolean;
   hiddenBranch: string;
   discoveryBranchPrefix: string;
-  kinds: { resource: string; recipe: string; technology: string };
+  /** `signal` (optional): a second Kind of gatherable items (same attributes as Resource), merged into the catalog. */
+  kinds: { resource: string; recipe: string; technology: string; signal?: string };
   relations: { unlockedBy: string; knownBy: string; consumes: string; produces: string; requires: string };
   importOperation: string;
   minExperimentItems: number;
@@ -50,11 +51,11 @@ export class EconomyBook {
     const hidden = await this.client.getBranch(this.cfg.hiddenBranch).then(() => this.cfg.hiddenBranch, () => undefined);
     if (!hidden) console.warn(`[economy] hidden branch "${this.cfg.hiddenBranch}" missing: only recipes on ${this.main} exist (run: npm run lorebase:seed)`);
     const src = hidden ?? this.main;
-    const [resources, recipes, techs, mainTechs] = await Promise.all([
-      read(k.resource, this.main), read(k.recipe, src), read(k.technology, src), read(k.technology, this.main),
+    const [resources, signals, recipes, techs, mainTechs] = await Promise.all([
+      read(k.resource, this.main), k.signal ? read(k.signal, this.main) : Promise.resolve([]), read(k.recipe, src), read(k.technology, src), read(k.technology, this.main),
     ]);
     const catalog: Catalog = {
-      resources: byCode(resources.map(resourceFrom)),
+      resources: byCode([...resources, ...signals].map(resourceFrom)),
       recipes: byCode(recipes.map((r) => recipeFrom(r))),
       techs: byCode([...techs, ...mainTechs].map(techFrom)),
     };
@@ -125,8 +126,9 @@ export class EconomyBook {
 /** A Recipe row for import_batch, with its Links (role, technology, inputs, outputs). */
 export function recipeRow(cfg: Pick<EconomyConfig, 'kinds' | 'relations'>, x: RecipeDef): Record<string, unknown> {
   const r = cfg.relations;
+  // `@<category>` inputs name no Record: they have no Link.
   const links: Record<string, unknown> = {
-    [r.consumes]: Object.keys(x.inputs),
+    [r.consumes]: Object.keys(x.inputs).filter((k) => !k.startsWith(CATEGORY_PREFIX)),
     [r.produces]: Object.keys(x.outputs),
   };
   if (x.role) links[r.knownBy] = x.role;

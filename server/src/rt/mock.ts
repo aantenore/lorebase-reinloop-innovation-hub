@@ -2,7 +2,7 @@
 // so `npm run game:mock` runs without a model. Not how real agents are prompted (see
 // docs/prompts.md): real agents get no tasks; this heuristic only stands in for a model.
 import type { Translate } from '../i18n.ts';
-import { knownRecipes, stationsOf } from './economy.ts';
+import { CATEGORY_PREFIX, inputMatches, knownRecipes, resolveInputs, stationsOf } from './economy.ts';
 import { createRng } from '../world/rng.ts';
 import { ACTION_ALIASES, type PlanStep } from './plan.ts';
 import { tileOf } from './plan.ts';
@@ -31,7 +31,10 @@ export function needsOf(w: RtWorld, role: string): Set<string> {
   const out = new Set<string>();
   for (const r of knownRecipes(w.catalog, new Set(w.discovered.keys()))) {
     if (r.role && r.role !== role) continue;
-    for (const k of Object.keys(r.inputs)) out.add(k);
+    for (const k of Object.keys(r.inputs)) {
+      if (!k.startsWith(CATEGORY_PREFIX)) out.add(k);
+      else for (const def of w.catalog.resources.values()) if (inputMatches(w.catalog, k, def.code)) out.add(def.code);
+    }
     for (const k of r.tools) out.add(k);
   }
   return out;
@@ -59,7 +62,7 @@ export function mockEconomy(t: Translate, w: RtWorld, e: RtEntity, experimentCha
   const disc = new Set(w.discovered.keys());
   for (const r of knownRecipes(c, disc).sort(() => rng.next() - 0.5)) {
     if (r.role && r.role !== e.role) continue;
-    if (!Object.entries(r.inputs).every(([k, n]) => (e.inventory[k] ?? 0) >= n) || r.tools.some((k) => !e.tools.some((x) => x.item === k))) continue;
+    if (!resolveInputs(c, e, r.inputs) || r.tools.some((k) => !e.tools.some((x) => x.item === k))) continue;
     if (r.station) {
       const st = w.tiles.filter((x) => stationsOf(x).has(r.station!)).sort((a, b) => dist(a) - dist(b))[0];
       if (!st) continue;
@@ -120,7 +123,7 @@ export function mockEconomy(t: Translate, w: RtWorld, e: RtEntity, experimentCha
       // What the gathering completes: a recipe of mine without tools or station, followed right there.
       const after = { ...e.inventory, [pick.code]: (e.inventory[pick.code] ?? 0) + 2 * Math.max(1, Math.floor(pick.gatherYield)) };
       const done = knownRecipes(c, new Set(w.discovered.keys())).find((r) => (!r.role || r.role === e.role) && !r.station && !r.tools.length
-        && r.inputs[pick.code] !== undefined && Object.entries(r.inputs).every(([k, n]) => (after[k] ?? 0) >= n));
+        && Object.keys(r.inputs).some((k) => inputMatches(c, k, pick.code)) && !!resolveInputs(c, { inventory: after }, r.inputs));
       if (done) steps.push({ action: 'craft', args: { recipe: done.code }, label: L('craft', { name: done.name }) });
     }
   }

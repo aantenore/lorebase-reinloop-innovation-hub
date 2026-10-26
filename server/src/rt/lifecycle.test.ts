@@ -13,6 +13,14 @@ import { type RtEntity, RtWorld } from './world.ts';
 
 const game = loadGameConfig({});
 const t = translator(loadTemplates(ROOT, 'it'));
+/** The legacy terrain (value noise with resource sectors), kept by the engine for the noise layout. */
+const NOISE_MAP = {
+  layout: 'noise' as const, width: 40, height: 30, noiseScale: 6, waterBelow: 0.26, sandBelow: 0.32, rockAbove: 0.8, forestAbove: 0.56, elevationSteps: 4,
+  capacity: { grass: { food: 6, wood: 0 }, forest: { food: 2, wood: 8 }, sand: { food: 1, wood: 0 }, water: { food: 0, wood: 0 }, rock: { food: 0, wood: 1 } },
+  blocked: ['water', 'rock'], initialFill: [0.5, 1] as [number, number], spawnRadius: 3, spawnFood: { radius: 6, fill: 1, minFood: 3 },
+  regions: { coreRadius: 5, minTiles: 6, rotations: 24, sectors: [{ name: 'sabbie', items: ['flint', 'clay'] }, { name: 'prati', items: ['fiber', 'seeds'] }, { name: 'boschi', items: ['herbs', 'seeds'] }, { name: 'rive', items: ['herbs', 'clay'] }] },
+  maxPopulation: 40,
+};
 
 test('childSpec: tier of a random parent, crowd children of crowds, cap blocks or makes crowd', () => {
   const cfg = { ...game, births: { maxAgentMinds: 3, childTier: 'random-parent' as const, atCap: 'block' as const } };
@@ -75,12 +83,12 @@ test('a death frees the mind, the group and the private memory', async () => {
 });
 
 test('regions: the core yields no listed material, each sector its own; body and recipes are perceived as facts', () => {
-  const w = new RtWorld(game.map, game.movement, 1337, 0, { namePool: [], memoryItems: 5, inboxItems: 5 });
+  const w = new RtWorld(NOISE_MAP, game.movement, 1337, 0, { namePool: [], memoryItems: 5, inboxItems: 5 });
   for (const d of [{ code: 'flint', source: 'biome', biomes: ['sand'] }, { code: 'fiber', source: 'biome', biomes: ['grass'] }, { code: 'herbs', source: 'biome', biomes: ['forest'] }]) {
     w.catalog.resources.set(d.code, resourceFrom(d));
   }
   w.catalog.recipes.set('rope', recipeFrom({ code: 'rope', name: 'Corda', inputs: { fiber: 3 }, outputs: { rope: 1 } }));
-  const rg = game.map.regions!;
+  const rg = NOISE_MAP.regions;
   const walk = w.tiles.filter((x) => w.walkable(x.x, x.y));
   for (const item of ['flint', 'fiber', 'herbs']) {
     const where = walk.filter((x) => w.canGatherAt(item, x));
@@ -98,4 +106,20 @@ test('regions: the core yields no listed material, each sector its own; body and
   assert.ok(w.hasFelt(e, 'wild'));
   const recipes = recipesBlock(t, w, e, limits);
   assert.ok(recipes.includes('rope') && recipes.includes('2 Fibre') === false && recipes.includes('fiber'), recipes);
+});
+
+test('campus: walls block, every zone is reachable from the plaza through its doors, fixtures are desks', () => {
+  const w = new RtWorld(game.map, game.movement, 1337, 0, { namePool: [], memoryItems: 5, inboxItems: 5 });
+  const c = game.map.campus!;
+  const centre = { x: Math.floor(w.width / 2), y: Math.floor(w.height / 2) };
+  assert.equal(w.tile(centre.x, centre.y)!.biome, c.centerBiome);
+  assert.ok(w.tiles.some((x) => x.biome === c.wallBiome) && w.tiles.filter((x) => x.biome === c.wallBiome).every((x) => !w.walkable(x.x, x.y)));
+  for (const biome of new Set(c.zones)) {
+    const inside = w.tiles.filter((x) => x.biome === biome);
+    assert.ok(inside.length > 0, biome);
+    const far = inside.sort((a, b) => w.distanceFromCenter(b) - w.distanceFromCenter(a))[0]!;
+    assert.ok(w.path(centre, far), `${biome} reachable`);
+  }
+  assert.ok(w.tiles.some((x) => x.biome === 'meeting' && x.shelter === 2) && w.tiles.some((x) => x.biome === 'office' && x.shelter === 1));
+  assert.ok(w.tiles.every((x) => x.shelter === 0 || w.walkable(x.x, x.y)));
 });

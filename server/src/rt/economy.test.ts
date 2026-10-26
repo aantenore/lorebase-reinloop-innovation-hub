@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  addItems, applyCraft, barter, canCraft, type Catalog, count, experiment, knownItem, newInventory, Flows, gatherTool, type Holder, matchDiscovery, recipeFrom, resourceFrom,
-  spoil, stationsOf, techFrom, transfer, wearStructures,
+  addItems, applyCraft, barter, canCraft, type Catalog, count, experiment, inputMatches, knownItem, newInventory, Flows, gatherTool, type Holder, matchDiscovery, recipeFrom,
+  resolveInputs, resourceFrom, spoil, stationsOf, techFrom, transfer, wearStructures,
 } from './economy.ts';
 
 const catalog = (): Catalog => ({
@@ -130,4 +130,31 @@ test('hostile item codes and amounts never reach object internals or fail open',
   assert.equal(transfer(c, h, b, 'constructor', 1), 0);
   assert.deepEqual(experiment(c, b, ['__proto__', 'flint'], none, 2), { ok: false, error: 'missing_inputs' });
   assert.equal(count(b, 'flint'), 3, 'nothing consumed by a rejected experiment');
+});
+
+test('category inputs: @<category> takes any carried item of that category, in crafts and discoveries', () => {
+  const c: Catalog = {
+    resources: new Map([
+      resourceFrom({ code: 'trend_a', name: 'Trend A', category: 'trend', perishable: false, source: 'biome', biomes: ['lab'] }),
+      resourceFrom({ code: 'pain_a', name: 'Pain A', category: 'pain', perishable: false, source: 'biome', biomes: ['lounge'] }),
+      resourceFrom({ code: 'pain_b', name: 'Pain B', category: 'pain', perishable: false, source: 'biome', biomes: ['lounge'] }),
+      resourceFrom({ code: 'insight', name: 'Insight', category: 'artifact', perishable: false, source: 'craft' }),
+    ].map((r) => [r.code, r])),
+    recipes: new Map([
+      recipeFrom({ code: 'sintesi', inputs: { '@trend': 1, '@pain': 1 }, outputs: { insight: 1 }, minutes: 10 }),
+      recipeFrom({ code: 'svolta', inputs: { insight: 1, '@pain': 1 }, outputs: { insight: 2 }, minutes: 10 }, 'breakthrough'),
+    ].map((r) => [r.code, r])),
+    techs: new Map([techFrom({ code: 'breakthrough', name: 'Svolta', description: '' })].map((t) => [t.code, t])),
+  };
+  const h = holder('any', { trend_a: 1, pain_b: 2 });
+  assert.deepEqual(resolveInputs(c, h, { '@trend': 1, '@pain': 1 }), { trend_a: 1, pain_b: 1 });
+  assert.equal(resolveInputs(c, holder('any', { pain_a: 1 }), { '@trend': 1, '@pain': 1 }), undefined);
+  assert.ok('recipe' in canCraft(c, h, 'sintesi', { stations: none, discovered: none }));
+  const out = applyCraft(c, h, c.recipes.get('sintesi')!, 1);
+  assert.deepEqual(out.inputs, { trend_a: 1, pain_b: 1 });
+  assert.equal(count(h, 'insight'), 1);
+  assert.equal(count(h, 'pain_b'), 1);
+  assert.ok(inputMatches(c, '@pain', 'pain_a') && !inputMatches(c, '@pain', 'trend_a'));
+  assert.equal(matchDiscovery(c, none, ['insight', 'pain_a'])?.tech.code, 'breakthrough');
+  assert.equal(matchDiscovery(c, none, ['insight', 'trend_a']), undefined);
 });

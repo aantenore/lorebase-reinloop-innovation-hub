@@ -4,7 +4,40 @@
 // values come from Lorebase Records, world numbers from Lorebase Rules passed in by the caller.
 
 export type Bag = Record<string, number>;
-export type ResourceCategory = 'food' | 'material' | 'tool' | 'medicine' | 'structure';
+/** food, material, tool, medicine, structure, artifact, or a signal category (trend, pain, market, ...). */
+export type ResourceCategory = string;
+
+/** A recipe input key `@<category>` stands for any carried item of that category (e.g. `@pain`). */
+export const CATEGORY_PREFIX = '@';
+
+/** Whether a carried `item` satisfies a recipe input key (its code, or `@<category>` of its category). */
+export function inputMatches(c: Pick<Catalog, 'resources'>, key: string, item: string): boolean {
+  if (key === item) return true;
+  return key.startsWith(CATEGORY_PREFIX) && c.resources.get(item)?.category === key.slice(CATEGORY_PREFIX.length);
+}
+
+/**
+ * The concrete items a holder would consume for `inputs`: codes as they are, each `@<category>` key the
+ * carried item of that category with the largest stock not already taken. Undefined when something lacks.
+ */
+export function resolveInputs(c: Pick<Catalog, 'resources'>, h: Pick<Holder, 'inventory'>, inputs: Bag): Bag | undefined {
+  const out: Bag = {};
+  const taken = (k: string) => out[k] ?? 0;
+  for (const [k, n] of Object.entries(inputs).sort(([a], [b]) => Number(a.startsWith(CATEGORY_PREFIX)) - Number(b.startsWith(CATEGORY_PREFIX)))) {
+    const need = amountOf(n);
+    if (!k.startsWith(CATEGORY_PREFIX)) {
+      if (count(h, k) - taken(k) < need) return undefined;
+      out[k] = taken(k) + need;
+      continue;
+    }
+    const pick = Object.keys(h.inventory)
+      .filter((item) => inputMatches(c, k, item) && count(h, item) - taken(item) >= need)
+      .sort((a, b) => count(h, b) - count(h, a) || a.localeCompare(b))[0];
+    if (!pick) return undefined;
+    out[pick] = taken(pick) + need;
+  }
+  return out;
+}
 
 export interface ResourceDef {
   code: string;
@@ -164,15 +197,28 @@ export function unlocksOf(c: Catalog, tech: string): string[] {
  * ignored). Ties go to the first technology in catalog order.
  */
 export function matchDiscovery(c: Catalog, discovered: ReadonlySet<string>, items: string[]): { tech: TechDef; recipe: RecipeDef } | undefined {
-  const want = [...new Set(items)].sort().join('|');
-  if (!want) return undefined;
+  const set = [...new Set(items)];
+  if (!set.length) return undefined;
   for (const r of c.recipes.values()) {
     if (!r.tech || discovered.has(r.tech)) continue;
     const tech = c.techs.get(r.tech);
     if (!tech || !tech.prerequisites.every((p) => discovered.has(p))) continue;
-    if (Object.keys(r.inputs).sort().join('|') === want) return { tech, recipe: r };
+    if (sameInputs(c, Object.keys(r.inputs), set)) return { tech, recipe: r };
   }
   return undefined;
+}
+
+/** Whether the items match the input keys one to one (codes first, then `@<category>` keys). */
+function sameInputs(c: Pick<Catalog, 'resources'>, keys: string[], items: string[]): boolean {
+  if (keys.length !== items.length) return false;
+  const left = [...items];
+  const ordered = [...keys].sort((a, b) => Number(a.startsWith(CATEGORY_PREFIX)) - Number(b.startsWith(CATEGORY_PREFIX)));
+  for (const k of ordered) {
+    const i = left.findIndex((item) => inputMatches(c, k, item));
+    if (i < 0) return false;
+    left.splice(i, 1);
+  }
+  return true;
 }
 
 // ---- holdings ------------------------------------------------------------------------------
@@ -266,7 +312,7 @@ export function canCraft(c: Catalog, h: Holder, code: string, ctx: CraftCheck): 
   if (r.role && r.role !== h.role) return { error: 'wrong_role' };
   if (r.station && !ctx.stations.has(r.station)) return { error: 'missing_station' };
   if (r.tools.some((t) => !bestTool(h, t))) return { error: 'missing_tool' };
-  if (!hasAll(h, r.inputs)) return { error: 'missing_inputs' };
+  if (!resolveInputs(c, h, r.inputs)) return { error: 'missing_inputs' };
   return { recipe: r };
 }
 
@@ -280,7 +326,8 @@ export interface CraftOutcome {
 
 /** Applies a recipe already validated by `canCraft`. */
 export function applyCraft(c: Catalog, h: Holder, r: RecipeDef, toolWear: number): CraftOutcome {
-  for (const [k, n] of Object.entries(r.inputs)) addItems(h, k, -n, c.resources.get(k));
+  const inputs = resolveInputs(c, h, r.inputs) ?? r.inputs;
+  for (const [k, n] of Object.entries(inputs)) addItems(h, k, -n, c.resources.get(k));
   const broken: string[] = [];
   for (const t of r.tools) {
     const inst = bestTool(h, t);
@@ -296,7 +343,7 @@ export function applyCraft(c: Catalog, h: Holder, r: RecipeDef, toolWear: number
       outputs[k] = n;
     }
   }
-  return { inputs: { ...r.inputs }, outputs: { ...outputs, ...structures }, structures, broken };
+  return { inputs: { ...inputs }, outputs: { ...outputs, ...structures }, structures, broken };
 }
 
 /** Stations available on a tile. */
