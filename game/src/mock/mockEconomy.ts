@@ -1,41 +1,39 @@
 import type { Economy, FlowEdge, GameTime, ItemBag, Recipe, Resource, Tech, ToolState } from '../net/protocol';
 
-/** Station name for recipes that need the village fire. */
-export const FIRE = 'fuoco';
+/** Station name for recipes that need the whiteboard. */
+export const FIRE = 'lavagna';
 
 export const RESOURCES: Resource[] = [
-  { code: 'food', name: 'Bacche', perishable: true },
-  { code: 'wood', name: 'Legna', perishable: false },
-  { code: 'stone', name: 'Pietra', perishable: false },
-  { code: 'clay', name: 'Argilla', perishable: false },
-  { code: 'fiber', name: 'Fibra', perishable: false },
-  { code: 'herbs', name: 'Erbe', perishable: true },
-  { code: 'meat', name: 'Carne', perishable: true },
-  { code: 'rope', name: 'Corda', perishable: false },
-  { code: 'basket', name: 'Cesto', perishable: false },
-  { code: 'stone_axe', name: 'Ascia di pietra', perishable: false },
-  { code: 'poultice', name: 'Impiastro', perishable: false },
-  { code: 'pot', name: 'Vaso di ceramica', perishable: false },
-  { code: 'smoked_meat', name: 'Carne affumicata', perishable: false },
-  { code: 'brick', name: 'Mattone', perishable: false },
-  { code: 'wall', name: 'Muro', perishable: false },
+  { code: 'food', name: 'Segnale', perishable: true },
+  { code: 'wood', name: 'Dato', perishable: false },
+  { code: 'interview', name: 'Intervista utente', perishable: true },
+  { code: 'trend', name: 'Trend report', perishable: false },
+  { code: 'paper', name: 'Paper tecnico', perishable: false },
+  { code: 'laptop', name: 'Laptop', perishable: false },
+  { code: 'notebook', name: 'Notebook', perishable: false },
+  { code: 'persona', name: 'Persona', perishable: false },
+  { code: 'insight_card', name: 'Insight card', perishable: false },
+  { code: 'mockup', name: 'Mockup', perishable: false },
+  { code: 'market_map', name: 'Mappa di mercato', perishable: false },
+  { code: 'business_case', name: 'Business case', perishable: false },
+  { code: 'onepager', name: 'One-pager', perishable: false },
 ];
 
 export const RES_NAME: Record<string, string> = Object.fromEntries(RESOURCES.map((r) => [r.code, r.name]));
 export const PERISHABLE = RESOURCES.filter((r) => r.perishable).map((r) => r.code);
 
 /** Items that, once handed over, are carried as tools (with durability) instead of bag items. */
-export const TOOL_ITEMS: Record<string, number> = { stone_axe: 8, basket: 10 };
+export const TOOL_ITEMS: Record<string, number> = { laptop: 8, notebook: 10 };
 
 export const RECIPES: Recipe[] = [
-  { code: 'stone_axe', name: 'Ascia di pietra', inputs: { wood: 2, stone: 1 }, outputs: { stone_axe: 1 }, role: 'builder', tech: 'stone_tools', station: null },
-  { code: 'poultice', name: 'Impiastro', inputs: { herbs: 2 }, outputs: { poultice: 1 }, role: 'healer', tech: 'herbalism', station: null },
-  { code: 'basket', name: 'Cesto', inputs: { fiber: 3 }, outputs: { basket: 1 }, role: 'builder', tech: 'weaving', station: null },
-  { code: 'rope', name: 'Corda', inputs: { fiber: 2 }, outputs: { rope: 1 }, role: 'builder', tech: 'weaving', station: null },
-  { code: 'pot', name: 'Vaso di ceramica', inputs: { clay: 2, wood: 1 }, outputs: { pot: 1 }, role: 'elder', tech: 'pottery', station: FIRE },
-  { code: 'brick', name: 'Mattone', inputs: { clay: 2 }, outputs: { brick: 2 }, role: 'builder', tech: 'pottery', station: FIRE },
-  { code: 'smoked_meat', name: 'Carne affumicata', inputs: { meat: 2, wood: 1 }, outputs: { smoked_meat: 2 }, role: 'hunter', tech: 'smoking', station: FIRE },
-  { code: 'wall', name: 'Muro', inputs: { brick: 3, stone: 2 }, outputs: { wall: 1 }, role: 'builder', tech: 'masonry', station: null },
+  { code: 'laptop', name: 'Laptop', inputs: { wood: 2, paper: 1 }, outputs: { laptop: 1 }, role: 'engineer', tech: 'evals', station: null },
+  { code: 'notebook', name: 'Notebook', inputs: { trend: 2, paper: 1 }, outputs: { notebook: 1 }, role: 'engineer', tech: 'rag', station: null },
+  { code: 'insight_card', name: 'Insight card', inputs: { food: 2, wood: 1 }, outputs: { insight_card: 1 }, role: 'analyst', tech: 'rag', station: null },
+  { code: 'persona', name: 'Persona', inputs: { interview: 2, food: 1 }, outputs: { persona: 1 }, role: 'designer', tech: 'evals', station: null },
+  { code: 'mockup', name: 'Mockup', inputs: { persona: 1, insight_card: 1 }, outputs: { mockup: 1 }, role: 'designer', tech: 'agents', station: FIRE },
+  { code: 'market_map', name: 'Mappa di mercato', inputs: { trend: 2, paper: 1 }, outputs: { market_map: 1 }, role: 'researcher', tech: 'synth_users', station: FIRE },
+  { code: 'business_case', name: 'Business case', inputs: { market_map: 1, insight_card: 2, wood: 1 }, outputs: { business_case: 1 }, role: 'strategist', tech: 'mcp', station: FIRE },
+  { code: 'onepager', name: 'One-pager', inputs: { business_case: 1, mockup: 1 }, outputs: { onepager: 1 }, role: 'critic', tech: 'kg', station: null },
 ];
 
 export interface TechDef {
@@ -50,13 +48,12 @@ export interface TechDef {
 }
 
 export const TECHS: TechDef[] = [
-  { code: 'fire', name: 'Fuoco', description: 'Un fuoco acceso e custodito scalda, illumina e cuoce.', unlocks: ['smoking', 'pottery'], at: null, byRole: 'elder' },
-  { code: 'stone_tools', name: 'Utensili di pietra', description: 'Pietre scheggiate per tagliare e raschiare.', unlocks: ['stone_axe', 'masonry'], at: null, byRole: 'builder' },
-  { code: 'herbalism', name: 'Erboristeria', description: 'Riconoscere le erbe che curano e prepararle.', unlocks: ['poultice', 'weaving'], at: null, byRole: 'healer' },
-  { code: 'weaving', name: 'Intreccio', description: 'Intrecciare le fibre per fare corde e ceste.', unlocks: ['basket', 'rope'], at: 35, byRole: 'gatherer' },
-  { code: 'pottery', name: 'Ceramica', description: 'Modellare l’argilla e cuocerla al fuoco: vasi e mattoni.', unlocks: ['pot', 'brick'], at: 80, byRole: 'elder' },
-  { code: 'smoking', name: 'Affumicatura', description: 'Affumicare la carne perché si conservi più a lungo.', unlocks: ['smoked_meat'], at: 140, byRole: 'hunter' },
-  { code: 'masonry', name: 'Muratura', description: 'Alzare muri con mattoni e pietra.', unlocks: ['wall'], at: -1, byRole: 'builder' },
+  { code: 'rag', name: 'Retrieval aumentato', description: 'Recuperare la conoscenza giusta al momento giusto per sintetizzare segnali e insight.', unlocks: ['insight_card', 'agents'], at: null, byRole: 'analyst' },
+  { code: 'evals', name: 'Valutazione automatica', description: 'Misurare la qualità di un’idea con criteri ripetibili invece che a sensazione.', unlocks: ['persona', 'synth_users'], at: null, byRole: 'critic' },
+  { code: 'agents', name: 'Orchestrazione di agenti', description: 'Far collaborare più agenti specializzati sullo stesso problema: nascono mockup più completi.', unlocks: ['mockup', 'mcp'], at: 35, byRole: 'strategist' },
+  { code: 'synth_users', name: 'Utenti sintetici', description: 'Simulare utenti per testare in fretta ipotesi di mercato prima di una vera intervista.', unlocks: ['market_map'], at: 80, byRole: 'researcher' },
+  { code: 'mcp', name: 'Protocollo tool MCP', description: 'Collegare gli agenti a strumenti e fonti dati con un’interfaccia comune.', unlocks: ['business_case'], at: 140, byRole: 'engineer' },
+  { code: 'kg', name: 'Grafi di conoscenza', description: 'Collegare segnali, persone e mercati in un grafo navigabile: base dei one-pager.', unlocks: ['onepager'], at: -1, byRole: 'analyst' },
 ];
 
 /** Who gives what to whom, per role. `p` = chance per plan; `get` = barter counterpart. */
@@ -69,76 +66,80 @@ export interface Route {
 }
 
 export const ROUTES: Record<string, Route[]> = {
-  woodcutter: [
-    { toRole: 'builder', give: { wood: 2 }, p: 1, label: 'Porta legna al costruttore' },
-    { toRole: 'elder', give: { wood: 1 }, p: 0.5, label: 'Porta legna per il fuoco dell’anziano' },
+  researcher: [
+    { toRole: 'analyst', give: { food: 2 }, p: 1, label: 'Passa i segnali raccolti all’analista' },
+    { toRole: 'designer', give: { food: 1, trend: 1 }, get: { interview: 1 }, p: 0.6, label: 'Scambia un trend report con un’intervista' },
   ],
-  builder: [
-    { toRole: 'woodcutter', give: { stone_axe: 1 }, p: 0.9, label: 'Consegna un’ascia al taglialegna' },
-    { toRole: 'gatherer', give: { basket: 1 }, p: 0.9, label: 'Consegna un cesto alla raccoglitrice' },
+  designer: [
+    { toRole: 'analyst', give: { interview: 1 }, p: 0.9, label: 'Passa un’intervista all’analista' },
+    { toRole: 'strategist', give: { persona: 1 }, p: 0.6, label: 'Presenta una persona alla stratega' },
   ],
-  gatherer: [
-    { toRole: 'healer', give: { herbs: 2, food: 1 }, get: { poultice: 1 }, p: 0.9, label: 'Porta erbe alla guaritrice' },
+  analyst: [
+    { toRole: 'strategist', give: { insight_card: 1 }, p: 0.8, label: 'Porta una insight card alla stratega' },
+    { toRole: 'engineer', give: { wood: 2 }, p: 0.7, label: 'Porta dati di benchmark all’ingegnere' },
+    { toRole: 'critic', give: { insight_card: 1 }, p: 0.4, label: 'Sottopone una insight card al critico' },
   ],
-  healer: [
-    { toRole: 'woodcutter', give: { poultice: 1 }, p: 0.7, label: 'Porta un impiastro al taglialegna' },
-    { toRole: 'hunter', give: { poultice: 1 }, get: { meat: 1 }, p: 0.6, label: 'Porta un impiastro al cacciatore' },
+  engineer: [
+    { toRole: 'analyst', give: { laptop: 1 }, p: 0.9, label: 'Consegna un laptop all’analista' },
+    { toRole: 'researcher', give: { notebook: 1 }, p: 0.9, label: 'Consegna un notebook al ricercatore' },
   ],
-  hunter: [
-    { toRole: 'gatherer', give: { meat: 1 }, p: 0.8, label: 'Porta carne alla raccoglitrice' },
-    { toRole: 'elder', give: { smoked_meat: 1 }, p: 0.7, label: 'Porta carne affumicata all’anziano' },
-    { toRole: 'elder', give: { meat: 1 }, p: 0.4, label: 'Porta carne all’anziano' },
+  intern: [
+    { toRole: 'researcher', give: { trend: 2 }, p: 1, label: 'Porta trend report al ricercatore' },
+    { toRole: 'designer', give: { trend: 1 }, p: 0.7, label: 'Porta un trend report alla designer' },
   ],
-  scout: [
-    { toRole: 'builder', give: { stone: 2 }, p: 1, label: 'Porta pietra al costruttore' },
-    { toRole: 'elder', give: { clay: 2 }, p: 0.9, label: 'Porta argilla all’anziano' },
+  strategist: [
+    { toRole: 'critic', give: { business_case: 1 }, p: 0.5, label: 'Sottopone un business case al critico' },
+    { toRole: 'engineer', give: { market_map: 1 }, p: 0.3, label: 'Condivide la mappa di mercato per una stima' },
   ],
-  elder: [
-    { toRole: 'gatherer', give: { pot: 1 }, p: 0.9, label: 'Consegna un vaso alla raccoglitrice' },
-    { toRole: 'chief', give: { smoked_meat: 1 }, p: 0.3, label: 'Offre carne affumicata al capo' },
+  critic: [
+    { toRole: 'strategist', give: { onepager: 1 }, p: 0.5, label: 'Consegna un one-pager valutato alla stratega' },
   ],
 };
 
 /** Raw goods an agent of the role goes out to produce (timed work step). */
 export const PRODUCE: Record<string, { items: ItemBag; label: string }> = {
-  gatherer: { items: { fiber: 2, herbs: 2 }, label: 'Raccoglie fibre ed erbe' },
-  scout: { items: { stone: 2, clay: 2 }, label: 'Cerca pietra e argilla' },
-  hunter: { items: { meat: 2 }, label: 'Caccia nel bosco' },
+  researcher: { items: { food: 2, trend: 1 }, label: 'Scansiona il mercato' },
+  designer: { items: { interview: 2 }, label: 'Intervista un utente' },
+  analyst: { items: { wood: 2 }, label: 'Esegue un benchmark in lab' },
+  engineer: { items: { paper: 2 }, label: 'Legge paper tecnici' },
+  intern: { items: { trend: 2 }, label: 'Raccoglie trend report' },
 };
 
 /** Recipes a role tries to craft in its plan (in order). */
 export const CRAFTS: Record<string, string[]> = {
-  builder: ['stone_axe', 'basket'],
-  healer: ['poultice'],
-  elder: ['pot'],
-  hunter: ['smoked_meat'],
+  engineer: ['laptop', 'notebook'],
+  analyst: ['insight_card'],
+  designer: ['persona', 'mockup'],
+  researcher: ['market_map'],
+  strategist: ['business_case'],
+  critic: ['onepager'],
 };
 
 export const START_INVENTORY: Record<string, ItemBag> = {
-  builder: { stone: 3, fiber: 3 },
-  healer: { herbs: 3 },
-  elder: { clay: 2, wood: 2 },
-  hunter: { meat: 3 },
-  gatherer: { herbs: 2, fiber: 1 },
-  scout: { stone: 2, clay: 2 },
-  woodcutter: { wood: 1 },
+  strategist: { paper: 1, insight_card: 1 },
+  critic: { paper: 1, trend: 1 },
+  designer: { interview: 2, food: 1 },
+  researcher: { trend: 2, paper: 1 },
+  analyst: { wood: 2, food: 2 },
+  engineer: { paper: 2, wood: 1 },
+  intern: { trend: 1 },
 };
 
 /** Starting tools by agent id. */
 export const START_TOOLS: Record<string, ToolState[]> = {
-  'a-bruno': [{ item: 'stone_axe', durability: 5, max: 8 }],
-  'a-ugo': [{ item: 'stone_axe', durability: 3, max: 8 }],
-  'a-gaia': [{ item: 'basket', durability: 6, max: 10 }],
+  'a-ada': [{ item: 'notebook', durability: 6, max: 10 }],
+  'a-bruno': [{ item: 'laptop', durability: 5, max: 8 }],
+  'a-elena': [{ item: 'laptop', durability: 3, max: 8 }],
 };
 
 /** Plausible first flows, shown until real trades fill the window. */
 const SEED_FLOWS: FlowEdge[] = [
-  { fromRole: 'woodcutter', toRole: 'builder', item: 'wood', amount: 4 },
-  { fromRole: 'builder', toRole: 'woodcutter', item: 'stone_axe', amount: 1 },
-  { fromRole: 'scout', toRole: 'builder', item: 'stone', amount: 3 },
-  { fromRole: 'gatherer', toRole: 'healer', item: 'herbs', amount: 3 },
-  { fromRole: 'healer', toRole: 'hunter', item: 'poultice', amount: 1 },
-  { fromRole: 'hunter', toRole: 'gatherer', item: 'meat', amount: 2 },
+  { fromRole: 'researcher', toRole: 'analyst', item: 'food', amount: 4 },
+  { fromRole: 'engineer', toRole: 'analyst', item: 'laptop', amount: 1 },
+  { fromRole: 'intern', toRole: 'researcher', item: 'trend', amount: 3 },
+  { fromRole: 'designer', toRole: 'analyst', item: 'interview', amount: 2 },
+  { fromRole: 'analyst', toRole: 'strategist', item: 'insight_card', amount: 1 },
+  { fromRole: 'analyst', toRole: 'engineer', item: 'wood', amount: 2 },
 ];
 
 export const FLOW_WINDOW = 30;
@@ -156,7 +157,7 @@ export class EconomyState {
   private last: FlowEdge[] = SEED_FLOWS;
 
   constructor() {
-    for (const t of TECHS) if (t.at === null) this.found.set(t.code, { by: 'gli antichi', at: { day: 1, minute: 0 } });
+    for (const t of TECHS) if (t.at === null) this.found.set(t.code, { by: 'il team fondatore', at: { day: 1, minute: 0 } });
     // seed trades expire after roughly one window, by then real trades exist
     for (const e of SEED_FLOWS) this.ledger.push({ t: 0, ...e });
   }

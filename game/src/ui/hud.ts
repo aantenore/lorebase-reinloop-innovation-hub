@@ -8,6 +8,7 @@ import { panels } from './panels';
 
 /** Toolbar entries: panel id, label key, shortcut. */
 const TOOLBAR: { id: string; label: I18nKey; key: string }[] = [
+  { id: 'ideas', label: 'hud.ideas', key: 'i' },
   { id: 'god', label: 'god.button', key: 'g' },
   { id: 'laws', label: 'laws.title', key: 'l' },
   { id: 'consciousness', label: 'hud.consciousness', key: 'c' },
@@ -38,7 +39,13 @@ export function mountHud(onJoinClick: () => void): void {
     inv,
   );
   const joinBtn = h('button', { class: 'btn primary hidden', onclick: onJoinClick }, t('join.enter'));
-  root.append(h('div', { class: 'hud-tl' }, clock, stats, joinBtn));
+  // company status: quarter, idea slots left, strategic themes, freeze
+  const quarter = h('span', { class: 'px co-q', title: t('hud.quarterTitle') });
+  const slots = h('span', { class: 'px co-slots', title: t('hud.slotsTitle'), onclick: () => panels.toggle('ideas') });
+  const freeze = h('span', { class: 'px co-freeze hidden', title: t('hud.freezeTitle') }, `❄ ${t('hud.freeze')}`);
+  const themes = h('div', { class: 'co-themes', title: t('hud.themesTitle') });
+  const company = h('div', { class: 'company hidden' }, h('div', { class: 'co-row' }, quarter, slots, freeze), themes);
+  root.append(h('div', { class: 'hud-tl' }, h('div', { class: 'hud-col' }, clock, company), stats, joinBtn));
 
   // ---- top-right: status pills + toolbar
   const conn = h('span', { class: 'px pill' }, h('span', { class: 'dot' }), h('span'));
@@ -75,8 +82,9 @@ export function mountHud(onJoinClick: () => void): void {
   const renderClock = () => {
     day.textContent = t('hud.day', { n: store.time.day });
     tm.textContent = fmtClock(store.time.minute);
-    season.textContent = t(`season.${store.time.season}` as I18nKey);
-    season.className = `season season-${store.time.season}`;
+    const q = store.time.quarter ?? store.company?.quarter;
+    season.textContent = q ? t(`quarter.${q}` as I18nKey) : t(`season.${store.time.season}` as I18nKey);
+    season.className = q ? `season quarter-${q}${store.time.freeze ? ' freeze' : ''}` : `season season-${store.time.season}`;
   };
   const renderStats = throttle(() => {
     const you = store.you();
@@ -99,6 +107,16 @@ export function mountHud(onJoinClick: () => void): void {
       inv.replaceChildren(...inventoryChips(you, 6));
     }
   }, 200);
+  const renderCompany = () => {
+    const c = store.company;
+    company.classList.toggle('hidden', !c);
+    if (!c) return;
+    quarter.textContent = `${c.name ? `${c.name} · ` : ''}${c.quarter}`;
+    slots.textContent = t('hud.slots', { n: c.slotsLeft });
+    slots.classList.toggle('empty', c.slotsLeft <= 0);
+    freeze.classList.toggle('hidden', !c.freeze);
+    themes.replaceChildren(...c.themes.map((th) => h('span', { class: 'co-theme' }, th)));
+  };
   const renderConn = () => {
     const s = store.status;
     conn.className = `px pill ${s === 'online' || s === 'mock' ? 'ok' : s === 'offline' ? 'bad' : ''}`;
@@ -118,8 +136,19 @@ export function mountHud(onJoinClick: () => void): void {
     follow.classList.toggle('on', on);
   };
 
-  store.on('time', renderClock);
+  store.on('time', () => {
+    renderClock();
+    if (store.company && store.time.freeze !== undefined && store.company.freeze !== store.time.freeze) {
+      store.company.freeze = store.time.freeze;
+      renderCompany();
+    }
+  });
+  store.on('company', () => {
+    renderCompany();
+    renderClock();
+  });
   store.on('hello', () => {
+    renderCompany();
     renderClock();
     renderStats();
     renderLore(false);

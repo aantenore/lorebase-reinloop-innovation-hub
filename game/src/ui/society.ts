@@ -2,6 +2,7 @@ import { roleLabel, t, type I18nKey } from '../i18n';
 import type { Family, Person, SocietyResponse } from '../net/protocol';
 import { session } from '../net/session';
 import { familyColor, scoreColor } from '../render/palette';
+import { careerLevel } from '../state/career';
 import { store } from '../state/store';
 import { h, throttle, uiRoot } from './dom';
 import { focusEntity, segmented } from './god/godShared';
@@ -167,7 +168,7 @@ function rankingTable(sort: { col: SortCol; dir: 1 | -1 }, onSort: (c: SortCol) 
       'div',
       { class: `soc-tr${p.rank >= 1 && p.rank <= 3 ? ` top top-${p.rank}` : ''}`, onclick: () => focusEntity(p.id) },
       h('span', { class: 'soc-rank' }, p.rank > 0 ? `#${p.rank}` : '–'),
-      h('span', { class: 'soc-name' }, p.name),
+      h('span', { class: 'soc-name' }, p.name, ' ', h('span', { class: `career career-${careerLevel(p.esteem)}` }, t(`career.${careerLevel(p.esteem)}` as I18nKey))),
       h('span', {}, roleLabel(p.role)),
       h('span', {}, tierBadge(p.effectiveTier ?? p.tier)),
       h('span', { class: 'soc-fam' }, p.family ? h('i', { class: 'fam-sw', style: `background:${familyColor(p.family, fam?.color)}` }) : null, fam?.name ?? (p.family ? p.family : t('soc.noFamily'))),

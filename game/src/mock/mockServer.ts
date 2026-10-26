@@ -15,6 +15,7 @@ import type {
   RuleValue,
   ServerMsg,
   Season,
+  Quarter,
   Tile,
   ToolState,
   WorldTime,
@@ -37,19 +38,27 @@ import { GodLedger } from './mockGod';
 import { consultFor, Minds } from './mockMinds';
 import { CRAFTS, EconomyState, fmtBag, FIRE, FLOW_WINDOW, PERISHABLE, PRODUCE, RES_NAME, ROUTES, START_INVENTORY, START_TOOLS, TECHS, TOOL_ITEMS } from './mockEconomy';
 import type { TechDef } from './mockEconomy';
-import { BUILD_SITE, generateMap, HUTS, STOCKPILE, VILLAGE } from './mockMap';
+import { BUILD_SITE, COFFEE, generateMap, HUTS, STOCKPILE, VILLAGE } from './mockMap';
+import { IdeaPipeline } from './mockIdeas';
 import { SocietySim } from './mockSociety';
 
 const params = new URLSearchParams(location.search);
 /** Simulation speed multiplier (`?mockSpeed=4`). */
 const SPEED = Math.max(0.25, Number(params.get('mockSpeed') || 1));
-const START_SEASON = (params.get('mockSeason') as Season) || 'autumn';
+const QUARTERS: Quarter[] = ['Q1', 'Q2', 'Q3', 'Q4'];
+/** Garden look per quarter (the campus itself is season-independent). */
+const QUARTER_LOOK: Record<Quarter, Season> = { Q1: 'winter', Q2: 'spring', Q3: 'summer', Q4: 'autumn' };
+const START_QUARTER = (QUARTERS.find((q) => q === params.get('mockQuarter')) ?? 'Q3') as Quarter;
 const TICK_MS = 100;
 /** Game minutes per real second. */
 const MINUTES_PER_SEC = 8;
 /** Real seconds (at speed 1) before scripted events. */
 const RULES_CHANGE_AT = 55;
-const WINTER_AT = 110;
+const FREEZE_AT = 110;
+/** Scripted people moments: a hire and a burnout. */
+const HIRE_AT = 70;
+const BURNOUT_AT = 125;
+const BURNOUT_ID = 'a-bruno';
 /** Real seconds between flows broadcasts, perishables spoiling, and the cap on one item in a bag. */
 const FLOWS_EVERY = 10;
 const SPOIL_EVERY: [number, number] = [20, 30];
@@ -99,15 +108,18 @@ export class MockServer implements Transport {
   private actors = new Map<string, Actor>();
   private groups = new Map<string, Group>();
   private rules: Rule[] = RULES.map((r) => ({ ...r }));
-  private time: WorldTime = { day: 1, minute: 7 * 60, season: START_SEASON };
+  private time: WorldTime = { day: 1, minute: 7 * 60 + 30, season: QUARTER_LOOK[START_QUARTER], quarter: START_QUARTER, freeze: false };
   private lorebase = { connected: true, branch: 'main', revision: 'a3f9c1e' };
   private youId: string | null = null;
   private r = rng(42);
   private elapsed = 0;
   private timer: number;
   private chatterT = 4;
-  private winterDone = START_SEASON === 'winter';
+  private freezeDone = false;
+  private hireDone = false;
+  private burnoutDone = false;
   private rulesDone = false;
+  private ideas: IdeaPipeline;
   private nextPlayer = 1;
   private groupProgress = new Map<string, { refs: GroupStepRef[]; current: number }>();
   private econ = new EconomyState();
@@ -155,10 +167,21 @@ export class MockServer implements Transport {
         return { rules: this.rules.length, insights: ins.stored.length + ins.pending.length, techs: eco.techs.length, recipes: eco.recipes.length };
       },
     });
+    this.ideas = new IdeaPipeline({
+      emit: (m) => this.emit(m),
+      r: () => this.r(),
+      now: () => ({ day: this.time.day, minute: Math.floor(this.time.minute) }),
+      quarter: () => this.time.quarter ?? START_QUARTER,
+      freeze: () => !!this.time.freeze,
+      rule: (k) => this.rule(k),
+      agents: () => [...this.actors.values()].filter((a) => a.kind === 'agent' && a.alive).map((a) => ({ id: a.id, name: a.name, role: a.role, groupId: a.groupId })),
+      group: (id) => this.groups.get(id),
+      speed: SPEED,
+    });
     // stagger first plans so the opening already looks busy
     let k = 0;
     for (const a of this.actors.values()) {
-      if (a.kind === 'agent') this.think(a, 'Il giorno comincia: cosa serve al villaggio?', 0.3 + k++ * 0.35);
+      if (a.kind === 'agent') this.think(a, 'Inizia la giornata: quali segnali vale la pena seguire?', 0.3 + k++ * 0.35);
       else this.crowdPlan(a);
     }
     this.timer = window.setInterval(() => this.tick(), TICK_MS);
@@ -236,7 +259,13 @@ export class MockServer implements Transport {
     let out: unknown;
     const mem = /^\/agents\/([^/]+)\/memories$/.exec(clean);
     const mind = /^\/agents\/([^/]+)\/mind$/.exec(clean);
-    if (clean === '/society') out = this.society.society();
+    const idea = /^\/ideas\/([^/]+)$/.exec(clean);
+    if (clean === '/ideas') out = { ideas: this.ideas.list() };
+    else if (clean === '/company') out = this.ideas.company();
+    else if (idea && idea[1] !== 'export.md') {
+      out = this.ideas.get(decodeURIComponent(idea[1]));
+      if (!out) return Promise.reject(new Error('404'));
+    } else if (clean === '/society') out = this.society.society();
     else if (clean === '/economy') out = { ...this.econ.economy(), flows: this.econ.flows(this.elapsed) };
     else if (mem) {
       const memories = this.minds.memories(decodeURIComponent(mem[1]));
@@ -298,7 +327,7 @@ export class MockServer implements Transport {
 
   private passable(x: number, y: number): boolean {
     const t = this.tile(x, y);
-    return !!t && t.biome !== 'water' && t.elev < 3 && t.shelter === 0;
+    return !!t && t.biome !== 'water' && t.biome !== 'wall' && t.elev < 3 && t.shelter === 0;
   }
 
   private freeNear(x: number, y: number): { x: number; y: number } {
@@ -364,10 +393,12 @@ export class MockServer implements Transport {
       groups: [...this.groups.values()],
       rules: this.rules,
       time: this.time,
-      roles: ['gatherer', 'woodcutter', 'builder', 'healer', 'scout', 'wanderer'],
+      roles: ['visitor', 'researcher', 'analyst', 'engineer', 'designer'],
       lorebase: this.lorebase,
       economy: this.econ.economy(),
       society: this.society.society(),
+      company: this.ideas.company(),
+      ideas: this.ideas.list(),
     });
     this.emitFlows();
     this.society.replay();
@@ -379,12 +410,12 @@ export class MockServer implements Transport {
   private join(name: string, role: string) {
     const id = `p-${this.nextPlayer++}`;
     const spot = this.freeNear(VILLAGE.x + 1, VILLAGE.y + 1);
-    const p = this.makeActor({ id, name: name || 'Viandante', role: role || 'wanderer', tier: 'human', kind: 'player', groupId: null, speed: 2.4, ...spot }, '');
+    const p = this.makeActor({ id, name: name || 'Ospite', role: role || 'visitor', tier: 'human', kind: 'player', groupId: null, speed: 2.4, ...spot }, '');
     this.actors.set(id, p);
     this.society.decorate(p);
     this.youId = id;
     this.hello();
-    this.emit({ type: 'world_event', kind: 'birth', text: `${p.name} è arrivato al villaggio.`, at: spot });
+    this.emit({ type: 'world_event', kind: 'birth', text: `${p.name} entra nell’hub come ospite.`, at: spot });
   }
 
   private sendPlan(a: Actor, reason: string) {
@@ -420,49 +451,52 @@ export class MockServer implements Transport {
     const s: PlanStep[] = [];
     const walk = (t: { x: number; y: number }, label: string) => s.push({ action: 'walk_to', args: { x: t.x, y: t.y }, label });
     const night = this.time.minute > 20 * 60 || this.time.minute < 6 * 60;
-    const winter = this.time.season === 'winter';
+    const coffee = () => {
+      const c = COFFEE[Math.floor(this.r() * COFFEE.length)];
+      walk(this.freeNear(c.x, c.y + 1), 'Va alla macchinetta del caffè');
+      s.push({ action: 'eat', args: {}, label: 'Pausa caffè' });
+    };
     if (night) {
-      const hut = HUTS[Math.floor(this.r() * HUTS.length)];
-      walk(this.freeNear(hut.x + 1, hut.y), 'Torna alla capanna');
-      s.push({ action: 'sleep', args: { s: 25 }, label: 'Dorme fino all’alba' });
+      walk(this.freeNear(21 + Math.floor(this.r() * 5) - 2, 30 + Math.floor(this.r() * 3)), 'Stacca e va in lounge');
+      s.push({ action: 'sleep', args: { s: 25 }, label: 'Ricarica fino al mattino' });
       return s;
     }
-    if (a.hunger > 55 && a.inventory.food > 0) s.push({ action: 'eat', args: {}, label: 'Mangia una bacca' });
+    if (a.hunger > 55) coffee();
     const role = a.role;
-    const rounds = 5 + Math.floor(this.r() * 4);
+    const rounds = 4 + Math.floor(this.r() * 3);
     for (let i = 0; i < rounds; i++) {
-      if (role === 'woodcutter' || (role === 'chief' && i % 2 === 0) || (winter && role === 'hunter')) {
-        const tree = this.nearest(a, (t) => t.biome === 'forest' && t.wood > 0, 6);
-        if (!tree) break;
-        walk(this.freeNear(tree.x, tree.y + 1), 'Cammina verso il bosco');
-        s.push({ action: 'chop', args: { x: tree.x, y: tree.y }, label: 'Taglia un albero' });
-        s.push({ action: 'chop', args: { x: tree.x, y: tree.y }, label: 'Taglia ancora' });
-        s.push({ action: 'carry_to', args: { ...STOCKPILE }, label: 'Porta la legna al mucchio' });
-      } else if (role === 'builder') {
-        walk(this.freeNear(STOCKPILE.x, STOCKPILE.y + 1), 'Prende legna dal mucchio');
-        s.push({ action: 'take', args: { ...STOCKPILE }, label: 'Carica la legna' });
-        walk(this.freeNear(BUILD_SITE.x + 1, BUILD_SITE.y), 'Va al cantiere');
-        s.push({ action: 'build', args: { ...BUILD_SITE }, label: 'Costruisce il riparo' });
-        s.push({ action: 'wait', args: { s: 2 }, label: 'Controlla il lavoro' });
-      } else if (role === 'chief' || role === 'elder') {
+      if (role === 'engineer' || (role === 'strategist' && i % 3 === 0) || (this.time.freeze && role === 'researcher' && i % 2 === 1)) {
+        const rack = this.nearest(a, (t) => t.biome === 'lab' && t.wood > 0, 6);
+        if (!rack) break;
+        walk(this.freeNear(rack.x, rack.y + 1), 'Va in lab');
+        s.push({ action: 'chop', args: { x: rack.x, y: rack.y }, label: 'Lancia un benchmark' });
+        s.push({ action: 'chop', args: { x: rack.x, y: rack.y }, label: 'Raccoglie i risultati' });
+        s.push({ action: 'carry_to', args: { ...STOCKPILE }, label: 'Appunta i dati sull’idea board' });
+      } else if (role === 'designer') {
+        walk(this.freeNear(STOCKPILE.x, STOCKPILE.y + 1), 'Legge l’idea board');
+        s.push({ action: 'take', args: { ...STOCKPILE }, label: 'Prende i dati appuntati' });
+        walk(this.freeNear(BUILD_SITE.x + 1, BUILD_SITE.y), 'Va in sala riunioni');
+        s.push({ action: 'build', args: { ...BUILD_SITE }, label: 'Allestisce lo spazio di lavoro' });
+        s.push({ action: 'wait', args: { s: 2 }, label: 'Rilegge il concept' });
+      } else if (role === 'strategist' || role === 'critic') {
         const other = this.pickOther(a);
         if (other) {
           walk(this.freeNear(Math.round(other.x) + 1, Math.round(other.y)), `Raggiunge ${other.name}`);
-          s.push({ action: 'say', args: { to: other.id, text: role === 'elder' ? 'Ricorda: prima le scorte, poi l’avventura.' : 'Come procede? Serve una mano?' }, label: `Parla con ${other.name}` });
+          s.push({ action: 'say', args: { to: other.id, text: role === 'critic' ? 'Chi è l’utente, esattamente? Senza un nome l’idea non passa.' : 'Su cosa stai lavorando? Si lega ai temi del trimestre?' }, label: `Parla con ${other.name}` });
         }
-        s.push({ action: 'wait', args: { s: 3 }, label: 'Osserva il villaggio' });
+        s.push({ action: 'wait', args: { s: 3 }, label: 'Osserva il portfolio' });
       } else {
-        const bush = this.nearest(a, (t) => t.food > 0, 5);
-        if (!bush) break;
-        walk(this.freeNear(bush.x + 1, bush.y), 'Va verso un cespuglio di bacche');
-        s.push({ action: 'gather', args: { x: bush.x, y: bush.y }, label: 'Raccoglie bacche' });
-        if (role === 'scout' && i === 0) s.push({ action: 'say', args: { to: 'all', text: 'Qui ce ne sono ancora!' }, label: 'Avvisa gli altri' });
+        const desk = this.nearest(a, (t) => t.food > 0, 5);
+        if (!desk) break;
+        walk(this.freeNear(desk.x + 1, desk.y), 'Va verso una scrivania con segnali');
+        s.push({ action: 'gather', args: { x: desk.x, y: desk.y }, label: 'Raccoglie segnali' });
+        if (role === 'researcher' && i === 0) s.push({ action: 'say', args: { to: 'all', text: 'Qui c’è un segnale interessante!' }, label: 'Avvisa gli altri' });
       }
     }
     this.economyPlan(a, s, walk);
-    walk(this.freeNear(VILLAGE.x + Math.floor(this.r() * 5) - 2, VILLAGE.y + Math.floor(this.r() * 5) - 2), 'Torna in piazza');
-    if (a.inventory.food > 1 && a.hunger > 30) s.push({ action: 'eat', args: {}, label: 'Mangia qualcosa' });
-    s.push({ action: 'wait', args: { s: 2 }, label: 'Riposa un momento' });
+    walk(this.freeNear(VILLAGE.x + Math.floor(this.r() * 5) - 2, VILLAGE.y + Math.floor(this.r() * 5) - 2), 'Torna nell’atrio');
+    if (a.hunger > 30) coffee();
+    s.push({ action: 'wait', args: { s: 2 }, label: 'Riordina gli appunti' });
     return s;
   }
 
@@ -470,7 +504,7 @@ export class MockServer implements Transport {
   private economyPlan(a: Actor, s: PlanStep[], walk: (t: { x: number; y: number }, label: string) => void) {
     const prod = PRODUCE[a.role];
     if (prod) {
-      const biome = a.role === 'scout' ? 'rock' : a.role === 'hunter' ? 'forest' : 'grass';
+      const biome = a.role === 'engineer' ? 'lab' : a.role === 'researcher' ? 'garden' : a.role === 'designer' ? 'meeting' : 'office';
       const spot = this.nearest(a, (t) => t.biome === biome && t.shelter === 0, 6);
       if (spot) walk(this.freeNear(spot.x, spot.y + 1), prod.label);
       s.push({ action: 'produce', args: { items: prod.items }, label: prod.label });
@@ -478,7 +512,7 @@ export class MockServer implements Transport {
     for (const code of CRAFTS[a.role] ?? []) {
       const rec = this.econ.recipe(code);
       if (!rec) continue;
-      if (rec.station === FIRE) walk(this.freeNear(VILLAGE.x, VILLAGE.y), 'Va al fuoco del villaggio');
+      if (rec.station === FIRE) walk(this.freeNear(HUTS[2].x + 1, HUTS[2].y), 'Va alla lavagna');
       s.push({ action: 'craft', args: { recipe: code }, label: `Fabbrica: ${rec.name}` });
     }
     for (const route of ROUTES[a.role] ?? []) {
@@ -499,9 +533,12 @@ export class MockServer implements Transport {
   private crowdPlan(a: Actor) {
     const s: PlanStep[] = [];
     for (let i = 0; i < 4; i++) {
-      const target = this.freeNear(VILLAGE.x + Math.floor(this.r() * 11) - 5, VILLAGE.y + Math.floor(this.r() * 11) - 5);
-      s.push({ action: 'walk_to', args: target, label: 'Passeggia' });
-      s.push({ action: 'wait', args: { s: 2 + Math.floor(this.r() * 4) }, label: 'Chiacchiera' });
+      const lounge = this.r() < 0.4;
+      const target = lounge
+        ? this.freeNear(21 + Math.floor(this.r() * 9) - 4, 30 + Math.floor(this.r() * 5) - 2)
+        : this.freeNear(VILLAGE.x + Math.floor(this.r() * 11) - 5, VILLAGE.y + Math.floor(this.r() * 9) - 4);
+      s.push({ action: 'walk_to', args: target, label: lounge ? 'Passa dalla lounge' : 'Gira per l’atrio' });
+      s.push({ action: 'wait', args: { s: 2 + Math.floor(this.r() * 4) }, label: 'Prende appunti' });
     }
     a.steps = s;
     a.current = 0;
@@ -523,7 +560,7 @@ export class MockServer implements Transport {
         const m = this.actors.get(id);
         if (!m) continue;
         if (g.pattern === 'crowd') {
-          steps.push({ action: 'wander', args: { who: id }, label: 'Gira per il mercato' });
+          steps.push({ action: 'wander', args: { who: id }, label: 'Affianca il team' });
           refs.push({ who: id, src: 1, plan: m.steps, done: false });
           continue;
         }
@@ -575,12 +612,14 @@ export class MockServer implements Transport {
     this.advanceTime(dt);
     for (const a of this.actors.values()) {
       if (!a.alive) continue;
-      a.hunger = clamp(a.hunger + dt * (this.rule('hunger.per_hour') / 60) * MINUTES_PER_SEC * 0.25, 0, 100);
+      a.hunger = clamp(a.hunger + dt * (this.rule('stress.per_hour') / 60) * MINUTES_PER_SEC * 0.25 * (this.time.freeze ? 1.5 : 1), 0, 100);
+      if (this.time.freeze && a.kind === 'agent' && a.anim !== 'sleep') a.hp = clamp(a.hp - dt * (this.rule('freeze.energy_drain') / 60) * MINUTES_PER_SEC * 0.15, 20, a.maxHp);
       if (a.kind === 'player') this.movePlayer(a, dt);
       else if (this.elapsed >= a.busyUntil && this.elapsed >= a.thinkingUntil) this.runStep(a, dt);
     }
     this.minds.tick(dt);
     this.society.tick(dt, this.elapsed);
+    this.ideas.tick(dt, this.elapsed);
     if (this.elapsed >= this.regrowAt) {
       this.regrowAt = this.elapsed + REGROW_EVERY;
       this.regrow();
@@ -601,11 +640,19 @@ export class MockServer implements Transport {
     }
     if (!this.rulesDone && this.elapsed > RULES_CHANGE_AT) {
       this.rulesDone = true;
-      this.changeRule('wood.per_chop', 2, 'Gli alberi della valle si diradano: meno legna per albero.');
+      this.changeRule('risk.appetite', 0.3, 'Il board chiede prudenza: il comitato pesa di più il rischio.');
     }
-    if (!this.winterDone && this.elapsed > WINTER_AT) {
-      this.winterDone = true;
-      this.startWinter();
+    if (!this.hireDone && this.elapsed > HIRE_AT) {
+      this.hireDone = true;
+      this.hire();
+    }
+    if (!this.freezeDone && this.elapsed > FREEZE_AT) {
+      this.freezeDone = true;
+      this.startFreeze();
+    }
+    if (!this.burnoutDone && this.elapsed > BURNOUT_AT) {
+      this.burnoutDone = true;
+      this.burnout(BURNOUT_ID);
     }
     this.emit({
       type: 'state',
@@ -628,10 +675,11 @@ export class MockServer implements Transport {
   /** A few berry bushes grow back, sent as one batched `tiles` message. */
   private regrow() {
     const items = this.tiles
-      .filter((t) => t.food > 0 && t.food < REGROW_MAX_FOOD && this.r() < 0.25)
-      .slice(0, 6)
+      .filter((t) => ((t.biome === 'office' && t.shelter === 1) || (t.biome === 'lab' && t.shelter === 1)) && this.r() < 0.12)
+      .slice(0, 8)
       .map((t) => {
-        t.food += 1;
+        if (t.biome === 'lab') t.wood = Math.min(8, t.wood + 2);
+        else t.food = Math.min(REGROW_MAX_FOOD, t.food + 1);
         return { x: t.x, y: t.y, food: t.food, wood: t.wood, shelter: t.shelter };
       });
     if (items.length) this.emit({ type: 'tiles', items });
@@ -643,30 +691,87 @@ export class MockServer implements Transport {
     if (this.time.minute >= 1440) {
       this.time.minute -= 1440;
       this.time.day += 1;
+      this.maybeNewQuarter();
     }
     if (Math.floor(this.time.minute / 5) !== Math.floor(before / 5)) this.emit({ type: 'time', ...this.time, minute: Math.floor(this.time.minute) });
     // agents head home at dusk
     if (before < 20 * 60 && this.time.minute >= 20 * 60) {
-      for (const a of this.actors.values()) if (a.kind === 'agent') this.think(a, 'Scende la notte: meglio rientrare.', this.r() * 2);
+      for (const a of this.actors.values()) if (a.kind === 'agent') this.think(a, 'La giornata è finita: si stacca.', this.r() * 2);
     }
   }
 
-  private startWinter() {
-    this.time.season = 'winter';
+  /** A new quarter every `quarter.length_days`: OKR review, slots reset, freeze lifted. */
+  private maybeNewQuarter() {
+    const len = Math.max(1, this.rule('quarter.length_days'));
+    if ((this.time.day - 1) % len !== 0) return;
+    const q = QUARTERS[(QUARTERS.indexOf(this.time.quarter ?? START_QUARTER) + 1) % 4];
+    this.time.quarter = q;
+    this.time.season = QUARTER_LOOK[q];
+    this.time.freeze = false;
     this.emit({ type: 'time', ...this.time, minute: Math.floor(this.time.minute) });
-    this.emit({ type: 'world_event', kind: 'season', text: 'È arrivato l’inverno. La neve copre la valle.' });
-    this.minds.rememberAll('È arrivato l’inverno e la neve ha coperto la valle.', 'danger', 0.7, 'paura');
+    this.ideas.newQuarter(q);
+    this.emit({ type: 'world_event', kind: 'season', text: `Inizia il ${q}: OKR review fatta, slot idee azzerati, nuovi temi strategici.` });
+    this.minds.rememberAll(`Inizia il ${q}: nuovi temi strategici e slot idee azzerati.`, 'law', 0.6, 'attesa');
+    for (const a of this.actors.values()) if (a.kind === 'agent') this.think(a, `Nuovo trimestre ${q}: rivedo le priorità.`, this.r() * 3);
+  }
+
+  private startFreeze() {
+    this.time.freeze = true;
+    this.emit({ type: 'time', ...this.time, minute: Math.floor(this.time.minute) });
+    this.ideas.setFreeze(true);
+    this.emit({ type: 'world_event', kind: 'season', text: 'Freeze di budget: niente nuove assunzioni, solo idee a basso costo.' });
+    this.minds.rememberAll('È scattato il freeze di budget: ogni idea deve costare poco.', 'danger', 0.7, 'preoccupazione');
     this.emit({ type: 'lorebase', ...this.lorebase, revision: (this.lorebase.revision = 'b71e0d4') });
-    for (const a of this.actors.values()) if (a.kind === 'agent') this.think(a, 'L’inverno è arrivato: servono legna e riparo.', this.r() * 3);
-    const exp = this.groups.get('g-exp');
-    if (exp) {
-      exp.pattern = 'assembly';
-      exp.name = 'Assemblea del Nord';
-      exp.lastDecision = ASSEMBLY_DECISION;
-      this.emit({ type: 'group', group: exp });
-      this.emit({ type: 'world_event', kind: 'group', text: 'La spedizione si riunisce in assemblea e vota di restare.' });
+    for (const a of this.actors.values()) if (a.kind === 'agent') this.think(a, 'Freeze di budget: rivedo il piano.', this.r() * 3);
+    const track = this.groups.get('g-track');
+    if (track) {
+      track.pattern = 'assembly';
+      track.name = 'Hackathon del freeze';
+      track.lastDecision = ASSEMBLY_DECISION;
+      this.emit({ type: 'group', group: track });
+      this.emit({ type: 'world_event', kind: 'group', text: 'Il Discovery track diventa un hackathon e vota su cosa puntare.' });
     }
     setTimeout(() => this.groupPlans(), 5000 / SPEED);
+  }
+
+  /** New colleague joins the discovery track. */
+  private hire() {
+    const id = 'a-fabio';
+    if (this.actors.has(id)) return;
+    const spot = this.freeNear(21, 33);
+    const a = this.makeActor({ id, name: 'Fabio', role: 'researcher', tier: 'haiku', kind: 'agent', groupId: 'g-track', speed: 1.7, ...spot }, 'curioso e metodico');
+    this.actors.set(id, a);
+    this.society.decorate(a);
+    this.minds.seedAgent(id, a.role);
+    const g = this.groups.get('g-track');
+    if (g && !g.members.includes(id)) {
+      g.members.push(id);
+      this.emit({ type: 'group', group: g });
+    }
+    this.emit({ type: 'entity_added', entity: this.snapshotEntity(a) });
+    this.emit({ type: 'world_event', kind: 'birth', text: 'Fabio entra in azienda come researcher nel Discovery track.', at: spot });
+    this.think(a, 'Primo giorno: leggo il playbook dei researcher.', 1);
+  }
+
+  /** Someone burns out and leaves; their ideas lose a champion. */
+  private burnout(id: string) {
+    const a = this.actors.get(id);
+    if (!a || !a.alive) return;
+    a.alive = false;
+    a.hp = 0;
+    this.emit({ type: 'world_event', kind: 'death', text: `${a.name} è in burnout e lascia l’hub per un periodo.`, at: { x: Math.round(a.x), y: Math.round(a.y) } });
+    this.minds.rememberAll(`${a.name} è andato in burnout: troppo stress durante il freeze.`, 'danger', 0.8, 'tristezza');
+    this.ideas.orphan(id);
+    setTimeout(() => {
+      this.actors.delete(id);
+      for (const g of this.groups.values()) {
+        if (!g.members.includes(id)) continue;
+        g.members = g.members.filter((m) => m !== id);
+        if (g.leader === id) g.leader = g.members[0] ?? null;
+        this.emit({ type: 'group', group: g });
+      }
+      this.emit({ type: 'entity_removed', id, reason: 'burnout' });
+    }, 2500 / SPEED);
   }
 
   private changeRule(key: string, value: RuleValue, why: string) {
@@ -713,14 +818,14 @@ export class MockServer implements Transport {
     const rev = Math.floor(this.r() * 0xfffffff).toString(16).padStart(7, '0');
     this.lorebase.revision = rev;
     this.emit({ type: 'rules_changed', revision: rev, changes: [change] });
-    const what = change.removed ? `Legge ritirata: ${change.text}` : op.kind === 'create' ? `Nuova legge: ${change.text} = ${change.new}` : `Legge cambiata: ${change.text} ${change.old} → ${change.new}`;
+    const what = change.removed ? `Policy ritirata: ${change.text}` : op.kind === 'create' ? `Nuova policy: ${change.text} = ${change.new}` : `Policy cambiata: ${change.text} ${change.old} → ${change.new}`;
     this.god.commit(rev, `${what} (${why})`, ['rule']);
     this.minds.rememberAll(`${what}.`, 'law', 0.6, 'preoccupazione');
     this.emit({ type: 'world_event', kind: 'rules', text: `${what}. ${why}` });
     // a couple of agents react
     const reactors = [...this.actors.values()].filter((a) => a.kind === 'agent').slice(0, 3);
     reactors.forEach((a, i) =>
-      setTimeout(() => this.emit({ type: 'say', from: a.id, to: 'all', text: i === 0 ? 'Le leggi sono cambiate. Dobbiamo rifare i conti.' : 'Allora cambio piano.', kind: 'speech' }), 800 + i * 1500),
+      setTimeout(() => this.emit({ type: 'say', from: a.id, to: 'all', text: i === 0 ? 'Le policy sono cambiate: rifacciamo i conti sugli score.' : 'Allora ripenso il pitch.', kind: 'speech' }), 800 + i * 1500),
     );
     if (reactors[1]) this.think(reactors[1], `${what}`, 1.5);
   }
@@ -818,10 +923,8 @@ export class MockServer implements Transport {
         a.anim = 'eat';
         a.stepT += dt;
         if (a.stepT >= 2) {
-          if (a.inventory.food > 0) {
-            a.inventory.food--;
-            a.hunger = Math.max(0, a.hunger - 40);
-          }
+          a.hunger = Math.max(0, a.hunger - 40);
+          a.hp = Math.min(a.maxHp, a.hp + 10);
           next();
         }
         break;
@@ -875,15 +978,16 @@ export class MockServer implements Transport {
     const t = this.tile(x, y);
     if (!t) return;
     if (action === 'chop' && t.wood > 0) {
-      const got = Math.min(t.wood, this.rule('wood.per_chop'));
+      const got = Math.min(t.wood, this.rule('data.per_benchmark'));
       t.wood -= got;
       a.inventory.wood += got;
-      this.wear(a, 'stone_axe', false);
+      this.wear(a, 'laptop', false);
     } else if (action === 'gather' && t.food > 0) {
-      const got = Math.min(t.food, this.rule('food.per_gather'));
+      const got = Math.min(t.food, this.rule('signals.per_scan'));
       t.food -= got;
       a.inventory.food += got;
-      if (this.r() < 0.35) this.wear(a, 'basket', true);
+      if (this.r() < 0.35) this.wear(a, 'notebook', true);
+      if (a.kind === 'agent' && this.r() < 0.4) this.ideas.spark(a.id);
     } else if (action === 'take' && t.wood > 0) {
       const got = Math.min(t.wood, 4);
       t.wood -= got;
@@ -893,7 +997,7 @@ export class MockServer implements Transport {
         a.inventory.wood = Math.max(0, a.inventory.wood - 4);
         if (t.shelter < 2 && this.r() < 0.45) {
           t.shelter = (t.shelter + 1) as 1 | 2;
-          this.emit({ type: 'world_event', kind: 'build', text: `${a.name} ha ${t.shelter === 1 ? 'alzato un riparo' : 'completato una capanna'}.`, at: { x, y } });
+          this.emit({ type: 'world_event', kind: 'build', text: `${a.name} ha ${t.shelter === 1 ? 'montato una lavagna' : 'allestito una sala riunioni'}.`, at: { x, y } });
         }
       }
     } else return;
@@ -1072,7 +1176,8 @@ export class MockServer implements Transport {
     this.emit({ type: 'thinking', id: a.id, on: true });
     const pool = REPLIES[a.role] ?? DEFAULT_REPLY;
     let answer = pool[Math.floor(this.r() * pool.length)];
-    if (/legg|regol|law/i.test(text)) answer = `Le leggi le custodisce Lorebase. Oggi ogni albero dà ${this.rule('wood.per_chop')} legna, e d’inverno il freddo toglie ${this.rule('cold.damage_per_hour')} vita all’ora.`;
+    if (/polic|legg|regol|law/i.test(text)) answer = `Le policy le custodisce Lorebase. Oggi la propensione al rischio è ${this.rule('risk.appetite')} e per approvare serve uno score medio di ${this.rule('committee.approve_threshold')}.`;
+    else if (/idea|ide[ea]/i.test(text)) answer = `Sto seguendo ${this.ideas.championedBy(a.id) ?? 'un paio di segnali'}. Lo trovi sull’Idea Board (tasto I).`;
     else if (/ciao|salve|hello/i.test(text)) answer = `Ciao, ${p.name}! Sono ${a.name}. ${answer}`;
     const chunks = answer.match(/.{1,4}/gsu) ?? [answer];
     setTimeout(() => {

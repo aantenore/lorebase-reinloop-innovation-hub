@@ -1,6 +1,7 @@
 import { roleLabel, t, type I18nKey } from '../i18n';
 import type { Group, PlanStep } from '../net/protocol';
 import { drawPortrait } from '../render/portrait';
+import { careerLevel } from '../state/career';
 import { store, type EntityState, type Plan } from '../state/store';
 import { bus } from './bus';
 import { fmtClock, h, throttle, uiRoot } from './dom';
@@ -57,7 +58,8 @@ export function mountInspector(): void {
   uiRoot().append(el);
   panels.register({
     id: 'inspector',
-    key: 'i',
+    // no shortcut: it follows the selection (I belongs to the Idea Board)
+    key: '',
     defaultOpen: false,
     el,
     onOpen: () => (store.selectedId ? render() : panels.set('inspector', false, false)),
@@ -198,7 +200,7 @@ function societySection(e: EntityState): HTMLElement | null {
           h('span', { class: 'muted' }, t('insp.age')),
           h('span', {}, `${ageLabel(p.age?.stage)} · ${t('insp.days', { n: Math.round(p.age?.days ?? 0) })}`),
           h('span', { class: 'muted' }, t('soc.esteem')),
-          h('span', {}, esteemBar(p.esteem), ` ${Math.round(p.esteem * 100)}%`, p.rank > 0 ? h('b', { class: 'insp-rank' }, ` #${p.rank}`) : null),
+          h('span', {}, esteemBar(p.esteem), ` ${Math.round(p.esteem * 100)}%`, p.rank > 0 ? h('b', { class: 'insp-rank' }, ` #${p.rank}`) : null, ' ', h('span', { class: `career career-${careerLevel(p.esteem)}` }, t(`career.${careerLevel(p.esteem)}` as I18nKey))),
           h('span', { class: 'muted' }, t('soc.col.fame')),
           h('span', {}, String(Math.round(p.fame))),
           h('span', { class: 'muted' }, t('soc.col.family')),

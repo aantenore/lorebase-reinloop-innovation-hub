@@ -4,7 +4,9 @@
  * This file has no runtime dependencies so the server can import or copy it as-is.
  */
 
-export type Biome = 'grass' | 'forest' | 'water' | 'rock' | 'sand';
+/** Office campus biomes; the legacy outdoor ones stay valid for older servers. */
+export type Biome = 'office' | 'meeting' | 'lab' | 'lounge' | 'wall' | 'garden' | 'plaza' | 'grass' | 'forest' | 'water' | 'rock' | 'sand';
+export type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export type Tier = 'opus' | 'sonnet' | 'haiku' | 'human';
 export type EntityKind = 'agent' | 'player' | 'crowd';
@@ -133,6 +135,9 @@ export interface WorldTime {
   /** 0-1439 */
   minute: number;
   season: Season;
+  quarter?: Quarter;
+  /** Hiring/budget freeze: drawn as a cold desaturated overlay. */
+  freeze?: boolean;
 }
 
 export interface LorebaseStatus {
@@ -314,6 +319,75 @@ export interface RuleChange {
   unit?: string;
 }
 
+// ---------------------------------------------------------------- innovation hub
+
+export type IdeaStage = 'signal' | 'insight' | 'concept' | 'proposal' | 'pitch' | 'approved' | 'killed';
+export const IDEA_STAGES: IdeaStage[] = ['signal', 'insight', 'concept', 'proposal', 'pitch', 'approved', 'killed'];
+
+export interface IdeaScores {
+  impact: number;
+  feasibility: number;
+  novelty: number;
+  fit: number;
+  risk: number;
+}
+
+export interface IdeaReview {
+  /** Entity id or name. */
+  by: string;
+  scores: IdeaScores;
+  comment: string;
+  at: GameTime;
+}
+
+export interface IdeaHistoryEntry {
+  at: GameTime;
+  by: string;
+  action: string;
+  note: string;
+}
+
+/** A product idea the hub generates and evaluates (ideas are never built). */
+export interface Idea {
+  code: string;
+  title: string;
+  problem: string;
+  users: string;
+  solution: string;
+  differentiation: string;
+  feasibility: string;
+  risks: string;
+  tags: string[];
+  stage: IdeaStage;
+  /** Entity id of the champion. */
+  champion: string | null;
+  authors: string[];
+  scores: IdeaScores | null;
+  reviews: IdeaReview[];
+  branch: string;
+  proposalId: string | null;
+  quarter: Quarter;
+  history: IdeaHistoryEntry[];
+}
+
+export type IdeaAction = 'created' | 'updated' | 'reviewed' | 'submitted' | 'approved' | 'killed' | 'stage';
+export type CommitteeDecision = 'approve' | 'kill' | 'defer';
+
+export interface CommitteeVote {
+  member: string;
+  vote: CommitteeDecision;
+  reason: string;
+}
+
+export interface Company {
+  name: string;
+  quarter: Quarter;
+  /** Ideas that can still be pitched this quarter. */
+  slotsLeft: number;
+  themes: string[];
+  freeze?: boolean;
+}
+
 // ---------------------------------------------------------------- server -> client
 
 export interface HelloMsg {
@@ -330,9 +404,13 @@ export interface HelloMsg {
   economy?: Economy;
   /** Absent on servers without the society layer. */
   society?: Society;
+  /** Innovation hub (absent on older servers). */
+  company?: Company;
+  ideas?: Idea[];
 }
 export interface StateMsg { type: 'state'; t: number; entities: EntityDelta[] }
 export interface EntityAddedMsg { type: 'entity_added'; entity: Entity }
+/** `reason`: 'left' | 'burnout' on the hub; free text on older servers. */
 export interface EntityRemovedMsg { type: 'entity_removed'; id: string; reason: string }
 export interface ThinkingMsg { type: 'thinking'; id: string; on: boolean }
 export interface PlanMsg {
@@ -352,7 +430,7 @@ export interface SayDeltaMsg { type: 'say_delta'; from: string; to: string; delt
 export interface GroupMsg { type: 'group'; group: Group }
 export interface GroupRemovedMsg { type: 'group_removed'; id: string }
 export interface TileMsg { type: 'tile'; x: number; y: number; food: number; wood: number; shelter: ShelterLevel }
-export interface TimeMsg { type: 'time'; day: number; minute: number; season: Season }
+export interface TimeMsg { type: 'time'; day: number; minute: number; season: Season; quarter?: Quarter; freeze?: boolean }
 export interface WorldEventMsg { type: 'world_event'; kind: WorldEventKind; text: string; at?: { x: number; y: number } }
 export interface RulesChangedMsg { type: 'rules_changed'; revision: string; changes: RuleChange[] }
 export interface LorebaseMsg { type: 'lorebase'; connected: boolean; branch: string; revision: string }
@@ -426,7 +504,14 @@ export interface OfferMsg {
 /** Batched tile updates (`tile` stays valid for single updates). */
 export interface TilesMsg { type: 'tiles'; items: { x: number; y: number; food: number; wood: number; shelter: ShelterLevel }[] }
 
+export interface IdeaMsg { type: 'idea'; idea: Idea; action: IdeaAction }
+export interface CommitteeMsg { type: 'committee'; groupId: string; ideaCode: string; decision: CommitteeDecision; votes?: CommitteeVote[]; summary: string }
+export interface CompanyMsg { type: 'company'; quarter: Quarter; slotsLeft: number; themes: string[]; freeze: boolean }
+
 export type ServerMsg =
+  | IdeaMsg
+  | CommitteeMsg
+  | CompanyMsg
   | HelloMsg
   | StateMsg
   | EntityAddedMsg
@@ -570,6 +655,11 @@ export interface ObservatorySummary {
     costUsd?: number | Record<string, unknown>;
   };
 }
+
+/** GET /api/ideas (a bare array is accepted too). */
+export type IdeaList = Idea[] | { ideas: Idea[] };
+/** GET /api/company */
+export type CompanyResponse = Company;
 
 /** GET /api/observatory/log?limit= */
 export interface LorebaseLogEntry {

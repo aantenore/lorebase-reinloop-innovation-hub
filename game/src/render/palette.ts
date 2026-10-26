@@ -38,6 +38,23 @@ export const P = {
   gold: ['#ffd84a', '#e8a92a', '#fff2a0', '#a8701c'],
   silver: ['#dfe6ee', '#a9b4c2', '#ffffff', '#6f7a8a'],
   bronze: ['#d8894a', '#a8602e', '#f2b07a', '#6e3c1c'],
+
+  // Campus: floors and furniture.
+  carpet: ['#7a88a0', '#6c7a92', '#8a98b0', '#5f6c84'],
+  parquet: ['#c8925a', '#b8824c', '#d8a46c', '#9a6a3c'],
+  graphite: ['#3a3f4c', '#333845', '#444a58', '#2a2e3a'],
+  cyan: ['#3ac8d8', '#1f6a7a', '#9af0f8'],
+  terracotta: ['#c8664a', '#b85a40', '#d8785a', '#9a4a34'],
+  rug: ['#e0b060', '#a8482f', '#f2d089'],
+  concrete: ['#c8c8d0', '#b4b4be', '#d8d8e0', '#8a8a98', '#6e6e7c'],
+  marble: ['#e8e6ee', '#d4d2de', '#f6f4fa', '#bcbacc'],
+  metal: ['#8a92a4', '#6a7284', '#b4bccc', '#464c5c'],
+  screen: ['#1f2a3a', '#4ad8e8', '#ffd84a', '#ff7088', '#86cc63'],
+  glass: ['#a8d8f0', '#7ab4d8', '#e4f6fc'],
+  sticky: ['#ffd84a', '#ff9ab0', '#86e0a0', '#8ac8ff'],
+  sofa: ['#4a7a9a', '#3a6280', '#6a9ab8'],
+  ceramic: ['#e8e2ec', '#b8b0c0', '#c8664a'],
+  badge: ['#5a6a8a', '#8aa0c8', '#e8f0ff'],
 };
 
 /** Shirt / pants palettes per role. Unknown roles get a stable hashed pick. */
@@ -54,7 +71,18 @@ export const ROLE_COLORS: Record<string, { shirt: [string, string]; pants: strin
   farmer: { shirt: ['#a8b84a', '#7f8c34'], pants: '#5a4a3a', accent: '#f6d84a' },
   villager: { shirt: ['#9a8a74', '#76685a'], pants: '#4e4640', accent: '#c9a272' },
   human: { shirt: ['#2f8fd8', '#1f68a8'], pants: '#2a2a3a', accent: '#ff7088' },
+  // Campus roles: business casual.
+  strategist: { shirt: ['#2c3e6e', '#1f2c52'], pants: '#2a2f45', accent: '#e8f0ff' },
+  critic: { shirt: ['#4a4d58', '#34363f'], pants: '#2a2a32', accent: '#a8324a' },
+  designer: { shirt: ['#2a9a92', '#1f726c'], pants: '#3a3a46', accent: '#e8b83a' },
+  researcher: { shirt: ['#8ab8e0', '#6a94bc'], pants: '#3a4258', accent: '#fbf5ef' },
+  analyst: { shirt: ['#f0ece6', '#cfc9c0'], pants: '#b09a6a', accent: '#5a7aa8' },
+  engineer: { shirt: ['#3a5a48', '#284034'], pants: '#2e3040', accent: '#86cc63' },
+  intern: { shirt: ['#d8e4ec', '#aebcc8'], pants: '#3a5a8a', accent: '#ff9a3c' },
+  visitor: { shirt: ['#2f8fd8', '#1f68a8'], pants: '#2a2a3a', accent: '#ff7088' },
 };
+/** Roles that still get the walking stick when elder (legacy village look). */
+export const LEGACY_ROLES = new Set(['human', 'chief', 'elder', 'gatherer', 'forager', 'woodcutter', 'builder', 'healer', 'scout', 'hunter', 'farmer', 'villager']);
 const EXTRA_SHIRTS: [string, string][] = [
   ['#d0607a', '#a2445a'],
   ['#4ab0a0', '#33807a'],

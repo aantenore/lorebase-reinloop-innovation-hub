@@ -5,11 +5,11 @@ import { depthOf, toScreen } from './iso';
 import { config } from '../config';
 import { familyColor, hash, hexToInt, roleColors } from './palette';
 import { ensureSilhouette } from './silhouette';
-import { ensureBanner, ensureLaurel, lighten } from './textures';
+import { careerLevel, careerStep } from '../state/career';
+import { ensureBanner, ensureCareerBadge, lighten } from './textures';
 
 /** Children are drawn smaller; everything stacked above the head follows. */
 const CHILD_SCALE = 0.74;
-const LAUREL_TINT = [0xffd84a, 0xdfe6ee, 0xd8894a];
 
 /** Silhouettes sit above every world prop but below the day/night overlay. */
 const SILHOUETTE_DEPTH = 9e6;
@@ -27,9 +27,11 @@ export class EntityView {
   private you: Phaser.GameObjects.Image | null = null;
   private selArrow: Phaser.GameObjects.Image;
   private glow: Phaser.FX.Glow | null = null;
-  /** Esteem glow under the feet and the laurel pip of the top-ranked. */
+  /** Esteem glow under the feet; career rank badge and team stripe on the figure. */
   private esteemGlow: Phaser.GameObjects.Image;
-  private laurel: Phaser.GameObjects.Image;
+  private badge: Phaser.GameObjects.Image;
+  private badgeStep = 0;
+  private stripe: Phaser.GameObjects.Rectangle;
   private stage: string | undefined;
   private scaleK = 1;
   /** Outline drawn over occluders while the body is hidden behind a tree or hut. */
@@ -50,7 +52,8 @@ export class EntityView {
     this.shadow = scene.add.image(0, 0, 'shadow');
     this.ring = scene.add.image(0, 1, 'ring').setVisible(false);
     this.esteemGlow = scene.add.image(0, 0, 'glow').setTint(0xfff0c0).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setVisible(false);
-    this.laurel = scene.add.image(-8, -20, ensureLaurel(scene)).setOrigin(0.5, 1).setVisible(false);
+    this.badge = scene.add.image(-8, -27, ensureCareerBadge(scene, 1)).setOrigin(0.5, 1).setVisible(false);
+    this.stripe = scene.add.rectangle(0, -9, 4, 2, 0xffffff).setOrigin(0.5, 1).setVisible(false);
     if (e.tier === 'opus') {
       this.aura = scene.add.image(0, 0, 'glow').setTint(0xffd84a).setBlendMode(Phaser.BlendModes.ADD).setScale(0.55, 0.26).setAlpha(0.5);
     }
@@ -67,7 +70,7 @@ export class EntityView {
     parts.push(this.body);
     if (this.marker) parts.push(this.marker);
     if (this.you) parts.push(this.you);
-    parts.push(this.thought, this.selArrow, this.laurel);
+    parts.push(this.stripe, this.thought, this.selArrow, this.badge);
     this.root.add(parts);
     const tint = e.kind === 'player' ? 0xffffff : hexToInt(lighten(roleColors(e.role).shirt[0], 0.18));
     this.ghost = scene.add.sprite(0, 0, ensureSilhouette(scene, key), 0).setOrigin(0.5, CHAR_FEET / CHAR_H).setTint(tint).setAlpha(0).setDepth(SILHOUETTE_DEPTH).setVisible(false);
@@ -107,12 +110,15 @@ export class EntityView {
   refreshGroup(): void {
     const g = this.e.groupId ? this.store.groups.get(this.e.groupId) : undefined;
     this.ring.setVisible(!!g);
+    const fc = this.e.family ? familyColor(this.e.family, this.store.families.get(this.e.family)?.color) : undefined;
+    this.stripe.setVisible(!!fc);
+    if (fc) this.stripe.setFillStyle(hexToInt(fc));
     if (g) this.ring.setTint(hexToInt(g.color)).setAlpha(0.85);
     const carrier = g && (g.leader ?? g.members[0]) === this.e.id;
     this.banner?.destroy();
     this.banner = null;
     if (g && carrier) {
-      const fam = this.e.family ? familyColor(this.e.family, this.store.families.get(this.e.family)?.color) : undefined;
+      const fam = fc;
       this.banner = this.scene.add.image(-9, -4, ensureBanner(this.scene, g.color, fam)).setOrigin(0.5, 1);
       this.banner.setInteractive({ useHandCursor: true });
       this.banner.setData('groupId', g.id);
@@ -173,7 +179,7 @@ export class EntityView {
     }
   }
 
-  /** Subtle glow scaled by esteem; the top ranks also wear a laurel pip. */
+  /** Subtle glow scaled by esteem; career rank badge follows esteem. */
   private updateEsteem(t: number): void {
     const est = this.e.esteem;
     const on = this.e.alive && typeof est === 'number' && est > 0.05;
@@ -182,10 +188,17 @@ export class EntityView {
       const v = Math.max(0, Math.min(1, est));
       this.esteemGlow.setScale(0.3 + v * 0.4, 0.14 + v * 0.18).setAlpha((0.08 + v * 0.32) * (0.85 + Math.sin(t * 1.6 + this.phase) * 0.15));
     }
-    const rank = this.e.rank ?? 0;
-    const top = this.e.alive && rank >= 1 && rank <= config.society.laurelTop;
-    this.laurel.setVisible(top);
-    if (top) this.laurel.setTint(LAUREL_TINT[Math.min(rank - 1, LAUREL_TINT.length - 1)]).setY(Math.round(-20 * this.scaleK));
+    const agent = this.e.alive && this.e.kind === 'agent' && this.e.tier !== 'human';
+    this.badge.setVisible(agent);
+    if (agent) {
+      const step = careerStep(careerLevel(est));
+      if (step !== this.badgeStep) {
+        this.badgeStep = step;
+        this.badge.setTexture(ensureCareerBadge(this.scene, step));
+      }
+      this.badge.setY(Math.round(-27 * this.scaleK));
+    }
+    this.stripe.setY(Math.round(-9 * this.scaleK));
   }
 
   destroy(): void {

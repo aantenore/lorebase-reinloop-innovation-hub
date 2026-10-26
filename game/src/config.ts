@@ -42,12 +42,30 @@ export const config = {
     /** Opacity of the silhouette drawn over occluders for hidden inhabitants. */
     silhouetteAlpha: 0.55,
   },
+  /** Career levels by reputation (highest first). */
+  career: {
+    levels: [
+      { level: 'fellow', min: 0.82 },
+      { level: 'principal', min: 0.62 },
+      { level: 'senior', min: 0.4 },
+      { level: 'junior', min: 0 },
+    ] as { level: 'junior' | 'senior' | 'principal' | 'fellow'; min: number }[],
+  },
+  /** Innovation hub: idea board, links to Lorebase, committee banner. */
+  hub: {
+    /** Lorebase Domain of the hub (review path `/<domain>/review/<proposalId>`). */
+    domain: String(env.VITE_LOREBASE_DOMAIN || 'hub'),
+    exportPath: '/ideas/export.md',
+    committeeBannerMs: 7000,
+    /** How long a moved card stays highlighted (ms). */
+    cardFlashMs: 2600,
+  },
   /** Lorebase web UI (link target from god mode). */
   lorebaseUi: {
-    base: String(env.VITE_LOREBASE_UI_URL || 'http://localhost:5180').replace(/\/$/, ''),
-    explorerPath: '/world/explorer',
+    base: String(env.VITE_LOREBASE_UI_URL || 'http://localhost:5280').replace(/\/$/, ''),
+    explorerPath: `/${String(env.VITE_LOREBASE_DOMAIN || 'hub')}/explorer`,
     /** Review list of the Domain (`/<domain>/review`); a law proposal opens at `<reviewPath>/<proposal id>`. */
-    reviewPath: String(env.VITE_LOREBASE_REVIEW_PATH || '/world/review').replace(/\/$/, ''),
+    reviewPath: String(env.VITE_LOREBASE_REVIEW_PATH || `/${String(env.VITE_LOREBASE_DOMAIN || 'hub')}/review`).replace(/\/$/, ''),
   },
   society: {
     /** Esteem change (0-1 scale) that earns a floating "esteem up/down" label. */

@@ -31,7 +31,7 @@ const MAX_PER_AGENT = 30;
 /** Mock token prices (USD per 1k tokens) and tokens per decision run, per tier. */
 const PRICE: Record<string, number> = { opus: 0.03, sonnet: 0.006, haiku: 0.0015, human: 0 };
 const TOKENS_PER_RUN: Record<string, [number, number]> = { opus: [2400, 900], sonnet: [1800, 600], haiku: [1100, 300], human: [0, 0] };
-const MODEL_OF: Record<string, string> = { opus: 'claude-opus', sonnet: 'claude-sonnet', haiku: 'claude-haiku' };
+const MODEL_OF: Record<string, string> = { opus: 'modello-avanzato', sonnet: 'modello-bilanciato', haiku: 'modello-rapido' };
 
 /** Extra deliberation voices per pattern, used on top of the group's last decision trace. */
 const DELIBERATION: Partial<Record<GroupPattern, DecisionTraceEntry['role'][]>> = {
@@ -43,11 +43,11 @@ const DELIBERATION: Partial<Record<GroupPattern, DecisionTraceEntry['role'][]>> 
   assembly: ['proposer', 'proposer', 'voter', 'voter'],
 };
 const VOICE: Record<DecisionTraceEntry['role'], string[]> = {
-  leader: ['Decido io: prima la legna, poi il cibo.', 'Ognuno al suo posto, ci ritroviamo al fuoco.', 'Il piano è questo, niente deviazioni.'],
-  proposer: ['Propongo di raccogliere a est finché c’è luce.', 'Potrei portare legna al cantiere.', 'Serve qualcuno di guardia alle scorte.'],
-  critic: ['È rischioso: l’inverno è vicino.', 'Troppa strada per così poco cibo.', 'Buona idea, ma prima mangia.'],
-  router: ['Questo è lavoro per il taglialegna.', 'Lo affido a chi conosce il sentiero.', 'Gli attrezzi a chi costruisce.'],
-  voter: ['Voto sì.', 'Voto per restare.', 'Mi astengo, decidete voi.'],
+  leader: ['Decido io: prima le idee con un utente nominato, poi il resto.', 'Ognuno al suo posto, ci ritroviamo in comitato.', 'Il piano è questo, niente deviazioni dal portfolio.'],
+  proposer: ['Propongo di scansionare il mercato finché i segnali sono freschi.', 'Potrei portare un benchmark alla review.', 'Serve qualcuno che validi questo segnale con i dati.'],
+  critic: ['È rischioso: lo slot nel portfolio è uno solo.', 'Troppo rumore per così pochi dati.', 'Buona idea, ma chi è l’utente?'],
+  router: ['Questo è lavoro per l’analista.', 'Lo affido a chi conosce meglio il mercato.', 'Il mockup a chi disegna.'],
+  voter: ['Voto sì.', 'Voto per concentrarci.', 'Mi astengo, decidete voi.'],
 };
 
 /**
@@ -89,13 +89,13 @@ export class GodLedger {
     }
     const t0 = Date.now();
     const seedLog: [string, string, string[]][] = [
-      ['9c1d2e0', 'Seed del mondo: leggi, ruoli e mappa iniziale', ['rule', 'role', 'world']],
-      ['4be7a19', 'Coscienza dei ruoli: prime idee condivise', ['insight']],
-      ['7f30c55', 'Economia: risorse e ricette di base', ['resource', 'recipe', 'tech']],
-      ['a3f9c1e', 'Legge aggiornata: durata delle stagioni', ['rule']],
+      ['9c1d2e0', 'Seed dell’azienda: regole, ruoli e uffici iniziali', ['rule', 'role', 'world']],
+      ['4be7a19', 'Coscienza dei ruoli: prime intuizioni condivise', ['insight']],
+      ['7f30c55', 'Economia: segnali, dati e sintesi di base', ['resource', 'recipe', 'tech']],
+      ['a3f9c1e', 'Regola aggiornata: durata del trimestre', ['rule']],
     ];
     seedLog.forEach(([revision, message, kinds], i) => this.log.unshift({ revision, message, kinds, time: new Date(t0 - (seedLog.length - i) * 9 * 60_000).toISOString() }));
-    this.proposals.push({ id: `p-${this.propSeq++}`, title: 'Più cibo per ogni cespuglio (food.per_gather 2 → 3)', branch: 'proposal/food-per-gather', status: 'open', author: 'Elsa' });
+    this.proposals.push({ id: `p-${this.propSeq++}`, title: 'Più segnali per ogni scansione (signals.per_scan 2 → 3)', branch: 'proposal/signals-per-scan', status: 'open', author: 'Ada' });
   }
 
   private add(l: Omit<ConversationLine, 'id'>) {

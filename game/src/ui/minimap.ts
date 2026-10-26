@@ -5,7 +5,7 @@ import { bus } from './bus';
 import { h, uiRoot } from './dom';
 import { panels } from './panels';
 
-const BIOME: Record<Biome, string> = { grass: '#5ea94f', forest: '#2f5c37', water: '#3874c9', rock: '#8f8c99', sand: '#e4c58c' };
+const BIOME: Record<Biome, string> = { grass: '#5ea94f', forest: '#2f5c37', water: '#3874c9', rock: '#8f8c99', sand: '#e4c58c', office: '#7d8aa8', meeting: '#b0855a', lab: '#3a4250', lounge: '#c07a5a', wall: '#d8d8de', garden: '#5ea94f', plaza: '#e8e2d6' };
 const WINTER: Partial<Record<Biome, string>> = { grass: '#e6edf6', forest: '#9fb4a8', water: '#a9d3ea', sand: '#efe6d6' };
 const SCALE = 2;
 

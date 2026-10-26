@@ -11,138 +11,137 @@ export interface AgentSeed {
 }
 
 export const MODELS: Record<string, string> = {
-  opus: 'claude-opus',
-  sonnet: 'claude-sonnet',
-  haiku: 'claude-haiku',
+  opus: 'modello-avanzato',
+  sonnet: 'modello-bilanciato',
+  haiku: 'modello-rapido',
   human: 'umano',
 };
 
 export const AGENTS: AgentSeed[] = [
-  { id: 'a-aurelia', name: 'Aurelia', role: 'chief', tier: 'opus', groupId: 'g-clan', speed: 1.5, persona: 'decisa e protettiva' },
-  { id: 'a-bruno', name: 'Bruno', role: 'woodcutter', tier: 'haiku', groupId: 'g-clan', speed: 1.7, persona: 'brusco ma leale' },
-  { id: 'a-cora', name: 'Cora', role: 'builder', tier: 'sonnet', groupId: 'g-clan', speed: 1.4, persona: 'precisa e paziente' },
-  { id: 'a-dario', name: 'Dario', role: 'elder', tier: 'opus', groupId: 'g-mentor', speed: 1.1, persona: 'saggio e ironico' },
-  { id: 'a-elsa', name: 'Elsa', role: 'healer', tier: 'haiku', groupId: 'g-mentor', speed: 1.5, persona: 'curiosa e gentile' },
-  { id: 'a-fosco', name: 'Fosco', role: 'scout', tier: 'sonnet', groupId: 'g-exp', speed: 2.0, persona: 'irrequieto e ottimista' },
-  { id: 'a-gaia', name: 'Gaia', role: 'gatherer', tier: 'haiku', groupId: 'g-exp', speed: 1.6, persona: 'allegra e pratica' },
-  { id: 'a-ivo', name: 'Ivo', role: 'hunter', tier: 'sonnet', groupId: 'g-exp', speed: 1.7, persona: 'silenzioso e attento' },
-  { id: 'a-ugo', name: 'Ugo', role: 'woodcutter', tier: 'sonnet', groupId: 'g-clan', speed: 1.6, persona: 'costante e diffidente' },
-  { id: 'a-tina', name: 'Tina', role: 'gatherer', tier: 'haiku', groupId: 'g-exp', speed: 1.6, persona: 'chiacchierona e generosa' },
+  { id: 'a-ottavia', name: 'Ottavia', role: 'strategist', tier: 'opus', groupId: 'g-board', speed: 1.5, persona: 'visionaria e spietata sulle priorità' },
+  { id: 'a-sergio', name: 'Sergio', role: 'critic', tier: 'sonnet', groupId: 'g-board', speed: 1.4, persona: 'scettico e ironico, ama i numeri' },
+  { id: 'a-serena', name: 'Serena', role: 'designer', tier: 'sonnet', groupId: 'g-review', speed: 1.4, persona: 'empatica e ossessionata dai dettagli' },
+  { id: 'a-ada', name: 'Ada', role: 'researcher', tier: 'haiku', groupId: 'g-track', speed: 1.8, persona: 'curiosa e instancabile' },
+  { id: 'a-bruno', name: 'Bruno', role: 'analyst', tier: 'haiku', groupId: 'g-track', speed: 1.6, persona: 'metodico e diffidente dei trend' },
+  { id: 'a-carla', name: 'Carla', role: 'engineer', tier: 'haiku', groupId: 'g-board', speed: 1.6, persona: 'pragmatica, stima tutto in sprint' },
+  { id: 'a-davide', name: 'Davide', role: 'engineer', tier: 'haiku', groupId: 'g-track', speed: 1.7, persona: 'sperimentatore, prototipa per gioco' },
+  { id: 'a-elena', name: 'Elena', role: 'analyst', tier: 'haiku', groupId: 'g-review', speed: 1.5, persona: 'precisa e paziente con i dati' },
 ];
 
-export const CROWD_NAMES = ['Lino', 'Mira', 'Nello', 'Olga'];
+export const CROWD_NAMES = ['Luca', 'Marta', 'Nico'];
 
 export const GROUPS: Group[] = [
   {
-    id: 'g-clan',
-    name: 'Clan del Fiume',
-    pattern: 'orchestrator',
-    members: ['a-aurelia', 'a-bruno', 'a-cora', 'a-ugo'],
-    leader: 'a-aurelia',
-    color: '#e0503a',
+    id: 'g-board',
+    name: 'Comitato investimenti',
+    pattern: 'council',
+    members: ['a-ottavia', 'a-sergio', 'a-carla'],
+    leader: 'a-ottavia',
+    color: '#d4a020',
     lastDecision: {
-      summary: 'Aurelia divide il lavoro: Bruno taglia, Cora costruisce la terza capanna.',
+      summary: 'Il comitato approva lo studio su "assistente per audit contabili": punteggio medio 3,8, Sergio chiede un utente nominato.',
       trace: [
-        { member: 'a-aurelia', role: 'leader', text: 'Serve una capanna prima del freddo. Bruno al bosco, Cora al cantiere.' },
-        { member: 'a-bruno', role: 'proposer', text: 'Posso portare dieci legna entro sera.' },
-        { member: 'a-cora', role: 'proposer', text: 'Inizio le fondamenta vicino al sentiero sud.' },
+        { member: 'a-ottavia', role: 'leader', text: 'Il mercato c’è e nessuno lo serve bene. Propongo di approvare e passare al business case.' },
+        { member: 'a-sergio', role: 'critic', text: 'Chi è il primo utente pagante? Senza un nome la valuto 2.' },
+        { member: 'a-carla', role: 'proposer', text: 'Tecnicamente è fattibile in due sprint, ma i dati vanno validati.' },
       ],
     },
   },
   {
-    id: 'g-mentor',
-    name: 'Bottega delle Erbe',
-    pattern: 'mentor',
-    members: ['a-dario', 'a-elsa'],
-    leader: 'a-dario',
-    color: '#8a5ad0',
-    lastDecision: {
-      summary: 'Elsa propone di cercare bacche lontano; Dario la corregge: prima le scorte vicine.',
-      trace: [
-        { member: 'a-elsa', role: 'proposer', text: 'Vado oltre il fiume, lì ci sono più bacche.' },
-        { member: 'a-dario', role: 'critic', text: 'Troppo lontano con l’inverno vicino. Raccogli vicino al villaggio.' },
-        { member: 'a-elsa', role: 'proposer', text: 'Va bene: cespugli a est, poi torno al fuoco.' },
-      ],
-    },
-  },
-  {
-    id: 'g-exp',
-    name: 'Spedizione del Nord',
+    id: 'g-track',
+    name: 'Discovery track',
     pattern: 'chain',
-    members: ['a-fosco', 'a-gaia', 'a-ivo', 'a-tina'],
-    leader: 'a-fosco',
+    members: ['a-ada', 'a-bruno', 'a-davide'],
+    leader: 'a-ada',
     color: '#3a9ad0',
     lastDecision: {
-      summary: 'Fosco esplora, Ivo pianifica il percorso, Gaia raccoglie.',
+      summary: 'Ada raccoglie i segnali, Bruno li valida con i dati, Davide verifica la fattibilità.',
       trace: [
-        { member: 'a-fosco', role: 'proposer', text: 'A nord del lago ci sono cespugli carichi.' },
-        { member: 'a-ivo', role: 'router', text: 'Passiamo dal ponte, è il sentiero più sicuro.' },
-        { member: 'a-gaia', role: 'leader', text: 'Raccolgo io, voi coprite i fianchi.' },
+        { member: 'a-ada', role: 'proposer', text: 'Tre interviste su cinque citano la riconciliazione manuale come dolore.' },
+        { member: 'a-bruno', role: 'router', text: 'Allora confronto i volumi con il benchmark di settore prima di passarlo a Davide.' },
+        { member: 'a-davide', role: 'leader', text: 'Se i dati reggono, preparo una stima di fattibilità in giornata.' },
       ],
     },
   },
   {
-    id: 'g-crowd',
-    name: 'Gente del Mercato',
+    id: 'g-review',
+    name: 'Design review',
+    pattern: 'mentor',
+    members: ['a-serena', 'a-elena'],
+    leader: 'a-serena',
+    color: '#8a5ad0',
+    lastDecision: {
+      summary: 'Elena presenta un one-pager; Serena lo rimanda indietro: manca il problema dell’utente.',
+      trace: [
+        { member: 'a-elena', role: 'proposer', text: 'Ecco il one-pager: mercato grande, trend in crescita.' },
+        { member: 'a-serena', role: 'critic', text: 'Grande per chi? Descrivi la giornata di una persona vera e rifacciamo il mockup.' },
+        { member: 'a-elena', role: 'proposer', text: 'Torno con due interviste e una persona più concreta.' },
+      ],
+    },
+  },
+  {
+    id: 'g-interns',
+    name: 'Stagisti',
     pattern: 'crowd',
-    members: ['c-0', 'c-1', 'c-2', 'c-3'],
+    members: ['c-0', 'c-1', 'c-2'],
     leader: null,
-    color: '#d0a83a',
-    lastDecision: { summary: 'Una sola mente muove il mercato: girare tra le capanne e chiacchierare.', trace: [] },
+    color: '#7ab060',
+    lastDecision: { summary: 'Una sola mente muove gli stagisti: girare tra le scrivanie, ascoltare e prendere appunti.', trace: [] },
   },
 ];
 
 export const ASSEMBLY_DECISION: Group['lastDecision'] = {
-  summary: 'Con la neve la spedizione si fa assemblea: 2 voti a 1 per restare al villaggio.',
+  summary: 'Con il budget congelato il discovery track diventa Hackathon: 2 voti a 1 per prototipare la sola idea sull’audit.',
   trace: [
-    { member: 'a-fosco', role: 'proposer', text: 'Continuiamo verso nord, la neve è poca.' },
-    { member: 'a-gaia', role: 'proposer', text: 'Torniamo e accumuliamo cibo per tutti.' },
-    { member: 'a-ivo', role: 'voter', text: 'Voto per tornare.' },
-    { member: 'a-gaia', role: 'voter', text: 'Voto per tornare.' },
-    { member: 'a-fosco', role: 'voter', text: 'Voto per proseguire.' },
+    { member: 'a-ada', role: 'proposer', text: 'Continuiamo a scansionare il mercato, i segnali non costano nulla.' },
+    { member: 'a-davide', role: 'proposer', text: 'Concentriamoci su una sola idea e mostriamola in demo.' },
+    { member: 'a-bruno', role: 'voter', text: 'Voto per concentrarci.' },
+    { member: 'a-davide', role: 'voter', text: 'Voto per concentrarci.' },
+    { member: 'a-ada', role: 'voter', text: 'Voto per continuare la scansione.' },
   ],
 };
 
 export const RULES: Rule[] = [
-  { key: 'wood.per_chop', value: 3, text: 'Legna ottenuta per ogni albero abbattuto', category: 'risorse', unit: 'legna' },
-  { key: 'food.per_gather', value: 2, text: 'Cibo raccolto da un cespuglio', category: 'risorse', unit: 'cibo' },
-  { key: 'hunger.per_hour', value: 4, text: 'Quanto cresce la fame ogni ora', category: 'corpo', unit: 'punti/ora' },
-  { key: 'cold.damage_per_hour', value: 2, text: 'Vita persa all’aperto d’inverno', category: 'clima', unit: 'vita/ora' },
-  { key: 'season.length_days', value: 2, text: 'Durata di una stagione', category: 'clima', unit: 'giorni' },
-  { key: 'shelter.wood_cost', value: 10, text: 'Legna per costruire un riparo', category: 'costruzione', unit: 'legna' },
-  { key: 'speech.radius', value: 4, text: 'Distanza a cui si sente una voce', category: 'società', unit: 'caselle' },
-  { key: 'group.max_size', value: 5, text: 'Membri massimi di un gruppo', category: 'società', unit: 'membri' },
+  { key: 'signals.per_scan', value: 2, text: 'Segnali raccolti per ogni scansione di mercato', category: 'ricerca', unit: 'segnali' },
+  { key: 'data.per_benchmark', value: 3, text: 'Dati ottenuti per ogni benchmark in lab', category: 'ricerca', unit: 'dati' },
+  { key: 'stress.per_hour', value: 4, text: 'Quanto cresce lo stress ogni ora', category: 'persone', unit: 'punti/ora' },
+  { key: 'freeze.energy_drain', value: 2, text: 'Energia persa all’ora durante un freeze del budget', category: 'persone', unit: 'energia/ora' },
+  { key: 'risk.appetite', value: 0.5, text: 'Propensione al rischio del comitato (0-1)', category: 'strategia', unit: 'scala 0-1' },
+  { key: 'ideas.slots_per_quarter', value: 4, text: 'Idee che possono entrare nel portfolio ogni trimestre', category: 'portfolio', unit: 'idee' },
+  { key: 'review.min_reviewers', value: 2, text: 'Revisori minimi per valutare un’idea', category: 'portfolio', unit: 'revisori' },
+  { key: 'committee.approve_threshold', value: 3.5, text: 'Punteggio medio minimo per approvare un’idea (scala 1-5)', category: 'portfolio', unit: 'punti' },
+  { key: 'quarter.length_days', value: 2, text: 'Durata di un trimestre', category: 'calendario', unit: 'giorni' },
 ];
 
 /** Ambient lines: [opener, reply]. */
 export const CHATTER: [string, string][] = [
-  ['Hai visto quanta legna ci serve per l’inverno?', 'Più di quanta ne abbiamo. Domani torno al bosco.'],
-  ['Il fiume è più basso oggi.', 'Meglio, si attraversa senza bagnarsi.'],
-  ['Le bacche a est sono mature.', 'Allora ci passo prima del tramonto.'],
-  ['Senti che freddo arriva da nord?', 'Sì. Le leggi dicono che l’inverno sarà lungo.'],
-  ['Chi accende il fuoco stasera?', 'Ci penso io, tu porta la legna.'],
-  ['La nuova capanna sta venendo bene.', 'Mancano ancora le travi del tetto.'],
-  ['Hai fame?', 'Sempre. Ma prima finisco questo.'],
-  ['Aurelia vuole tutti al fuoco a sera.', 'Ci sarò, voglio sentire cosa decide.'],
+  ['Hai visto quanti segnali sono usciti dalla scansione di stamattina?', 'Pochi buoni, tanti rumorosi. Li filtro prima di pranzo.'],
+  ['Questa idea come la valuti?', 'Un 3 pieno: problema vero, ma non ho ancora un utente con un nome.'],
+  ['Il comitato si riunisce alle quattro.', 'Allora il one-pager lo chiudo adesso, caffè incluso.'],
+  ['Chi ha toccato la lavagna? C’era il business case.', 'Era un disegno di Nico, giuro. Lo ricopio subito.'],
+  ['Quanto manca alla fine del trimestre?', 'Un giorno. Gli slot nel portfolio sono quasi finiti.'],
+  ['Il caffè è finito di nuovo.', 'Metto un OKR: "zero crisi di caffè entro Q3".'],
+  ['Il benchmark ha dato dati strani.', 'Rifallo con un altro campione, poi ne parliamo in review.'],
+  ['Ottavia vuole tutti in sala alle cinque.', 'Spero siano buone notizie sul budget.'],
 ];
 
 export const THOUGHTS = [
-  'Se l’inverno arriva presto, la legna non basterà.',
-  'Forse dovrei chiedere aiuto al clan.',
-  'Quel cespuglio è quasi vuoto.',
-  'Le nuove leggi cambiano tutto.',
-  'Il viandante sembra gentile.',
-  'Devo ricordarmi di mangiare.',
+  'Se questo segnale è rumore, ho perso una mattina.',
+  'Forse dovrei chiedere un parere alla design review.',
+  'Questo trend è già troppo affollato.',
+  'Il punteggio è onesto o sto cercando conferme?',
+  'Il comitato oggi sembra di buon umore.',
+  'Devo ricordarmi di pranzare, e di sistemare l’OKR.',
 ];
 
 export const REPLIES: Record<string, string[]> = {
-  chief: ['Benvenuto nel nostro villaggio. Qui ognuno fa la sua parte: se porti legna al mucchio, avrai un posto vicino al fuoco.', 'Il clan decide insieme, ma la responsabilità è mia. Cosa ti serve?'],
-  woodcutter: ['Legna, legna e ancora legna. Con l’inverno che arriva non ne avremo mai abbastanza. Prendi un’ascia e vieni con me.', 'Il bosco a ovest è il migliore. Gli alberi grossi danno tre ceppi.'],
-  builder: ['Sto alzando una nuova capanna. Mi servono dieci legna: se me le porti, la finisco prima della neve.', 'Una buona capanna tiene lontano il freddo. Le leggi dicono che chi dorme all’aperto d’inverno si ammala.'],
-  elder: ['Ho visto molte stagioni, giovane. Le leggi di questo mondo cambiano, ma chi ascolta sopravvive.', 'Elsa impara in fretta. Io le dico solo dove sbaglia, il resto lo trova da sola.'],
-  healer: ['Se sei ferito, riposa vicino al fuoco e mangia qualcosa. Il maestro Dario dice che il cibo è la prima medicina.', 'Sto raccogliendo erbe e bacche. Vuoi aiutarmi?'],
-  scout: ['Ho visto cespugli carichi a nord del lago! Ma con la neve sarà dura arrivarci.', 'Conosco ogni sentiero di questa valle. Chiedimi pure la strada.'],
-  gatherer: ['Le bacche sono il nostro tesoro. Ne porto sempre qualcuna in più per chi ha fame.', 'Raccogli con calma: un cespuglio svuotato ci mette giorni a ricrescere.'],
-  hunter: ['…Parli troppo forte. Gli animali scappano.', 'La spedizione segue Fosco, ma i passi li conto io.'],
+  strategist: ['Benvenuto. Qui generiamo e valutiamo idee, non le costruiamo: se hai un segnale interessante, portamelo prima del comitato.', 'Il portfolio ha slot limitati per trimestre. Convincimi che la tua idea merita uno di questi.'],
+  critic: ['Una idea senza utente nominato non passa la review. Hai un nome e un problema concreto?', 'Mi piace dire di no: serve a proteggere gli slot per le idee buone. Convincimi.'],
+  designer: ['Prima di parlare di soluzioni, raccontami la giornata della persona che ha il problema. Poi facciamo il mockup.', 'Un’idea si capisce quando la puoi disegnare su una lavagna in cinque minuti.'],
+  researcher: ['Sto scansionando il mercato: ogni mattina raccolgo segnali nuovi. Ne vuoi qualcuno?', 'Le interviste sono oro, ma durano poco: un segnale vecchio è già rumore.'],
+  analyst: ['Dammi i dati e ti dico quanto vale il segnale. Senza numeri è solo un’opinione.', 'Faccio benchmark in lab: ogni dato che porto a casa vale più di tre trend report.'],
+  engineer: ['Non costruiamo nulla, ma stimo la fattibilità: dimmi cosa vuoi e ti dico in quanti sprint si farebbe.', 'Il prototipo mentale costa poco. Quello vero lo lasciamo a chi riceverà l’idea.'],
+  intern: ['Ciao! Sono qui per imparare: posso seguirti a una review?', 'Ho preso appunti ieri in comitato, ma non ho capito perché Sergio ha dato 2.'],
+  visitor: ['Benvenuto in azienda. Cosa ti porta nel nostro hub?'],
 };
-export const DEFAULT_REPLY = ['Ciao, viandante. Che cosa ti porta qui?'];
+export const DEFAULT_REPLY = ['Ciao, benvenuto. Di che idea vuoi parlare?'];

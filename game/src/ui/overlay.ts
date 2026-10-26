@@ -7,6 +7,7 @@ import { mountDialog } from './dialog';
 import { mountGodMode } from './god/godMode';
 import { mountGroupPanel } from './groupPanel';
 import { mountHud } from './hud';
+import { mountIdeaBoard } from './ideaBoard';
 import { mountInspector } from './inspector';
 import { mountJoin } from './join';
 import { mountLaws } from './laws';
@@ -24,6 +25,7 @@ export function mountOverlay(): void {
   mountConsciousness();
   mountEconomy();
   mountSociety();
+  mountIdeaBoard();
   mountDiscoveryBanner();
   mountDialog();
   mountGodMode();

@@ -7,12 +7,12 @@ const SKILL_EVERY = 17;
 const OFFER_EVERY = 12;
 /** Seconds before a pending offer is answered. */
 const OFFER_ANSWER_SEC = 4;
-/** Scripted moments: a child comes of age, an adult becomes an elder. */
+/** Scripted moments: an intern joins the staff, a colleague becomes a veteran. */
 const COMING_OF_AGE_AT = 75;
 const ELDER_AT = 140;
 const PROPOSALS_AT: [number, Omit<LawProposalMsg, 'type'>][] = [
-  [10, { id: 'lp-1', by: 'a-dario', text: 'Ogni casata versi un cibo al granaio comune ogni giorno, per i giorni di neve.', key: 'food.family_tithe', category: 'economy', value: 1, branch: 'proposal/food-family-tithe', status: 'open' }],
-  [24, { id: 'lp-2', by: 'a-bruno', text: 'Chi taglia un albero ne pianti un altro vicino al fiume.', key: 'wood.replant', category: 'environment', value: true, branch: 'proposal/wood-replant', status: 'open' }],
+  [10, { id: 'lp-1', by: 'a-sergio', text: 'Ogni idea sia valutata da almeno tre revisori prima di arrivare in comitato.', key: 'review.min_reviewers', category: 'portfolio', value: 3, branch: 'proposal/review-min-reviewers', status: 'open' }],
+  [24, { id: 'lp-2', by: 'a-ada', text: 'Cinque slot nel portfolio a trimestre: le idee buone non devono restare in coda.', key: 'ideas.slots_per_quarter', category: 'portfolio', value: 5, branch: 'proposal/ideas-slots-per-quarter', status: 'open' }],
 ];
 const PROPOSAL_REJECTED_AT = 50;
 
@@ -28,57 +28,55 @@ interface Seed {
   fame: number;
 }
 
-/** Two generations (three with the grandchild) of three houses; dead ancestors are people, not entities. */
+/** Staff with their careers; former colleagues (`x-` ids) are people of the company, never entities. */
 const SEEDS: Seed[] = [
-  { id: 'x-rosa', name: 'Rosa', role: 'healer', family: 'f-ardenti', parents: null, stage: 'elder', days: 21900, esteem: 0.7, fame: 40 },
-  { id: 'a-dario', name: 'Dario', role: 'elder', family: 'f-ardenti', parents: null, stage: 'elder', days: 24800, esteem: 0.82, fame: 64 },
-  { id: 'a-aurelia', name: 'Aurelia', role: 'chief', family: 'f-ardenti', parents: ['a-dario', 'x-rosa'], stage: 'adult', days: 13100, esteem: 0.9, fame: 78 },
-  { id: 'a-bruno', name: 'Bruno', role: 'woodcutter', family: 'f-ardenti', parents: ['a-dario', 'x-rosa'], stage: 'adult', days: 11600, esteem: 0.48, fame: 22 },
-  { id: 'a-ugo', name: 'Ugo', role: 'woodcutter', family: null, parents: null, stage: 'adult', days: 13900, esteem: 0.36, fame: 15 },
-  { id: 'c-0', name: 'Lino', role: 'villager', family: 'f-ardenti', parents: ['a-aurelia', 'a-ugo'], stage: 'child', days: 2900, esteem: 0.2, fame: 4 },
-  { id: 'x-sergio', name: 'Sergio', role: 'hunter', family: 'f-valli', parents: null, stage: 'elder', days: 23000, esteem: 0.6, fame: 35 },
-  { id: 'a-elsa', name: 'Elsa', role: 'healer', family: 'f-valli', parents: null, stage: 'adult', days: 17500, esteem: 0.74, fame: 47 },
-  { id: 'a-gaia', name: 'Gaia', role: 'gatherer', family: 'f-valli', parents: ['x-sergio', 'a-elsa'], stage: 'adult', days: 8100, esteem: 0.55, fame: 18 },
-  { id: 'a-tina', name: 'Tina', role: 'gatherer', family: 'f-valli', parents: ['x-sergio', 'a-elsa'], stage: 'adult', days: 7000, esteem: 0.42, fame: 26 },
-  { id: 'a-ivo', name: 'Ivo', role: 'hunter', family: 'f-corvi', parents: null, stage: 'adult', days: 12400, esteem: 0.58, fame: 31 },
-  { id: 'a-cora', name: 'Cora', role: 'builder', family: 'f-corvi', parents: null, stage: 'adult', days: 11900, esteem: 0.66, fame: 38 },
-  { id: 'c-1', name: 'Mira', role: 'villager', family: 'f-corvi', parents: ['a-ivo', 'a-cora'], stage: 'child', days: 5400, esteem: 0.25, fame: 6 },
-  { id: 'a-fosco', name: 'Fosco', role: 'scout', family: null, parents: null, stage: 'adult', days: 9500, esteem: 0.61, fame: 52 },
-  { id: 'c-2', name: 'Nello', role: 'villager', family: null, parents: null, stage: 'adult', days: 10200, esteem: 0.3, fame: 5 },
-  { id: 'c-3', name: 'Olga', role: 'villager', family: null, parents: null, stage: 'elder', days: 26100, esteem: 0.45, fame: 12 },
+  { id: 'x-marcello', name: 'Marcello', role: 'engineer', family: 'f-platform', parents: null, stage: 'elder', days: 22400, esteem: 0.7, fame: 40 },
+  { id: 'x-paola', name: 'Paola', role: 'strategist', family: 'f-growth', parents: null, stage: 'elder', days: 23100, esteem: 0.6, fame: 35 },
+  { id: 'a-ottavia', name: 'Ottavia', role: 'strategist', family: 'f-growth', parents: null, stage: 'elder', days: 21000, esteem: 0.9, fame: 78 },
+  { id: 'a-sergio', name: 'Sergio', role: 'critic', family: 'f-growth', parents: null, stage: 'adult', days: 15300, esteem: 0.62, fame: 44 },
+  { id: 'a-elena', name: 'Elena', role: 'analyst', family: 'f-growth', parents: null, stage: 'adult', days: 10200, esteem: 0.5, fame: 20 },
+  { id: 'a-carla', name: 'Carla', role: 'engineer', family: 'f-platform', parents: null, stage: 'adult', days: 12800, esteem: 0.66, fame: 38 },
+  { id: 'a-davide', name: 'Davide', role: 'engineer', family: 'f-platform', parents: null, stage: 'adult', days: 9600, esteem: 0.52, fame: 26 },
+  { id: 'a-ada', name: 'Ada', role: 'researcher', family: 'f-labs', parents: null, stage: 'adult', days: 9100, esteem: 0.74, fame: 47 },
+  { id: 'a-bruno', name: 'Bruno', role: 'analyst', family: 'f-labs', parents: null, stage: 'adult', days: 11700, esteem: 0.48, fame: 22 },
+  { id: 'a-serena', name: 'Serena', role: 'designer', family: 'f-labs', parents: null, stage: 'adult', days: 12400, esteem: 0.68, fame: 36 },
+  { id: 'c-0', name: 'Luca', role: 'intern', family: 'f-platform', parents: null, stage: 'child', days: 8200, esteem: 0.2, fame: 4 },
+  { id: 'c-1', name: 'Marta', role: 'intern', family: 'f-labs', parents: null, stage: 'child', days: 8600, esteem: 0.25, fame: 6 },
+  { id: 'c-2', name: 'Nico', role: 'intern', family: null, parents: null, stage: 'child', days: 8000, esteem: 0.22, fame: 3 },
 ];
 
 const FAMILIES: { id: string; name: string; founder: string }[] = [
-  { id: 'f-ardenti', name: 'Casata degli Ardenti', founder: 'a-dario' },
-  { id: 'f-valli', name: 'Casata delle Valli', founder: 'x-sergio' },
-  { id: 'f-corvi', name: 'Casata dei Corvi', founder: 'a-ivo' },
+  { id: 'f-platform', name: 'Team Piattaforma', founder: 'x-marcello' },
+  { id: 'f-growth', name: 'Team Crescita', founder: 'a-ottavia' },
+  { id: 'f-labs', name: 'Team Labs', founder: 'a-ada' },
 ];
 
 const OPINION_REASONS: [number, string][] = [
-  [0.7, 'mi ha diviso il suo cibo durante il gelo'],
-  [0.5, 'ha costruito la capanna dove dormo'],
-  [0.4, 'mantiene sempre la parola'],
-  [-0.4, 'ha tenuto per sé la legna del deposito'],
-  [-0.6, 'ha rifiutato uno scambio onesto'],
-  [-0.3, 'parla troppo e lavora poco'],
+  [0.7, 'ha difeso la mia idea in comitato'],
+  [0.5, 'mi ha aiutato a validare un segnale'],
+  [0.4, 'consegna sempre quello che promette'],
+  [-0.4, 'si prende il merito del lavoro degli altri'],
+  [-0.6, 'ha bocciato la mia idea senza leggerla'],
+  [-0.3, 'parla troppo in riunione e porta pochi dati'],
 ];
 
-/** Barters the inhabitants propose to each other. */
+/** Barters the colleagues propose to each other. */
 const OFFERS: { give: ItemBag; want: ItemBag }[] = [
-  { give: { wood: 2 }, want: { stone_axe: 1 } },
-  { give: { food: 3 }, want: { poultice: 1 } },
-  { give: { herbs: 2 }, want: { food: 2 } },
-  { give: { meat: 2 }, want: { basket: 1 } },
-  { give: { clay: 2 }, want: { wood: 3 } },
+  { give: { wood: 2 }, want: { laptop: 1 } },
+  { give: { food: 3 }, want: { insight_card: 1 } },
+  { give: { interview: 1 }, want: { food: 2 } },
+  { give: { trend: 2 }, want: { notebook: 1 } },
+  { give: { paper: 2 }, want: { wood: 3 } },
 ];
 
 /** Recipes each role can get better at. */
 const SKILLS: Record<string, string[]> = {
-  builder: ['stone_axe', 'basket', 'rope'],
-  healer: ['poultice'],
-  elder: ['pot'],
-  hunter: ['smoked_meat'],
-  chief: ['rope'],
+  engineer: ['laptop', 'notebook'],
+  analyst: ['insight_card'],
+  designer: ['persona', 'mockup'],
+  researcher: ['market_map'],
+  strategist: ['business_case'],
+  critic: ['onepager'],
 };
 
 export interface SocietyHooks {
@@ -89,7 +87,7 @@ export interface SocietyHooks {
   speed: number;
 }
 
-/** Mock society: esteem drift, opinions, aging, skills, barter offers and agents' law proposals. */
+/** Mock society: reputation drift, opinions, aging, skills, barter offers and agents' law proposals. */
 export class SocietySim {
   private people = new Map<string, Person>();
   private opinions = new Map<string, Opinion>();
@@ -106,7 +104,7 @@ export class SocietySim {
 
   constructor(private hooks: SocietyHooks) {
     for (const sd of SEEDS) {
-      // `x-` ids are dead ancestors: people of the society, never entities
+      // `x-` ids are former colleagues: people of the society, never entities
       const dead = sd.id.startsWith('x-');
       this.people.set(sd.id, { id: sd.id, name: sd.name, role: sd.role, tier: 'haiku', age: { stage: sd.stage, days: sd.days }, esteem: sd.esteem, fame: sd.fame, rank: 0, family: sd.family, parents: sd.parents, alive: !dead });
     }
@@ -172,7 +170,7 @@ export class SocietySim {
     while (this.proposalsSent < PROPOSALS_AT.length && elapsed >= PROPOSALS_AT[this.proposalsSent][0]) {
       const lp = PROPOSALS_AT[this.proposalsSent++][1];
       this.hooks.emit({ type: 'law_proposal', ...lp });
-      this.hooks.emit({ type: 'world_event', kind: 'rules', text: `${this.people.get(lp.by)?.name ?? lp.by} propone una legge: ${lp.text}` });
+      this.hooks.emit({ type: 'world_event', kind: 'rules', text: `${this.people.get(lp.by)?.name ?? lp.by} propone una regola: ${lp.text}` });
     }
     if (!this.rejected && elapsed >= PROPOSAL_REJECTED_AT && this.proposalsSent > 0) {
       this.rejected = true;
@@ -180,11 +178,11 @@ export class SocietySim {
     }
     if (!this.comingOfAge && elapsed >= COMING_OF_AGE_AT) {
       this.comingOfAge = true;
-      this.age('c-1', 'adult', 'Mira è diventata adulta.');
+      this.age('c-1', 'adult', 'Marta entra in organico: da stagista a ruolo effettivo.');
     }
     if (!this.elder && elapsed >= ELDER_AT) {
       this.elder = true;
-      this.age('a-elsa', 'elder', 'Elsa ora è un’anziana del villaggio.');
+      this.age('a-sergio', 'elder', 'Sergio ora è un veterano dell’azienda.');
     }
   }
 

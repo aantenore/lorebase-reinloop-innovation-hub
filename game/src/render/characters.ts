@@ -1,5 +1,5 @@
 import type { AgeStage, Anim, Dir, EntityKind } from '../net/protocol';
-import { P, hash, roleColors } from './palette';
+import { LEGACY_ROLES, P, hash, roleColors } from './palette';
 import { addStrip, Pix } from './pixel';
 import { darken, lighten } from './textures';
 
@@ -29,6 +29,7 @@ interface Look {
   shirt: [string, string];
   pants: string;
   accent: string;
+  role: string;
   /** Elders lean on a walking stick. */
   cane?: boolean;
 }
@@ -136,6 +137,11 @@ function drawBody(p: Pix, look: Look, bob: number, back: boolean) {
     p.line(CX - 4, top + 1, CX + 2, 21, look.accent);
     p.set(CX - 1, top, lighten(look.shirt[0], 0.12));
     p.set(CX, top, lighten(look.shirt[0], 0.12));
+    if (!LEGACY_ROLES.has(look.role)) {
+      // lanyard: accent cord down the chest ending in a small card
+      p.line(CX - 1, top, CX, top + 3, look.accent);
+      p.rect(CX - 1, top + 4, 2, 2, P.white);
+    }
   } else {
     p.line(CX + 3, top + 1, CX - 3, 21, darken(look.accent, 0.1));
   }
@@ -220,15 +226,16 @@ export interface CharacterDesc {
 
 function lookFor(d: CharacterDesc): { look: Look; key: string } {
   const h = hash(d.name);
-  const rc = roleColors(d.kind === 'crowd' ? 'villager' : d.role);
+  const roleKey = (d.kind === 'crowd' ? 'villager' : d.role).toLowerCase();
+  const rc = roleColors(roleKey);
   const stage = d.age?.stage;
   const elder = stage === 'elder' || (!stage && /elder|anzian|saggi/i.test(d.role));
   const skinIdx = h % P.skin.length;
   // elders: grey hair (index 3); children: no beard style
   const hairIdx = elder ? 3 : (h >>> 3) % P.hair.length;
   const style = elder ? 3 : stage === 'child' ? (h >>> 7) % 2 : (h >>> 7) % 3;
-  const cane = stage === 'elder';
-  const look: Look = { skin: P.skin[skinIdx], hair: P.hair[hairIdx], style, shirt: rc.shirt, pants: rc.pants, accent: rc.accent, cane };
+  const cane = stage === 'elder' && (d.kind === 'crowd' || LEGACY_ROLES.has(d.role.toLowerCase()));
+  const look: Look = { skin: P.skin[skinIdx], hair: P.hair[hairIdx], style, shirt: rc.shirt, pants: rc.pants, accent: rc.accent, role: roleKey, cane };
   const key = `char_${d.kind === 'crowd' ? 'villager' : d.role}_${skinIdx}_${hairIdx}_${style}${cane ? '_cane' : ''}`;
   return { look, key };
 }

@@ -100,7 +100,7 @@ export class WorldScene extends Phaser.Scene {
     u.push(store.on('group_removed', () => this.views.forEach((v) => v.refreshGroup())));
     u.push(store.on('tile', (tile) => this.world.updateTile(tile)));
     u.push(store.on('time', (tm) => {
-      this.atmo.setTime(tm.minute, tm.season);
+      this.atmo.setTime(tm.minute, tm.season, tm.quarter, tm.freeze);
       if (tm.seasonChanged) this.world.setSeason(tm.season);
     }));
     u.push(store.on('world_event', (ev) => {
@@ -184,7 +184,7 @@ export class WorldScene extends Phaser.Scene {
     this.labels.clearAll();
     this.world.build();
     for (const id of store.entities.keys()) this.addView(id);
-    this.atmo.setTime(store.time.minute, store.time.season);
+    this.atmo.setTime(store.time.minute, store.time.season, store.time.quarter, store.time.freeze);
     const you = store.you();
     const focus = you ?? { x: store.mapW / 2, y: store.mapH / 2 };
     const p = toScreen(focus.x, focus.y, 1);

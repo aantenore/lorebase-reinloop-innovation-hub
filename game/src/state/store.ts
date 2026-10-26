@@ -37,6 +37,10 @@ import type {
   Person,
   Society,
   SkillMsg,
+  Company,
+  CommitteeMsg,
+  Idea,
+  IdeaMsg,
 } from '../net/protocol';
 import type { ConnStatus } from '../net/transport';
 
@@ -136,6 +140,11 @@ export interface StoreEvents {
   family: Family;
   law_proposal: LawProposal;
   offer: Offer;
+  /** Innovation hub: an idea changed (`prevStage` is null for new ideas). */
+  idea: IdeaMsg & { prevStage: Idea['stage'] | null };
+  ideas: void;
+  committee: CommitteeMsg;
+  company: Company;
   any: void;
 }
 
@@ -177,6 +186,10 @@ export class Store {
   offers = new Map<string, Offer>();
   lawProposals = new Map<string, LawProposal>();
   societyKnown = false;
+  /** Innovation hub: ideas by code and the company status (quarter, slots, themes, freeze). */
+  ideas = new Map<string, Idea>();
+  company: Company | null = null;
+  committees: CommitteeMsg[] = [];
   private stateInterval = 100;
   private lastStateAt = 0;
   private chronId = 0;
@@ -302,6 +315,12 @@ export class Store {
     });
   }
 
+  /** Replace the idea list (hello or REST). */
+  setIdeas(list: Idea[]): void {
+    this.ideas = new Map(list.map((i) => [i.code, i]));
+    this.emit('ideas', undefined);
+  }
+
   setMemories(agentId: string, list: Memory[]): void {
     this.memories.set(agentId, new Map(list.map((m) => [m.id, m])));
     this.emit('memories', { agentId });
@@ -376,6 +395,8 @@ export class Store {
         this.lorebase = msg.lorebase;
         if (msg.economy) this.setEconomy(msg.economy);
         if (msg.society) this.setSociety(msg.society);
+        if (msg.company) this.company = { ...msg.company, freeze: msg.company.freeze ?? msg.time.freeze ?? false };
+        if (msg.ideas) this.setIdeas(msg.ideas);
         this.emit('hello', msg);
         break;
       }
@@ -395,7 +416,7 @@ export class Store {
         const e = this.entities.get(msg.id);
         this.entities.delete(msg.id);
         const person = this.people.get(msg.id);
-        if (person && /death|died|morto|starv|cold/i.test(msg.reason)) person.alive = false;
+        if (person && /death|died|morto|starv|cold|left|burnout/i.test(msg.reason)) person.alive = false;
         if (this.selectedId === msg.id) this.select(null);
         this.emit('entity_removed', { id: msg.id, reason: msg.reason, entity: e });
         break;
@@ -522,9 +543,26 @@ export class Store {
         this.emit('offer', offer);
         break;
       }
+      case 'idea': {
+        const prev = this.ideas.get(msg.idea.code);
+        this.ideas.set(msg.idea.code, msg.idea);
+        this.emit('idea', { ...msg, prevStage: prev?.stage ?? null });
+        break;
+      }
+      case 'committee':
+        this.committees.push(msg);
+        if (this.committees.length > MAX_CHRONICLE) this.committees.shift();
+        this.emit('committee', msg);
+        break;
+      case 'company': {
+        this.company = { name: this.company?.name ?? '', quarter: msg.quarter, slotsLeft: msg.slotsLeft, themes: msg.themes, freeze: msg.freeze };
+        this.time = { ...this.time, quarter: msg.quarter, freeze: msg.freeze };
+        this.emit('company', this.company);
+        break;
+      }
       case 'time': {
-        const seasonChanged = msg.season !== this.time.season;
-        this.time = { day: msg.day, minute: msg.minute, season: msg.season };
+        const seasonChanged = msg.season !== this.time.season || (msg.quarter ?? this.time.quarter) !== this.time.quarter || (msg.freeze ?? this.time.freeze) !== this.time.freeze;
+        this.time = { day: msg.day, minute: msg.minute, season: msg.season, quarter: msg.quarter ?? this.time.quarter, freeze: msg.freeze ?? this.time.freeze };
         this.emit('time', { ...this.time, seasonChanged });
         break;
       }

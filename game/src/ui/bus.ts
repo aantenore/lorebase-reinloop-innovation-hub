@@ -6,6 +6,8 @@ export interface BusEvents {
   dialog: { id: string | null };
   group: { id: string | null };
   toast: { text: string; big?: boolean };
+  /** Open the Idea Board on one idea. */
+  openIdea: { code: string };
   joined: void;
   camera: { x: number; y: number; w: number; h: number };
 }

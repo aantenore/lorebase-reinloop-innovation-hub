@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { Season } from '../net/protocol';
+import type { Quarter, Season } from '../net/protocol';
 
 const TOP = 1e7;
 
@@ -21,6 +21,14 @@ const SEASON_TINT: Record<Season, number> = {
   summer: 0xfffbe8,
   autumn: 0xfff0dc,
   winter: 0xe6eeff,
+};
+
+/** Quarter tint replaces the season tint on the campus: Q1 cool crisp, Q2 fresh, Q3 warm golden, Q4 amber muted. */
+const QUARTER_TINT: Record<Quarter, number> = {
+  Q1: 0xe6f0ff,
+  Q2: 0xf2fff4,
+  Q3: 0xffeccc,
+  Q4: 0xf0dcc4,
 };
 
 function lerpColor(a: number, b: number, k: number): number {
@@ -46,6 +54,13 @@ export function darknessAt(minute: number): number {
 /** Day/night tint, season tint, fire lights, snow and smoke. */
 export class Atmosphere {
   private overlay: Phaser.GameObjects.Rectangle;
+  /** Freeze: cold multiply tint plus a light additive grey that desaturates. */
+  private chill: Phaser.GameObjects.Rectangle;
+  private mist: Phaser.GameObjects.Rectangle;
+  private frost: Phaser.GameObjects.Particles.ParticleEmitter;
+  private quarter: Quarter | undefined;
+  private freeze = false;
+  private frostZone = new Phaser.Geom.Rectangle(0, 0, 800, 400);
   private lights: Phaser.GameObjects.Image[] = [];
   private snow: Phaser.GameObjects.Particles.ParticleEmitter;
   private smoke: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
@@ -57,6 +72,21 @@ export class Atmosphere {
 
   constructor(private scene: Phaser.Scene) {
     this.overlay = scene.add.rectangle(0, 0, 10, 10, 0xffffff).setOrigin(0).setDepth(TOP).setBlendMode(Phaser.BlendModes.MULTIPLY);
+    this.chill = scene.add.rectangle(0, 0, 10, 10, 0xb8c8e8, 0.35).setOrigin(0).setDepth(TOP).setBlendMode(Phaser.BlendModes.MULTIPLY).setVisible(false);
+    this.mist = scene.add.rectangle(0, 0, 10, 10, 0x8a929e, 0.1).setOrigin(0).setDepth(TOP).setBlendMode(Phaser.BlendModes.ADD).setVisible(false);
+    this.frost = scene.add.particles(0, 0, 'snowflake', {
+      lifespan: 9000,
+      speedY: { min: 6, max: 14 },
+      speedX: { min: -4, max: 2 },
+      scale: { min: 0.4, max: 0.8 },
+      alpha: { start: 0.7, end: 0.3 },
+      tint: 0xdfeaff,
+      frequency: 140,
+      quantity: 1,
+      emitting: false,
+      emitZone: { type: 'random', source: this.frostZone, quantity: 1 } as Phaser.Types.GameObjects.Particles.EmitZoneData,
+    });
+    this.frost.setDepth(TOP + 2);
     this.snow = scene.add.particles(0, 0, 'snowflake', {
       lifespan: 6000,
       speedY: { min: 14, max: 28 },
@@ -71,17 +101,26 @@ export class Atmosphere {
     this.snow.setDepth(TOP + 2);
   }
 
-  setTime(minute: number, season: Season): void {
+  setTime(minute: number, season: Season, quarter?: Quarter, freeze?: boolean): void {
     this.minute = minute;
-    if (season !== this.season) {
+    const fz = !!freeze;
+    if (season !== this.season || quarter !== this.quarter) {
       this.season = season;
-      if (season === 'winter') this.snow.start();
+      this.quarter = quarter;
+      if (season === 'winter' && !quarter) this.snow.start();
       else this.snow.stop();
+    }
+    if (fz !== this.freeze) {
+      this.freeze = fz;
+      this.chill.setVisible(fz);
+      this.mist.setVisible(fz);
+      if (fz) this.frost.start();
+      else this.frost.stop();
     }
   }
 
   /** Rebuild lights and smoke for the current fires and lit windows. */
-  setLights(fires: { x: number; y: number }[], windows: { x: number; y: number }[]): void {
+  setLights(fires: { x: number; y: number; kind?: 'fire' | 'coffee' }[], windows: { x: number; y: number }[]): void {
     this.lights.forEach((l) => l.destroy());
     this.smoke.forEach((s) => s.destroy());
     this.embers.forEach((s) => s.destroy());
@@ -89,9 +128,25 @@ export class Atmosphere {
     this.smoke = [];
     this.embers = [];
     for (const f of fires) {
-      const l = this.scene.add.image(f.x, f.y - 4, 'glow').setBlendMode(Phaser.BlendModes.ADD).setTint(0xffa040).setDepth(TOP + 1);
-      l.setData('base', 2.4);
+      const coffee = f.kind === 'coffee';
+      const l = this.scene.add.image(f.x, f.y - 4, 'glow').setBlendMode(Phaser.BlendModes.ADD).setTint(coffee ? 0xffc878 : 0xffa040).setDepth(TOP + 1);
+      l.setData('base', coffee ? 1.5 : 2.4);
       this.lights.push(l);
+      if (coffee) {
+        // steam instead of smoke and embers
+        const steam = this.scene.add.particles(f.x, f.y - 12, 'puff', {
+          lifespan: 1700,
+          speedY: { min: -12, max: -7 },
+          speedX: { min: -2, max: 2 },
+          scale: { start: 0.25, end: 0.7 },
+          alpha: { start: 0.5, end: 0 },
+          tint: 0xffffff,
+          frequency: 260,
+        });
+        steam.setDepth(TOP - 2);
+        this.smoke.push(steam);
+        continue;
+      }
       const smoke = this.scene.add.particles(f.x, f.y - 14, 'puff', {
         lifespan: 2600,
         speedY: { min: -14, max: -9 },
@@ -130,7 +185,7 @@ export class Atmosphere {
     const [m0, c0] = DAY_KEYS[i];
     const [m1, c1] = DAY_KEYS[i + 1];
     const day = lerpColor(c0, c1, (m - m0) / Math.max(1, m1 - m0));
-    this.overlay.setFillStyle(mulColor(day, SEASON_TINT[this.season]));
+    this.overlay.setFillStyle(mulColor(day, this.quarter ? QUARTER_TINT[this.quarter] : SEASON_TINT[this.season]));
 
     const dark = darknessAt(m);
     this.flicker += dt;
@@ -142,7 +197,12 @@ export class Atmosphere {
     }
     this.embers.forEach((e) => e.setAlpha(0.3 + dark * 0.7));
 
-    if (this.season === 'winter') {
+    if (this.freeze) {
+      for (const r of [this.chill, this.mist]) r.setPosition(v.x - pad, v.y - pad).setSize(v.width + pad * 2, v.height + pad * 2);
+      this.frost.setPosition(v.x - 40, v.y - 30);
+      this.frostZone.setSize(v.width + 80, v.height * 0.6);
+    }
+    if (this.season === 'winter' && !this.quarter) {
       // spawn band follows the camera; flakes then live in world space
       this.snow.setPosition(v.x - 40, v.y - 30);
       this.snowZone.setSize(v.width + 80, v.height * 0.6);

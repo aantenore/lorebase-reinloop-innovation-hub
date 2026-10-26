@@ -9,133 +9,118 @@ export interface MindsHost {
 }
 
 export const ROLE_IT: Record<string, string> = {
-  chief: 'capo',
-  woodcutter: 'taglialegna',
-  builder: 'costruttore',
-  elder: 'anziano',
-  healer: 'guaritore',
-  scout: 'esploratore',
-  gatherer: 'raccoglitore',
-  hunter: 'cacciatore',
-  wanderer: 'viandante',
+  strategist: 'stratega',
+  critic: 'critico',
+  designer: 'designer',
+  researcher: 'ricercatore',
+  analyst: 'analista',
+  engineer: 'ingegnere',
+  intern: 'stagista',
+  visitor: 'visitatore',
 };
 
 /** Shared role consciousness: the first ones are seeded as accepted, the rest get proposed over time. */
 const INSIGHT_POOL: Record<string, string[]> = {
-  gatherer: [
-    'D’inverno le bacche marciscono in fretta: meglio affumicare la carne e tenere le bacche per i primi giorni.',
-    'Un cespuglio svuotato ci mette giorni a ricrescere: ruotare i cespugli rende di più.',
-    'Con un cesto si porta il doppio e le bacche si ammaccano meno.',
-    'Le erbe vanno consegnate alla guaritrice entro sera, altrimenti appassiscono.',
-    'Un vaso di ceramica tiene le bacche fresche molto più a lungo.',
-    'Fibre e erbe crescono vicino al fiume: conviene passare di là prima di rientrare.',
+  researcher: [
+    'Un segnale con una sola fonte è rumore: cercane una seconda prima di passarlo all’analista.',
+    'Le interviste utente invecchiano in fretta: vanno sintetizzate entro la giornata.',
+    'I trend report affollati dicono dove sono tutti, non dove sta l’opportunità.',
+    'Un notebook ben tenuto vale più di dieci link salvati: annota sempre la fonte.',
+    'I paper tecnici anticipano il mercato di due trimestri: leggili prima dei competitor.',
+    'Conviene scansionare il mercato la mattina, quando i segnali sono ancora freschi.',
   ],
-  woodcutter: [
-    'Un’ascia di pietra ben affilata dura più a lungo: non colpire mai i sassi alla base.',
-    'Con la neve gli alberi sono più duri: meglio tagliare la mattina presto.',
-    'Dieci legna bastano a un riparo: portarle al costruttore prima di sera.',
-    'Una legna ogni due giri va tenuta da parte per il fuoco dell’anziano.',
-    'Se l’ascia scricchiola, chiedine una nuova al costruttore prima che si spezzi.',
-    'Tagliare sempre gli alberi più vecchi lascia al bosco il tempo di ricrescere.',
+  analyst: [
+    'Un segnale va validato con almeno tre dati indipendenti prima di diventare un’insight card.',
+    'Un benchmark senza campione dichiarato non si cita in comitato.',
+    'La correlazione non è un utente: cerca sempre chi paga per risolvere il problema.',
+    'I dati di un solo laptop non fanno statistica: ripeti il benchmark su un altro campione.',
+    'Un’insight card deve stare in una riga: se serve una pagina, non è ancora un’insight.',
+    'Segnali e dati vanno consegnati insieme: un viaggio in meno per tutti.',
   ],
-  builder: [
-    'Pietra e legna si consegnano insieme: un viaggio in meno per tutti.',
-    'Un riparo senza fondamenta cede alla prima neve.',
-    'Le asce si fanno con due legna e una pietra: ne servono sempre di scorta.',
-    'Le ceste si intrecciano meglio con fibre appena raccolte, ancora umide.',
-    'Prima il tetto, poi le pareti: la pioggia rovina più del vento.',
-    'Con l’argilla cotta si faranno mattoni più solidi della sola pietra.',
+  designer: [
+    'Prima la persona, poi il mockup: senza un utente reale lo schermo è decorazione.',
+    'Un mockup si capisce in cinque minuti su una lavagna, o non si capisce.',
+    'Le interviste si fanno con domande sul passato, non sul futuro.',
+    'Un’idea con troppe funzioni non ha un problema chiaro: togli finché resta una cosa sola.',
+    'Una persona senza un nome e una giornata tipo non è una persona.',
   ],
-  healer: [
-    'L’impiastro funziona meglio con erbe fresche, non più vecchie di un giorno.',
-    'Chi dorme all’aperto d’inverno si ammala: segnalare subito chi non ha un riparo.',
-    'Fame e freddo insieme sono il rischio peggiore: prima il cibo, poi il fuoco.',
-    'Le erbe amare vanno separate da quelle dolci: non si mescolano nello stesso impiastro.',
-    'Un impiastro per ogni taglialegna a inizio settimana evita molte ferite.',
+  critic: [
+    'Una idea senza utente nominato non passa la review.',
+    'Ogni punteggio va motivato in una frase: un 2 senza motivo è un’opinione.',
+    'Se il business case regge solo con ipotesi ottimistiche, il punteggio scende di un punto.',
+    'Bocciare presto costa poco: lo slot nel portfolio costa molto di più.',
+    'Chiedi sempre qual è l’alternativa che l’utente usa oggi.',
   ],
-  scout: [
-    'La pietra migliore sta nei pendii a nord del lago.',
-    'L’argilla si trova dove il fiume rallenta: segnare il punto per l’anziano.',
-    'Con la neve i sentieri a nord si chiudono: tornare prima del tramonto.',
-    'Il ponte è più sicuro del guado quando il fiume è alto.',
-    'Prima di partire avvisare il costruttore su cosa serve: si risparmiano viaggi a vuoto.',
+  engineer: [
+    'Non costruiamo: stimiamo la fattibilità in sprint e dichiariamo cosa non sappiamo.',
+    'Un paper tecnico senza codice di riferimento si stima il doppio.',
+    'Se la fattibilità dipende da un solo fornitore, scrivilo nel one-pager.',
+    'Il laptop giusto accelera i benchmark: tieni sempre un set di dati pulito.',
+    'Un prototipo mentale basta: un diagramma vale più di un repository.',
   ],
-  hunter: [
-    'Gli animali scappano controvento: avvicinarsi sempre da sottovento.',
-    'La carne fresca dura mezza giornata: affumicarla appena possibile.',
-    'Un impiastro in tasca vale più di una lancia in più.',
-    'Parlare piano nel bosco: la voce porta lontano.',
-    'La carne si divide tra chi ha lavorato e chi ha fame, senza scordare l’anziano.',
+  strategist: [
+    'Gli slot del portfolio sono pochi: meglio quattro idee forti che sei tiepide.',
+    'Una idea buona per tutti è buona per nessuno: scegli il segmento.',
+    'Il comitato decide meglio con un business case di una pagina che con venti slide.',
+    'Prima di cambiare una regola, ascolta chi la vive ogni giorno in review.',
+    'Con un freeze del budget il discovery track passa in hackathon: lascia votare chi lavora.',
   ],
-  elder: [
-    'Le leggi cambiano, i bisogni restano: ascolta Lorebase prima di decidere.',
-    'Un vaso di argilla cotta vale più di dieci ceste per conservare il cibo.',
-    'Ogni ruolo ha bisogno di un altro: nessuno è autosufficiente.',
-    'Il fuoco non va mai lasciato spegnere: è il cuore dei mestieri più importanti.',
-    'Chi scopre qualcosa lo racconti la stessa sera: ciò che si sa in uno si sa in tutti.',
-  ],
-  chief: [
-    'Prima le scorte, poi l’avventura.',
-    'Un clan che parla poco decide male: riunirsi al fuoco ogni sera.',
-    'Chiedere aiuto non è debolezza: il villaggio regge perché ci si scambia i beni.',
-    'Prima di cambiare una legge, ascoltare chi la vive ogni giorno.',
+  intern: [
+    'Chiedi sempre il perché dietro un punteggio: è il modo più rapido per imparare.',
+    'Un buon stagista porta un dato ogni volta che porta una domanda.',
+    'Assistere a una review vale più di dieci riunioni di allineamento.',
   ],
 };
 
 interface MemSeed { text: string; topic: string; importance: number; emotion: string }
 
 const GENERIC_SEEDS: MemSeed[] = [
-  { text: 'Ho passato la mattina a lavorare vicino al fiume.', topic: 'work', importance: 0.25, emotion: 'fatica' },
-  { text: 'Ieri ho portato il carico fino al mucchio della legna.', topic: 'work', importance: 0.25, emotion: 'fatica' },
-  { text: 'Ho fatto un lungo giro al tramonto con il sacco pesante.', topic: 'work', importance: 0.2, emotion: 'stanchezza' },
-  { text: 'Ho parlato con Aurelia davanti al fuoco, a sera.', topic: 'talk', importance: 0.35, emotion: 'calma' },
-  { text: 'Ho scambiato due parole con un viandante sul sentiero.', topic: 'talk', importance: 0.3, emotion: 'curiosità' },
-  { text: 'Una sera il villaggio ha discusso a lungo delle leggi.', topic: 'law', importance: 0.55, emotion: 'curiosità' },
+  { text: 'Ho passato la mattina a rileggere segnali e appunti.', topic: 'work', importance: 0.25, emotion: 'fatica' },
+  { text: 'Ieri ho aggiornato il portfolio prima della riunione.', topic: 'work', importance: 0.25, emotion: 'fatica' },
+  { text: 'Ho finito una lunga giornata di riunioni a testa bassa.', topic: 'work', importance: 0.2, emotion: 'stanchezza' },
+  { text: 'Ho parlato con Ottavia alla macchinetta del caffè, a metà mattina.', topic: 'talk', importance: 0.35, emotion: 'calma' },
+  { text: 'Ho scambiato due parole con un visitatore all’ingresso.', topic: 'talk', importance: 0.3, emotion: 'curiosità' },
+  { text: 'Una sera il team ha discusso a lungo delle regole del portfolio.', topic: 'law', importance: 0.55, emotion: 'curiosità' },
 ];
 
 const ROLE_SEEDS: Record<string, MemSeed[]> = {
-  woodcutter: [
-    { text: 'Un grosso albero mi ha quasi schiacciato il piede.', topic: 'danger', importance: 0.85, emotion: 'paura' },
-    { text: 'Ho tagliato il mio primo albero con l’ascia nuova.', topic: 'craft', importance: 0.6, emotion: 'gioia' },
+  researcher: [
+    { text: 'Ho trovato un segnale forte in un paper poco citato.', topic: 'craft', importance: 0.65, emotion: 'gioia' },
+    { text: 'Tre interviste di fila sono andate a vuoto.', topic: 'danger', importance: 0.5, emotion: 'delusione' },
   ],
-  builder: [
-    { text: 'La prima capanna è crollata sotto la pioggia.', topic: 'danger', importance: 0.8, emotion: 'rabbia' },
-    { text: 'Ho finito il tetto con le ultime travi.', topic: 'craft', importance: 0.6, emotion: 'orgoglio' },
+  analyst: [
+    { text: 'Un benchmark mal impostato mi ha fatto bocciare un’idea giusta.', topic: 'danger', importance: 0.8, emotion: 'rabbia' },
+    { text: 'Ho chiuso la mia prima insight card validata con tre fonti.', topic: 'craft', importance: 0.6, emotion: 'orgoglio' },
   ],
-  healer: [
-    { text: 'Ho curato Bruno con un impiastro di erbe fresche.', topic: 'craft', importance: 0.7, emotion: 'gioia' },
-    { text: 'Un bambino aveva la febbre, ho vegliato tutta la notte.', topic: 'danger', importance: 0.85, emotion: 'paura' },
+  designer: [
+    { text: 'Una persona che avevo disegnato si è rivelata sbagliata in intervista.', topic: 'danger', importance: 0.75, emotion: 'frustrazione' },
+    { text: 'Il mockup alla lavagna ha convinto tutto il comitato.', topic: 'craft', importance: 0.7, emotion: 'gioia' },
   ],
-  scout: [
-    { text: 'Ho visto un branco di lupi oltre il lago.', topic: 'danger', importance: 0.9, emotion: 'paura' },
-    { text: 'Ho trovato una cava di pietra a nord.', topic: 'craft', importance: 0.65, emotion: 'gioia' },
+  critic: [
+    { text: 'Ho bocciato un’idea che poi un concorrente ha lanciato.', topic: 'danger', importance: 0.85, emotion: 'preoccupazione' },
+    { text: 'Ho dato il mio primo 5 in comitato.', topic: 'craft', importance: 0.6, emotion: 'orgoglio' },
   ],
-  gatherer: [
-    { text: 'Ho trovato un cespuglio carico di bacche vicino alle rocce.', topic: 'craft', importance: 0.6, emotion: 'gioia' },
-    { text: 'Le bacche del cesto sono marcite prima di sera.', topic: 'danger', importance: 0.5, emotion: 'delusione' },
+  engineer: [
+    { text: 'Ho sottostimato di molto una fattibilità e il comitato se n’è accorto.', topic: 'danger', importance: 0.8, emotion: 'paura' },
+    { text: 'Una stima in sprint è stata confermata dai fatti.', topic: 'craft', importance: 0.6, emotion: 'gioia' },
   ],
-  hunter: [
-    { text: 'Ho inseguito un cervo per mezza giornata e l’ho perso.', topic: 'danger', importance: 0.6, emotion: 'frustrazione' },
-    { text: 'Ho portato la prima carne al villaggio.', topic: 'craft', importance: 0.7, emotion: 'orgoglio' },
+  strategist: [
+    { text: 'Ho tagliato tre idee per fare spazio a una sola.', topic: 'danger', importance: 0.85, emotion: 'preoccupazione' },
+    { text: 'Il comitato ha votato per concentrare il portfolio.', topic: 'law', importance: 0.6, emotion: 'orgoglio' },
   ],
-  elder: [
-    { text: 'Ricordo l’inverno lungo, quando il fuoco rimase acceso per sette giorni.', topic: 'danger', importance: 0.9, emotion: 'nostalgia' },
-    { text: 'Ho insegnato ai giovani a custodire la brace.', topic: 'craft', importance: 0.6, emotion: 'serenità' },
-  ],
-  chief: [
-    { text: 'Ho diviso le scorte tra tutti, anche se non bastavano.', topic: 'danger', importance: 0.85, emotion: 'preoccupazione' },
-    { text: 'Il clan ha votato per restare al villaggio.', topic: 'law', importance: 0.6, emotion: 'orgoglio' },
+  intern: [
+    { text: 'Ho preso appunti alla mia prima review e non ho capito metà dei punteggi.', topic: 'craft', importance: 0.5, emotion: 'curiosità' },
   ],
 };
 
 const GIST: Record<string, string[]> = {
-  work: ['Il lavoro quotidiano è fatica, ma ripaga.', 'Le giornate si assomigliano: portare, raccogliere, tornare.'],
-  talk: ['Parlo spesso con gli altri del villaggio.', 'Ci si ritrova sempre attorno al fuoco a parlare.'],
-  trade: ['Ci si aiuta a vicenda: chi ha di più dà a chi ha bisogno.', 'Gli scambi tengono insieme i mestieri.'],
-  craft: ['So fabbricare ciò che serve, con pazienza.', 'Ogni cosa fatta bene dura di più.'],
-  law: ['Le leggi cambiano, ma si impara ad adattarsi.'],
-  discovery: ['Ogni tanto qualcuno scopre qualcosa e il villaggio cambia.'],
-  danger: ['Il mondo può essere pericoloso: meglio stare attenti.'],
+  work: ['Il lavoro quotidiano è fatto di segnali, dati e riunioni, ma ripaga.', 'Le giornate si assomigliano: scansionare, validare, discutere.'],
+  talk: ['Parlo spesso con i colleghi di idee e priorità.', 'Ci si ritrova sempre alla macchinetta del caffè a parlare.'],
+  trade: ['Ci si passa dati e segnali: chi ha di più dà a chi ne ha bisogno.', 'Gli scambi tengono insieme i ruoli del team.'],
+  craft: ['So produrre ciò che serve, con metodo.', 'Un’idea fatta bene sopravvive alla review.'],
+  law: ['Le regole del portfolio cambiano, ma ci si adatta.'],
+  discovery: ['Ogni tanto una scoperta cambia il modo di lavorare del team.'],
+  danger: ['Valutare male un’idea può costare caro: meglio andare con cautela.'],
 };
 
 const VAGUE = ['…', 'qualcosa', 'da qualche parte', 'qualcuno'];
@@ -324,7 +309,7 @@ export class Minds {
         role,
         text: pool[i],
         confidence: +(0.65 + this.host.r() * 0.3).toFixed(2),
-        author: peers[0]?.name ?? 'Gli anziani',
+        author: peers[0]?.name ?? 'I veterani',
         reviewer: peers[1]?.name,
         day: 1,
         status: 'accepted',
@@ -363,7 +348,7 @@ export class Minds {
         confidence: +(0.4 + h.r() * 0.35).toFixed(2),
         author: author.name,
         day: h.now().day,
-        evidence: `Osservato ${2 + Math.floor(h.r() * 4)} volte nei giorni scorsi`,
+        evidence: `Osservato ${2 + Math.floor(h.r() * 4)} volte nei trimestri scorsi`,
         status: 'proposed',
       };
       this.pending.push(ins);
@@ -389,7 +374,7 @@ export class Minds {
       ins.confidence = Math.min(0.95, +(ins.confidence + 0.1).toFixed(2));
       this.stored.push(ins);
       this.host.emit({ type: 'insight', insight: { ...ins }, action: 'accepted', reviewer });
-      this.remember(authorId, `La mia intuizione sul mestiere è stata accettata${reviewer ? ` da ${reviewer}` : ''}.`, 'law', 0.55, 'orgoglio');
+      this.remember(authorId, `La mia intuizione sul ruolo è stata accettata${reviewer ? ` da ${reviewer}` : ''}.`, 'law', 0.55, 'orgoglio');
     } else {
       ins.status = 'rejected';
       this.host.emit({ type: 'insight', insight: { ...ins }, action: 'rejected', reviewer });
@@ -445,9 +430,9 @@ export class Minds {
 }
 
 const CONSULT: Record<string, string[]> = {
-  lorebase_search: ['leggi inverno', 'ricette ceramica', 'come conservare le bacche', 'leggi sul freddo', 'tecnologie scoperte', 'regole sugli scambi'],
-  lorebase_get_record: ['legge wood.per_chop', 'legge food.per_gather', 'ricetta ascia di pietra', 'ricetta impiastro'],
-  lorebase_list_records: ['ricette scoperte', 'leggi della categoria clima', 'intuizioni accettate'],
+  lorebase_search: ['playbook analyst: come validare un segnale', 'playbook critic: criteri di punteggio', 'come condurre un’intervista utente', 'regole del portfolio', 'breakthrough scoperti', 'regole sugli scambi di dati'],
+  lorebase_get_record: ['regola signals.per_scan', 'regola committee.approve_threshold', 'ricetta business case', 'ricetta insight card'],
+  lorebase_list_records: ['ricette scoperte', 'regole della categoria portfolio', 'intuizioni accettate'],
 };
 
 /** A plausible Lorebase lookup for an agent that starts thinking. */
