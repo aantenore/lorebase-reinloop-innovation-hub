@@ -301,3 +301,111 @@ the gate computed the requirements and the perception showed them. The stall was
 A run with the new perception line ("soddisfatti per policy ... può essere candidata"), a player in the hub giving one
 or two validations from the "Valida idea" panel, and the committee members kept out of authorship (or a larger
 committee), to see whether a submission happens and how the committee weighs evidence in its vote.
+
+# Run 4: an independent committee, expiring slots, cheaper search
+
+Date: 2026-10-26, 11:13-11:44 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (all
+haiku, clock x3), `GAME_BUDGET_USD=3`, reinloop 474f0b5. New policies on: `comitato_non_coautore` (committee
+members never become authors), `supplenti_comitato_per_anzianita` (alternates up to quorum),
+`slot_scadono_a_fine_trimestre` (perception: "slot di approvazione rimasti questo trimestre: N, scadono il giorno X
+alle HH:MM"). The requirements line shows only what the policy asks and whether it is met; human validation only as
+the alternative path. Web quotas 3 per person and 10 for the hub per day (were 12 and 60), signal quotas 16 and 120
+(were 10 and 60), caches kept a day, spend per tool in `reinloop.costUsd.byTool`. No player joined. A first start
+was stopped after one minute (6 decisions) to put the per-decision web cap back at 2, since signal tools share it;
+the world was reset again. Stop rule: 30 real minutes or five committee decisions: **time came first**.
+
+Evidence: [docs/evidence/run4/](evidence/run4/) ([evidence.md](evidence/run4/evidence.md),
+[committee.md](evidence/run4/committee.md)). Progress log: [docs/run-progress.log](run-progress.log) (`run4` lines).
+Export: [docs/portfolio-run4.md](portfolio-run4.md).
+
+## Runs 1 to 4
+
+| | Run 1 | Run 2 | Run 3 | Run 4 |
+|---|---|---|---|---|
+| Real time, stop | 30 min, time | 19 min, budget | 28 min, time | 30 min, time |
+| Game time | day 1 08:00 to day 2 13:47 | day 1 07:00 to day 3 15:30 | day 1 07:00 to day 4 ~21:00 | day 1 07:00 to day 5 01:10 |
+| Model tiers | haiku, Livia sonnet | haiku, Livia sonnet | all haiku | all haiku |
+| Decisions | 213 + 29 group, 480 runs | 293 + 48 group, 663 runs | 468 + 69 group, 369 replies, 1057 runs | 500 + 81 group, 432 replies, 1140 runs |
+| Failures | 8 (6 `maxTurns`) | 6 (2 group JSON) | 7 | 29 (27 no plan committed, 1 timeout, 1 reply at `maxToolCalls`) |
+| Cost | $2.33 | $3.01 | $2.27 (minds $1.30, web $0.98) | **$1.93: minds $1.46 (75%), web search $0.48 (25%), signals $0, interviews $0** |
+| Tokens in / out | 10.78 M / 0.43 M | 15.03 M / 0.63 M | 24.55 M / 1.16 M | 27.62 M / 1.15 M |
+| Prompt cache | hit 0.785, saved $3.04 | hit 0.781, saved $4.06 | hit 0.768, saved $1.58 | hit 0.781, saved $1.80 |
+| Web searches | 29 (+7 reads), 22 refused | 10 | 86 | 40 (102 refused by quota, 7 by the per-decision cap) |
+| Public signal searches | - | - | 38 | 47: Hacker News 36 (31 empty), GitHub 8, arXiv 3; 1 cached, 12 refused |
+| Evidence | - | - | 12 (web 11, signal 1) | 8 (web 7, GitHub 1); human validation 0, simulated interview 0 |
+| Ideas | 2 proposal | 3 proposal | 2 proposal | 1 proposal (submitted twice) |
+| Reviews | 7 | 11 | 3 | 4 (3 by committee members) |
+| Candidacy gate | - | - | 1 passed, 0 submissions | passed at both submissions; 0 refusals |
+| Committee | 1 decision (defer) | 0 | 0 | **2 decisions (defer, defer)**, quorum met, 0 recusals, 0 alternates |
+| Thoughts language | not counted | en 293, it 1 | it 438 | it 462 |
+
+## Portfolio
+
+Nothing approved or killed. Full text in [portfolio-run4.md](portfolio-run4.md).
+
+- **Triage di sicurezza AI a costo ridotto** (champion Giulia, authors Giulia and Irene; reviews by Dario, Irene,
+  Livia, Matteo: impact 6, feasibility 5.8, novelty 4, fit 6.3, risk 6.5, weighted 5.4). Pitch: an on-premise model
+  that triages security alerts for mid-sized companies without a security engineer, consolidating overlapping SaaS
+  tools as inference gets cheaper. 8 pieces of evidence, all `Evidence` Records on its branch:
+  [beenuar/AiSOC (GitHub, 3884 stars)](https://github.com/beenuar/AiSOC),
+  [From Investigation Failures to Reliable SOC Agents (arXiv 2610.10608)](https://arxiv.org/html/2610.10608v1),
+  [Evaluation of LLM Agents for the SOC Tier 1 Analyst Triage Process](https://www.utupub.fi/bitstreams/3a5765e0-ef07-41f2-b801-75f432d58777/download),
+  [Best AI Tools for Security Alert Triage (2026)](https://panther.com/blog/ai-tools-security-alert-triage),
+  [SOC as a service pricing (SaaSInsight)](https://www.saasinsight.io/guides/soc-as-a-service-pricing),
+  [MDR Pricing in 2026](https://daylight.ai/blog/mdr-pricing),
+  [SOC as a Service Pricing in 2026 (BD Emerson)](https://www.bdemerson.com/article/soc-as-a-service-pricing),
+  [Insurance industry spending on AI (Simplifai)](https://simplifai.ai/news/insurance-industry-spending-billions-on-ai-with-little-to-show-for-it-new-research-finds-from-simplifai).
+  - Day 1 15:35, submitted with 3 real pieces from 2 sources and 2 reviews. **Deferred** day 1 16:23: Livia «due
+    paper sul triage LLM e un repo GitHub ... non disponibilità a pagare; manca un pilota o una validazione umana»;
+    Matteo «nessuna dimostra che le aziende medie pagherebbero».
+  - Day 2 10:01, resubmitted with 7 real pieces (four vendor price pages added) and 3 reviews. **Deferred** day 2
+    11:05: Livia «solo paper e fonti di prezzo di vendor, senza domanda dimostrata, pilota o validazioni umane; il
+    rischio su dati sensibili e AI Act resta alto»; Matteo «serve una validazione con un cliente pilota e un modello
+    on-premise dimostrato».
+  - Then rewritten for on-premise (Livia's review: risk 7 to 5), never submitted again.
+
+## Diagnosis: why only two decisions, both deferrals
+
+The tooling and the new rules worked; the stall moved from the authors to the committee and stayed social:
+
+- **One idea in 30 minutes.** Giulia proposed it at day 1 10:27; nobody proposed another. The three committee members
+  (Livia, Matteo, Dario) no longer could, by policy (Livia said so six times, offering her four customer signals to
+  others); of the five others only Giulia and Irene touched an idea, and Enea, Sara and Bruno none.
+- **A bar above the policy, held by the voters.** The policy was met at both submissions; the committee asked for a
+  verified customer spend or a pilot. 539 of 2072 conversation lines mention a pilot, a validation or a verified
+  spend; Dario spoke of a «veto» (no policy grants one) and «Non riempiamo lo slot per consumarlo». Two `critico`
+  playbook entries merged near the end turn the bar into shared practice. Deferral needs no reason the policies
+  define, so the bar costs the committee nothing.
+- **Expiring slots were noticed, not used.** 498 lines mention slots; the expiry hour pushed Giulia's first
+  submission («prima delle 16:00») and was cited by everyone, but the committee preferred empty slots to a weak
+  approval; the run crossed about 38 quarters (a company year is 12 game hours), 0 slots used.
+- **Two voices, not three.** `groups.maxProposers` 2 (economy profile) limits the ballots to the two members with the
+  highest vote weight; Dario, the most critical, never voted. The outcome would not have changed (both votes defer).
+- **Evidence stayed web-heavy.** 31 of 36 Hacker News searches returned nothing (long multi-word queries), so 1 of 8
+  attachments was a public signal; the authors themselves labelled the web pages «prezzo di vendor, non una prova di
+  pagamento».
+- **No one could validate.** No player joined, nobody ran `intervista_simulata`.
+
+## What changed, what it showed
+
+- **Committee independence.** 0 committee members among the authors (3 of them reviewed, Matteo attached 4 pieces
+  of evidence without becoming an author); quorum was met at both sessions, so no recusal and no alternate.
+- **Perception.** The requirements line was read as written: Giulia «mi mancano prove reali (2 di 3) e una fonte
+  distinta; la strada alternativa sono almeno 1 validazione umana»; nobody called human validation missing for the
+  gate. The expiry hour of the slots was quoted by every person.
+- **Cost.** Hosted web search fell from 43% ($0.98) to 25% ($0.48) of spend; the daily quotas refused 102 searches;
+  public signals (47 calls) cost nothing. Total $1.93 for 1140 runs.
+
+## Problems seen
+
+- 27 decisions ended without a committed plan (6 in run 3), all haiku.
+- `world:reset` leaves open the Proposals of `idea/` branches that were already deleted (three from offline checks).
+- Committee ballots are capped by `groups.maxProposers` like group proposers.
+- Hacker News signal searches return nothing for long queries; the tool's results are honest but rarely usable.
+
+## Next useful step
+
+A run where deferral is a fact with a cost (for example a policy on how often an idea that meets the requirements
+can be deferred, or the slots left shown to voters as a number at stake), all three committee members voting
+(`groups.maxProposers` 3 or a committee-specific cap), and a player giving one validation, to see whether the
+committee approves or kills on evidence the policy accepts.

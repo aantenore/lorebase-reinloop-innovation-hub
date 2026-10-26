@@ -1,0 +1,210 @@
+{
+  "lorebase": {
+    "url": "http://127.0.0.1:8280",
+    "domain": "hub",
+    "branch": "main",
+    "revision": "daac0d89a3a370b4b032072e6f18d0d3efafa34ecde4964817a4d3e15b9d7c4a",
+    "counts": {
+      "Signal": 40,
+      "Role": 8,
+      "Recipe": 11,
+      "Resource": 15,
+      "Chronicle": 36,
+      "Insight": 2,
+      "Rule": 116
+    }
+  },
+  "mnemo": {
+    "connected": true,
+    "memories": 2893,
+    "perAgent": [
+      {
+        "agentId": "a1",
+        "name": "Livia",
+        "count": 301,
+        "avgFidelity": 0.982,
+        "gists": 0
+      },
+      {
+        "agentId": "a2",
+        "name": "Matteo",
+        "count": 535,
+        "avgFidelity": 0.974,
+        "gists": 0
+      },
+      {
+        "agentId": "a3",
+        "name": "Giulia",
+        "count": 303,
+        "avgFidelity": 0.978,
+        "gists": 0
+      },
+      {
+        "agentId": "a4",
+        "name": "Enea",
+        "count": 303,
+        "avgFidelity": 0.985,
+        "gists": 0
+      },
+      {
+        "agentId": "a5",
+        "name": "Sara",
+        "count": 545,
+        "avgFidelity": 0.975,
+        "gists": 0
+      },
+      {
+        "agentId": "a6",
+        "name": "Bruno",
+        "count": 302,
+        "avgFidelity": 0.986,
+        "gists": 0
+      },
+      {
+        "agentId": "a7",
+        "name": "Irene",
+        "count": 301,
+        "avgFidelity": 0.978,
+        "gists": 0
+      },
+      {
+        "agentId": "a8",
+        "name": "Dario",
+        "count": 303,
+        "avgFidelity": 0.983,
+        "gists": 0
+      }
+    ],
+    "dbBytes": 22962176,
+    "lastCompaction": null,
+    "embedder": {
+      "name": "transformers:Xenova/multilingual-e5-small:q8",
+      "dim": 384,
+      "fallback": false
+    }
+  },
+  "reinloop": {
+    "decisions": 500,
+    "groupDecisions": 81,
+    "replies": 432,
+    "failures": 29,
+    "thoughts": 0,
+    "failureReasons": {
+      "reply: stopped: budget:maxToolCalls": 1,
+      "decide: no plan committed": 27,
+      "decide: interrupted: The operation was aborted due to timeout": 1
+    },
+    "thoughtLangs": {},
+    "recusals": 0,
+    "alternates": 0,
+    "scoreMatches": 0,
+    "gateRefusals": 0,
+    "validations": 0,
+    "reasonLangs": {
+      "it": 462
+    },
+    "running": 4,
+    "signalSearches": 47,
+    "signalCached": 1,
+    "signalRefused": 12,
+    "signalErrors": 0,
+    "evidenceAttached": 8,
+    "interviews": 0,
+    "webSearches": 40,
+    "webFetches": 0,
+    "webCached": 0,
+    "webRefused": 102,
+    "webCapped": 7,
+    "webErrors": 0,
+    "budgetMaxUsd": 3,
+    "budgetPaused": 0,
+    "runs": 1140,
+    "tokens": {
+      "input": 27615425,
+      "output": 1151481
+    },
+    "costUsd": {
+      "total": 1.933371,
+      "byModel": {
+        "anthropic/claude-haiku-5-5": 1.455411,
+        "claude-haiku-5-5": 0.47796
+      },
+      "byTier": {
+        "haiku": 1.316088,
+        "group:orchestrator": 0.136681,
+        "research": 0.47796,
+        "group:council": 0.002642
+      },
+      "byTool": {
+        "minds": {
+          "runs": 1100,
+          "costUsd": 1.455411,
+          "share": 0.753
+        },
+        "web_search": {
+          "runs": 40,
+          "costUsd": 0.47796,
+          "share": 0.247
+        },
+        "segnali_pubblici": {
+          "runs": 47,
+          "costUsd": 0,
+          "share": 0
+        }
+      }
+    },
+    "cache": {
+      "readTokens": 21570666,
+      "writeTokens": 5497898,
+      "write1hTokens": 0,
+      "hitRatio": 0.7811,
+      "savedUsd": 1.803912,
+      "byModel": {
+        "anthropic/claude-haiku-5-5": {
+          "readTokens": 21570666,
+          "writeTokens": 5497898,
+          "write1hTokens": 0,
+          "hitRatio": 0.7967,
+          "savedUsd": 1.803912
+        },
+        "claude-haiku-5-5": {
+          "readTokens": 0,
+          "writeTokens": 0,
+          "write1hTokens": 0,
+          "hitRatio": 0,
+          "savedUsd": 0
+        }
+      },
+      "byTier": {
+        "haiku": {
+          "readTokens": 20219227,
+          "writeTokens": 5117032,
+          "write1hTokens": 0,
+          "hitRatio": 0.7979,
+          "savedUsd": 1.691805
+        },
+        "group:orchestrator": {
+          "readTokens": 1351439,
+          "writeTokens": 363903,
+          "write1hTokens": 0,
+          "hitRatio": 0.7877,
+          "savedUsd": 0.112532
+        },
+        "research": {
+          "readTokens": 0,
+          "writeTokens": 0,
+          "write1hTokens": 0,
+          "hitRatio": 0,
+          "savedUsd": 0
+        },
+        "group:council": {
+          "readTokens": 0,
+          "writeTokens": 16963,
+          "write1hTokens": 0,
+          "hitRatio": 0,
+          "savedUsd": -0.000424
+        }
+      }
+    }
+  }
+}

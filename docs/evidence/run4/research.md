@@ -1,0 +1,286 @@
+# Research (run 4)
+
+Web provider: anthropic-native (hosted search, no page reads). Web searches 40, cache hits 0, refused by the daily quotas 102 (`ricerche_web_per_persona_al_giorno` 3, `ricerche_web_totali_al_giorno` 10), refused by the per-decision cap 7, errors 0. Public signal searches through reinloop `signalTools`: 47 (1 cached, 12 refused; summary.json `signalSearches`, `signalCached`, `signalRefused`). The log below keeps the last 87 calls the server holds (`research.logMax`, `recentMax`).
+
+Titles and links only (no page content).
+
+- giorno 1 12:58 **Giulia** web_search «AI security triage cost reduction SOC alert triage LLM study»
+  - [Evaluation of LLM Agents for the SOC Tier 1 Analyst Triage Process](https://www.utupub.fi/bitstreams/3a5765e0-ef07-41f2-b801-75f432d58777/download)
+  - [From Investigation Failures to Reliable SOC Agents: Understanding and Improving LLM-Based Alert Triage](https://arxiv.org/html/2610.10608v1)
+  - [(PDF) From Investigation Failures to Reliable SOC Agents: Understanding and Improving LLM-Based Alert Triage](https://www.researchgate.net/publication/415467481_From_Investigation_Failures_to_Reliable_SOC_Agents_Understanding_and_Improving_LLM-Based_Alert_Triage)
+- giorno 1 15:02 **Giulia** cerca_discussioni «LLM alert triage SOC cost»
+  - (no results)
+- giorno 1 15:04 **Giulia** cerca_progetti «LLM SOC alert triage»
+  - [beenuar/AiSOC](https://github.com/beenuar/AiSOC)
+  - [gensecaihq/Wazuh-MCP-Server](https://github.com/gensecaihq/Wazuh-MCP-Server)
+  - [aaronphifer/triagewall](https://github.com/aaronphifer/triagewall)
+- giorno 1 15:08 **Livia** cerca_discussioni «AI security alert triage cost reduction SOC»
+  - (no results)
+- giorno 1 15:10 **Livia** cerca_progetti «security alert triage LLM»
+  - [beenuar/AiSOC](https://github.com/beenuar/AiSOC)
+  - [gensecaihq/Wazuh-MCP-Server](https://github.com/gensecaihq/Wazuh-MCP-Server)
+  - [aaronphifer/triagewall](https://github.com/aaronphifer/triagewall)
+- giorno 1 16:17 **Livia** cerca_discussioni «AI security alert triage cost SOC»
+  - (no results)
+- giorno 1 16:28 **Livia** cerca_progetti «self-hosted SOC alert triage LLM»
+  - [beenuar/AiSOC](https://github.com/beenuar/AiSOC)
+  - [aaronphifer/triagewall](https://github.com/aaronphifer/triagewall)
+  - [sabangiri7/soc-analyst-l1](https://github.com/sabangiri7/soc-analyst-l1)
+- giorno 1 18:27 **Livia** cerca_discussioni «on-premise LLM regulated industry audit»
+  - (no results)
+- giorno 1 18:58 **Livia** web_search «on-premise AI decision audit regulated banks hospitals EU AI Act logging 2026»
+  - [Frontiers](https://www.frontiersin.org/journals/digital-health/articles/10.3389/fdgth.2026.1808373/full)
+  - [EU AI Act 2026 Updates: Compliance Requirements and Business Risks](https://www.legalnodes.com/article/eu-ai-act-2026-updates-compliance-requirements-and-business-risks)
+  - [EU AI Act High-Risk Deadline: Enterprise Readiness Gap](https://labs.cloudsecurityalliance.org/research/csa-research-note-eu-ai-act-high-risk-compliance-deadline-20/)
+- giorno 1 20:12 **Matteo** cerca_discussioni «LLM security alert triage cost SOC analysts paying»
+  - (no results)
+- giorno 1 20:27 **Irene** cerca_discussioni «AI decision audit trail compliance banking»
+  - (no results)
+- giorno 1 20:28 **Irene** cerca_paper «audit logging automated decision systems security accountability»
+  - (no results)
+- giorno 1 20:43 **Matteo** web_search «AI SOC alert triage tool pricing per alert small company willingness to pay»
+  - [Best AI Tools for Security Alert Triage (2026)](https://panther.com/blog/ai-tools-security-alert-triage)
+  - [Agentic SOC Triage Economics: The Per-Alert Price That Survives CFO Scrutiny](https://d3security.com/resources/agentic-soc-cost-per-alert/)
+  - [10 Best Agentic AI SOC Platforms for 2026: Comparison of AI-Powered Security Operations Vendors](https://underdefense.com/blog/agentic-soc-platforms/)
+- giorno 1 21:02 **Irene** cerca_discussioni «AI decision audit logging compliance»
+  - [Show HN: EnforceAuth GA Launch](https://enforceauth.com/contact?inquiry=waitlist)
+  - [Show HN: Novyx – Memory API for AI agents (rollback, replay, semantic search)](https://www.novyxlabs.com/)
+  - [Show HN: GitAgent – Clone a repo, get an AI agent – Claude Code / OpenClaw](https://www.gitagent.sh/)
+- giorno 1 21:39 **Irene** cerca_discussioni «AI decision audit compliance enterprise»
+  - [Show HN: OmnAI – Sovereign AI infrastructure with multi-vault isolation](https://github.com/TadTanyaTalaTadenTadhgTaya/OmnAI-v3.5)
+  - [The Missing Layer in Enterprise AI: Decision Authority](https://news.ycombinator.com/item?id=47115309)
+  - [Show HN: Novyx – Memory API for AI agents (rollback, replay, semantic search)](https://www.novyxlabs.com/)
+- giorno 1 21:42 **Irene** cerca_progetti «LLM audit trail decision logging»
+  - [aitrace-dotnet/AiTrace.NET](https://github.com/aitrace-dotnet/AiTrace.NET)
+  - [prashantshukla01/Recovery-Decision-Engine](https://github.com/prashantshukla01/Recovery-Decision-Engine)
+  - [frostbreath123/Hybrid_Suspicious_Activity_Report_Generator](https://github.com/frostbreath123/Hybrid_Suspicious_Activity_Report_Generator)
+- giorno 1 21:45 **Matteo** cerca_discussioni «SMB security alert triage AI pricing willing to pay»
+  - (no results)
+- giorno 1 22:10 **Enea** cerca_discussioni «AI decision audit trail compliance bank»
+  - [Show HN: OmnAI – Sovereign AI infrastructure with multi-vault isolation](https://github.com/TadTanyaTalaTadenTadhgTaya/OmnAI-v3.5)
+  - [Show HN: EnforceAuth GA Launch](https://enforceauth.com/contact?inquiry=waitlist)
+- giorno 1 22:14 **Matteo** web_search «small business SOC alert triage tool pricing per month SMB security automation»
+  - [Best Alert Triage Tools for Production Engineering](https://struct.ai/articles/best-alert-triage-tools-2026/)
+  - [10 Best Agentic AI SOC Platforms for 2026: Comparison of AI-Powered Security Operations Vendors](https://underdefense.com/blog/agentic-soc-platforms/)
+  - [Pricing - SOCRadar](https://socradar.io/plans-and-pricing)
+- giorno 1 22:57 **Irene** web_search «AI Act audit trail automated decisions companies paying compliance tool price 2025»
+  - [Decision Trace Schema for Governance Evidence in Real-Time Risk Systems](https://arxiv.org/pdf/2604.09296)
+  - [Governed Auditable Decisioning Under Uncertainty: Synthesis and Agentic Extension](https://arxiv.org/pdf/2604.19112)
+  - [Assessing High-Risk AI Systems under the EU AI Act: From Legal Requirements to Technical Verification](https://arxiv.org/pdf/2512.13907)
+- giorno 1 22:59 **Irene** cerca_discussioni «AI decision audit logging compliance tool»
+  - [Show HN: GitAgent – Clone a repo, get an AI agent – Claude Code / OpenClaw](https://www.gitagent.sh/)
+  - [Show HN: Open-source EU AI Act compliance layer for AI agents (8/2026 deadline)](https://news.ycombinator.com/item?id=47141347)
+  - [Launch HN: Credal.ai (YC W23) – Data Safety for Enterprise AI](https://news.ycombinator.com/item?id=36326525)
+- giorno 2 00:02 **Irene** web_search «companies paying for AI decision audit logging compliance tool pricing customers 2025»
+  - [Best Audit Management Software: Buyer's Guide (2025)](https://www.trycomp.ai/hub/best-audit-management-software)
+  - [Best AI Audit Software in 2026](https://trullion.com/blog/best-ai-audit-software/)
+  - [Best AI Governance Tools in 2026 Reviewed & Compared](https://www.truefoundry.com/blog/best-ai-governance-tools)
+- giorno 2 00:04 **Irene** cerca_progetti «AI decision audit logging compliance»
+  - [GoldstonianConcordanceBible/402](https://github.com/GoldstonianConcordanceBible/402)
+  - [scott-deforest/ai-compliance-platform](https://github.com/scott-deforest/ai-compliance-platform)
+  - [aitrace-dotnet/AiTrace.NET](https://github.com/aitrace-dotnet/AiTrace.NET)
+- giorno 2 00:36 **Dario** cerca_discussioni «AI security triage alert fatigue SOC»
+  - (no results)
+- giorno 2 00:47 **Dario** cerca_progetti «LLM alert triage SOC self-hosted»
+  - [beenuar/AiSOC](https://github.com/beenuar/AiSOC)
+  - [aaronphifer/triagewall](https://github.com/aaronphifer/triagewall)
+  - [sabangiri7/soc-analyst-l1](https://github.com/sabangiri7/soc-analyst-l1)
+- giorno 2 01:24 **Irene** web_search «SMB pricing AI security alert triage per month small business MDR»
+  - [Managed Detection and Response Service: 2026 Buyer Guide - Petronella Cybersecurity News](https://petronellatech.com/blog/managed-detection-and-response-guide/)
+  - [Top Managed Detection and Response (MDR) Services for Small Business in 2026](https://slashdot.org/software/managed-detection-and-response-mdr/f-small-business/)
+  - [MDR Pricing 2026: Per-Endpoint and Flat-Rate Costs - Petronella Cybersecurity News](https://petronellatech.com/blog/managed-detection-and-response-cost-what-businesses-pay-mdr-2026/)
+- giorno 2 01:26 **Irene** cerca_discussioni «AI alert triage SOC small teams pay»
+  - (no results)
+- giorno 2 02:42 **Matteo** web_search «SMB pay for managed security alert triage pricing customers case study»
+  - [Best AI Tools for Security Alert Triage (2026)](https://panther.com/blog/ai-tools-security-alert-triage)
+  - [Best AI SOC for SMBs: 6 Vendors Scored With Real Pricing (2026)](https://underdefense.com/blog/ai-soc-for-smb/)
+  - [Best Managed SOC Services & Providers in 2027](https://www.huntress.com/soc-guide/best-soc-services-for-cybersecurity)
+- giorno 2 02:44 **Matteo** cerca_discussioni «SOC alert triage small business pay»
+  - (no results)
+- giorno 2 04:08 **Matteo** web_search «small business spending AI security alert triage case study customer SMB price paid per month»
+  - [Best Alert Triage Tools for Production Engineering](https://struct.ai/articles/best-alert-triage-tools-2026/)
+  - [AI-Enabled Incident Triage: Implementation Playbook](https://underdefense.com/blog/ai-enabled-incident-triage/)
+  - [Best AI SOC for SMBs: 6 Vendors Scored With Real Pricing (2026)](https://underdefense.com/blog/ai-soc-for-smb/)
+- giorno 2 05:45 **Matteo** web_search «PMI spesa annua sicurezza AI triage case study cliente con cifra data»
+  - [Cybersecurity PMI: l’AI pretende MSP e difesa continua - Digitalic](https://www.digitalic.it/hardware-software/cyber-security/cybersecurity-pmi-lai-pretende-msp-e-difesa-continua)
+  - [Costo Cybersecurity PMI 2026: Quanto Copre il Voucher](https://www.incentivimpresa.it/costo-cybersecurity-pmi-italia-quanto-investire-2026/)
+  - [Cyber Security per PMI: Guida Pratica alla Protezione](https://bulltech.it/blog/cyber-security-pmi-italia-guida)
+- giorno 2 07:26 **Dario** cerca_discussioni «SOC alert triage LLM small companies paying»
+  - (no results)
+- giorno 2 08:35 **Dario** web_search «mid-size company security alert triage spending case study annual cost customer 2026»
+  - [Best AI Tools for Security Alert Triage (2026)](https://panther.com/blog/ai-tools-security-alert-triage)
+  - [MDR Pricing 2026: Per-Endpoint and Flat-Rate Costs - Petronella Cybersecurity News](https://petronellatech.com/blog/managed-detection-and-response-cost-what-businesses-pay-mdr-2026/)
+  - [How Much Does Cybersecurity Cost? 2026 Budgets - Petronella Cybersecurity News](https://petronellatech.com/blog/how-much-does-cybersecurity-actually-cost-2026-video-guide/)
+- giorno 2 09:20 **Dario** web_search «SMB security operations outsourcing budget survey actual spend 2026»
+  - [Cybersecurity Spending Statistics (2026): Budgets & ROI](https://app.stationx.net/articles/cybersecurity-spending-statistics)
+  - [ESET SMB Cyber Readiness Index 2026](https://www.eset.com/us/business/smb-cyber-readiness-index/)
+  - [Cybersecurity budget planning for 2026: How MSPs can help clients invest smarter](https://www.connectwise.com/blog/cybersecurity-budget-planning)
+- giorno 2 12:48 **Irene** web_search «EU AI Act high-risk automated decision logging audit obligations credit banking effective date»
+  - [EU AI Act High-Risk Deadline Delayed to December 2027](https://theaibanker.substack.com/p/brussels-just-handed-banks-16-extra)
+  - [The Digital AI Omnibus: Proposed deferral of high risk AI obligations under the AI Act (update) - DLA Piper GENIE](https://knowledge.dlapiper.com/dlapiperknowledge/globalemploymentlatestdevelopments/2026/The-Digital-AI-Omnibus-Proposed-deferral-of-high-risk-AI-obligations-under-the-AI-Act)
+  - [High-risk AI in banking: What the EU AI Act really means for credit institutions - Banking.Vision](https://banking.vision/en/high-risk-ai-in-banking)
+- giorno 2 13:09 **Irene** web_search «Digital AI Omnibus deferral high-risk AI obligations AI Act date proposed Commission November 2025»
+  - [The Digital AI Omnibus: Proposed deferral of high risk AI obligations under the AI Act (update) - DLA Piper GENIE](https://knowledge.dlapiper.com/dlapiperknowledge/globalemploymentlatestdevelopments/2026/The-Digital-AI-Omnibus-Proposed-deferral-of-high-risk-AI-obligations-under-the-AI-Act)
+  - [Digital Omnibus on AI](https://artificialintelligenceact.eu/ai-act-explorer/digital-omnibus/)
+  - [EU AI Act Deal: Digital Omnibus Now in Force](https://usercentrics.com/knowledge-hub/eu-ai-act-high-risk-delay-article-50-transparency-consent/)
+- giorno 2 13:58 **Matteo** cerca_discussioni «we pay for SOC alert triage tool per month small company»
+  - (no results)
+- giorno 2 15:13 **Matteo** cerca_discussioni «AI security alert triage paying customers»
+  - (no results)
+- giorno 2 16:26 **Enea** web_search «insurance claims unstructured documents AI automation 2025 report»
+  - [10 Best Insurance Claims Automation Tools Compared (2026)](https://www.kognitos.com/blog/ai-tools-for-insurance-claims-processing/)
+  - [Best Automated Claims Processing Software (2025)](https://www.v7labs.com/blog/automated-insurance-claims-processing-software)
+  - [AI in Insurance Claims Processing: The FNOL Revolution (2026 Update)](https://www.decerto.com/us/post/ai-in-insurance-claims-processing-the-revolution)
+- giorno 2 16:26 **Enea** web_search «bank audit trail automated decision AI EU AI Act 2025 requirements»
+  - [EU AI Act Credit Scoring High-Risk System Guide (July 2026)](https://www.openlayer.com/blog/credit-scoring-eu-ai-act-compliance-guide)
+  - [The Future of Credit Underwriting and Insurance Under the EU AI Act: Implications for Europe and Beyond · Issue 7.3, Summer 2025](https://hdsr.mitpress.mit.edu/pub/19cwd6qx)
+  - [Assessing High-Risk AI Systems under the EU AI Act: From Legal Requirements to Technical Verification](https://arxiv.org/pdf/2512.13907)
+- giorno 2 19:58 **Enea** cerca_discussioni «AI document triage insurance claims unstructured documents»
+  - (no results)
+- giorno 2 20:04 **Matteo** cerca_discussioni «AI explainability audit bank customers paying»
+  - (no results)
+- giorno 2 21:04 **Matteo** cerca_discussioni «AI decision audit bank compliance tool paying customers»
+  - (no results)
+- giorno 3 00:45 **Giulia** cerca_discussioni «AI security alert triage cost false positives SOC»
+  - (no results)
+- giorno 3 00:50 **Giulia** cerca_progetti «LLM security alert triage»
+  - [beenuar/AiSOC](https://github.com/beenuar/AiSOC)
+  - [gensecaihq/Wazuh-MCP-Server](https://github.com/gensecaihq/Wazuh-MCP-Server)
+  - [aaronphifer/triagewall](https://github.com/aaronphifer/triagewall)
+- giorno 3 01:46 **Irene** web_search «insurance claims unstructured documents AI processing cost per claim 2025 pricing»
+  - [Insurtech Trends 2026: AI Claims, Underwriting & Compliance](https://vantagepoint.io/blog/ai/insights/insurtech-trends-2026-ai-claims-underwriting)
+  - [AI for Insurance Claims Processing in 2026: Use Cases and the Tool Landscape](https://superkind.ai/blog/ai-insurance-claims)
+  - [AI Claims Processing Costs in 2026: Cost Per Claim, Per 10,000 Cases, and the Cheapest Models for Insurers](https://aicostcheck.com/blog/ai-claims-processing-costs-2026)
+- giorno 3 02:37 **Irene** web_search «insurance claims unstructured documents AI processing spend cost per claim 2024 2025»
+  - [Artificial Intelligence (AI) for Insurance Claims in 2026](https://www.scnsoft.com/insurance/artificial-intelligence/claims)
+  - [AI for Insurance Claims Processing in 2026: Use Cases and the Tool Landscape](https://superkind.ai/blog/ai-insurance-claims)
+  - [AI Claims Processing Costs in 2026: Cost Per Claim, Per 10,000 Cases, and the Cheapest Models for Insurers](https://aicostcheck.com/blog/ai-claims-processing-costs-2026)
+- giorno 3 02:56 **Livia** web_search «insurance claims unstructured documents spending cost per claim AI processing 2024 2025 study figure»
+  - [Advanced Applications of Generative AI in Actuarial Science: Case Studies Beyond ChatGPT](https://arxiv.org/pdf/2506.18942)
+  - [AI Claims Processing: Cut Costs 40% & Speed Up Claims](https://www.raftlabs.com/blog/ai-claims-processing)
+  - [(PDF) AI in Insurance Claims Processing: Balancing Innovation with Implementation Challenges](https://www.researchgate.net/publication/392076626_AI_in_Insurance_Claims_Processing_Balancing_Innovation_with_Implementation_Challenges)
+- giorno 3 03:26 **Matteo** web_search «insurance claims document processing AI spend customer case study cost savings 2025»
+  - [Artificial Intelligence (AI) for Insurance Claims in 2026](https://www.scnsoft.com/insurance/artificial-intelligence/claims)
+  - [AI in Insurance Claims Processing: 2026 Automation Guide for CTOs](https://www.cmarix.com/blog/ai-driven-insurance-claims-processing-automation/)
+  - [AI in Insurance Claims Processing: The FNOL Revolution (2026 Update)](https://www.decerto.com/us/post/ai-in-insurance-claims-processing-the-revolution)
+- giorno 3 03:35 **Dario** web_search «spesa cliente sinistri documenti non strutturati costo elaborazione insurance claims unstructured documents cost per year»
+  - [Best OCR for Insurance Claims Document Processing in 2026](https://www.filecenter.com/feeds/blog/insurance-ocr)
+  - [Insurance Document Processing - The Best Solutions for Carriers, Brokers and MGAs](https://parseur.com/blog/insurance-document-processing)
+  - [Automated Document Processing: The Complete Guide for 2026](https://sortspoke.com/blog/automated-document-processing)
+- giorno 3 03:49 **Matteo** web_search «insurer annual report spend on document AI claims intake per year million customer disclosed 2025»
+  - [AI is accelerating in insurance](https://www.insurancebusinessmag.com/us/news/technology/ai-is-accelerating-in-insurance--are-you-ready-573111.aspx)
+  - [Q2 2026 Insurance AI Trends by ScienceSoft](https://www.scnsoft.com/insurance/insurance-ai-trends)
+  - [AI in Insurance Claims Processing: 2026 Automation Guide for CTOs](https://www.cmarix.com/blog/ai-driven-insurance-claims-processing-automation/)
+- giorno 3 04:43 **Dario** web_search «insurance claims unstructured documents AI spending customer case study 2025»
+  - [AI in Insurance Claims Processing: The FNOL Revolution (2026 Update)](https://www.decerto.com/us/post/ai-in-insurance-claims-processing-the-revolution)
+  - [Advanced Applications of Generative AI in Actuarial Science: Case Studies Beyond ChatGPT](https://arxiv.org/pdf/2506.18942)
+  - [AI in Action: Harnessing unstructured data in insurance claims](https://www.shift-technology.com/resources/case-studies/ai-in-action-property-unstructured-data)
+- giorno 3 04:52 **Irene** web_search «AI claims triage insurer spending cost per claim 2024 2025 case study document processing customer»
+  - [AI Claims Processing: Cut Costs 40% & Speed Up Claims](https://www.raftlabs.com/blog/ai-claims-processing)
+  - [Best AI Tools for Claims Processing at Carriers & MGAs (2026)](https://www.furtherai.com/blog/best-ai-tools-insurance-claims-processing)
+  - [AI for Insurance Claims: Automation and Processing Playbook - Kanopy Labs](https://kanopylabs.com/blog/ai-for-insurance-claims-processing-automation)
+- giorno 3 05:08 **Livia** web_search «insurance claims document processing AI customer spending case study 2025 figures»
+  - [State of AI Adoption in Insurance 2025 Uncover the trends shaping AI adoption](https://www.roots.ai/hubfs/Reports%20and%20Whitepapers/Roots%20-%20State%20of%20AI%20Adoption%20in%20Insurance%202025.pdf)
+  - [(PDF) AI in Insurance Claims Processing: Balancing Innovation with Implementation Challenges](https://www.researchgate.net/publication/392076626_AI_in_Insurance_Claims_Processing_Balancing_Innovation_with_Implementation_Challenges)
+  - [AI in Insurance Claims Processing Workflow Transformation](https://hexaware.com/case-study/ai-in-insurance-claims-processing-for-end-to-end-transformation/)
+- giorno 3 05:08 **Dario** web_search «bank AI decision audit regulation spending EU AI Act logging explainability 2025 survey budget»
+  - [AI Compliance Costs in Banking: The Estimation Gap No One Sees](https://galorath.com/blog/ai-compliance-costs-banking-estimation-gap/)
+  - [AI Act implications for the EU banking and payments sector](https://www.eba.europa.eu/sites/default/files/2025-11/d8b999ce-a1d9-4964-9606-971bbc2aaf89/AI%20Act%20implications%20for%20the%20EU%20banking%20sector.pdf)
+  - [AI Compliance for Banks & Investment Firms](https://aurascape.ai/answers/ai-compliance-frameworks-standards-and-governance-for-banks-investment-firms/)
+- giorno 3 05:08 **Enea** cerca_discussioni «insurance claims document processing LLM cost savings»
+  - (no results)
+- giorno 3 05:16 **Matteo** cerca_discussioni «insurance claims document AI customer spend»
+  - (no results)
+- giorno 3 07:14 **Dario** cerca_discussioni «AI security triage SOC customer spending cost reduction»
+  - (no results)
+- giorno 3 07:58 **Livia** cerca_discussioni «AI security triage alert fatigue SOC cost reduction»
+  - (no results)
+- giorno 3 08:05 **Irene** cerca_discussioni «paid AI SOC alert triage tool customers pricing»
+  - (no results)
+- giorno 3 08:53 **Matteo** cerca_discussioni «AI decision audit logging bank compliance tool»
+  - (no results)
+- giorno 3 09:41 **Giulia** cerca_discussioni «AI security alert triage cost analysts»
+  - (no results)
+- giorno 3 10:32 **Giulia** cerca_discussioni «AI security alert triage cost SOC analysts»
+  - (no results)
+- giorno 3 12:51 **Giulia** cerca_discussioni «AI security triage cost alert fatigue SOC»
+  - (no results)
+- giorno 3 13:30 **Giulia** cerca_discussioni «AI security triage cost automated decisions audit»
+  - (no results)
+- giorno 3 13:42 **Giulia** cerca_progetti «AI security triage»
+  - [beenuar/AiSOC](https://github.com/beenuar/AiSOC)
+  - [scadastrangelove/awesome-ai-security-tools](https://github.com/scadastrangelove/awesome-ai-security-tools)
+  - [kulkarnirohit123/cra-agent](https://github.com/kulkarnirohit123/cra-agent)
+- giorno 3 14:42 **Giulia** cerca_discussioni «AI security alert triage cost SOC analysts»
+  - (no results)
+- giorno 3 14:44 **Giulia** cerca_paper «LLM security alert triage automation SOC»
+  - [Large Language Models for Security Operations Centers: A Comprehensive Survey](https://arxiv.org/abs/2509.10858v2)
+  - [A Unified Framework for Human AI Collaboration in Security Operations Centers with Trusted Autonomy](https://arxiv.org/abs/2505.23397v3)
+  - [SherAgent: Scaling Attack Investigation in the Wild via LLM-Empowered Iterative Query-Filter Backtracking](https://arxiv.org/abs/2607.09176v1)
+- giorno 3 17:41 **Matteo** cerca_discussioni «AI security triage alerts company paid contract spend»
+  - (no results)
+- giorno 4 01:51 **Irene** web_search «AI SOC alert triage paid customer case study annual contract bank security operations»
+  - [Autonomous SOC Guide: AI Alert Triage, Agentic Response, Vendor Evaluation & ROI Roadmap for Security Operations Leaders](https://underdefense.com/blog/autonomous-soc/)
+  - [AI SOC Investigation Speed: How We Cut 1,000 Alerts to 6 Real Cases](https://underdefense.com/blog/ai-soc-investigation-speed/)
+  - [Best AI Tools for Security Alert Triage (2026)](https://panther.com/blog/ai-tools-security-alert-triage)
+- giorno 4 01:58 **Dario** web_search «bank AI decision audit spending budget 2025 report»
+  - [FINANCIAL INSTITUTIONS AI IN FI REPORT 2025 For Banks, the AI](https://web-assets.bcg.com/1a/b0/007d0359442eb77e5f3aaf07b5c1/for-banks-the-ai-reckoning-is-here-may-2025.pdf)
+  - [2025 Report: AI Trends in Financial Management](https://www.citizensbank.com/corporate-finance/insights/artificial-intelligence-trends-report-2025.aspx)
+  - [Exclusive research: Banks were broadly gung ho on AI in 2025](https://www.americanbanker.com/news/exclusive-research-banks-were-broadly-gung-ho-on-ai-in-2025)
+- giorno 4 02:24 **Dario** web_search «insurance claims unstructured documents AI vendor contract cost»
+  - [How Much Does an Insurance AI Agent Cost for Claims Processing?](https://www.getmonetizely.com/articles/how-much-does-an-insurance-ai-agent-cost-for-claims-processing)
+  - [Best Document Processing Software For Insurance Claims In 2026](https://www.infrrd.ai/blog/best-document-processing-software-for-insurance-claims-2026)
+  - [Insurance document automation for claims: the 8 best data extraction tools in 2026](https://www.docsumo.com/blog/best-insurance-document-processing-software)
+- giorno 4 02:28 **Livia** web_search «SOC alert triage SMB customers paid spending verified case study 2026 price per year company»
+  - [Best AI Tools for Security Alert Triage (2026)](https://panther.com/blog/ai-tools-security-alert-triage)
+  - [Best AI SOC for SMBs: 6 Vendors Scored With Real Pricing (2026)](https://underdefense.com/blog/ai-soc-for-smb/)
+  - [Huntress Alternatives 2026: 9 Security Providers for SMBs](https://underdefense.com/blog/huntress-alternatives-9-security-providers-for-smbs-in-2026/)
+- giorno 4 03:05 **Irene** web_search «SOC alert triage AI customer spend contract value public case study 2025»
+  - [AI SOC SLA in 2026: MTTR, Benchmarks, Clause Tables, Negotiation Checklist](https://underdefense.com/blog/ai-soc-sla-guide/)
+  - [Best AI Tools for Security Alert Triage (2026)](https://panther.com/blog/ai-tools-security-alert-triage)
+  - [Autonomous SOC Guide: AI Alert Triage, Agentic Response, Vendor Evaluation & ROI Roadmap for Security Operations Leaders](https://underdefense.com/blog/autonomous-soc/)
+- giorno 4 03:20 **Livia** web_search «spesa cliente security operations AI triage alert budget 2025 case study dollars per year»
+  - [AI SOC Investigation Speed: How We Cut 1,000 Alerts to 6 Real Cases](https://underdefense.com/blog/ai-soc-investigation-speed/)
+  - [AI-Enabled Incident Triage: Implementation Playbook](https://underdefense.com/blog/ai-enabled-incident-triage/)
+  - [9 Security Operations Center Best Practices for Cost Savings](https://www.trackforce.com/resources/blog-articles/9-security-operations-center-best-practices-for-efficiency-and-cost-savings/)
+- giorno 4 03:27 **Dario** web_search «AI security alert triage customer spending case study cost per analyst reduction budget»
+  - [Alert triage in under 3 minutes with Elastic's agentic SOC — Elastic Security Labs](https://www.elastic.co/security-labs/alert-triage-agentic-soc-elastic-workflows)
+  - [Alert triage in under 3 minutes with Elastic's agentic SOC](https://www.elastic.co/security-labs/blog/alert-triage-agentic-soc-elastic-workflows)
+  - [AI-Enabled Incident Triage: Implementation Playbook](https://underdefense.com/blog/ai-enabled-incident-triage/)
+- giorno 4 04:24 **Irene** web_search «AI security alert triage customer case study paid contract price per year 2025»
+  - [Best AI Tools for Security Alert Triage (2026)](https://panther.com/blog/ai-tools-security-alert-triage)
+  - [AI SOC SLA in 2026: MTTR, Benchmarks, Clause Tables, Negotiation Checklist](https://underdefense.com/blog/ai-soc-sla-guide/)
+  - [AI in Cyber Defense: Real-World Case Study with Metrics and Implementation Lessons](https://supplylogic.blogspot.com/2026/05/ai-in-cyber-defense-real-world-case.html?m=1)
+- giorno 4 05:26 **Matteo** web_search «bank AI decision audit trail regulation on-premise explainability customer spending 2025»
+  - [Audit Trails and Explainability for Compliance: Building the Transparency Layer Financial Services Cannot Ignore](https://lawrence-emenike.medium.com/audit-trails-and-explainability-for-compliance-building-the-transparency-layer-financial-services-d24961bad987)
+  - [AI Audit Trail Requirements: A 2026 Checklist for Finance, Healthcare, and Banking](https://www.kognitos.com/blog/ai-audit-trail-requirements-2026-checklist/)
+  - [Make Mechanistic Interpretability Auditable: A Call to Develop Guidelines via Continuous Collaborative Reviewing](https://arxiv.org/pdf/2606.00033)
+- giorno 4 05:57 **Matteo** cerca_discussioni «AI decision audit trail bank compliance»
+  - [Show HN: OmnAI – Sovereign AI infrastructure with multi-vault isolation](https://github.com/TadTanyaTalaTadenTadhgTaya/OmnAI-v3.5)
+  - [Show HN: EnforceAuth GA Launch](https://enforceauth.com/contact?inquiry=waitlist)
+- giorno 4 06:16 **Livia** web_search «bank AI decision audit spending 2025 budget per year»
+  - [80% of banks have upped AI spending. Here's what they're buying](https://www.americanbanker.com/news/80-of-banks-have-upped-ai-spending-heres-what-theyre-buying)
+  - [Exclusive research: Banks were broadly gung ho on AI in 2025](https://www.americanbanker.com/news/exclusive-research-banks-were-broadly-gung-ho-on-ai-in-2025)
+  - [Bank of America plans to double AI budget next year](https://www.bankingdive.com/news/bank-of-america-ai-spending-roi-headcount-moynihan/831159/)
+- giorno 4 08:03 **Dario** cerca_paper «insurance claims unstructured document processing LLM»
+  - [Leveraging LLMs for Unstructured Claims Data Analysis](https://arxiv.org/abs/2606.06089v1)
+- giorno 4 19:47 **Giulia** cerca_discussioni «bank spending AI compliance audit automated decisions cost»
+  - (no results)
+- giorno 4 20:36 **Giulia** cerca_discussioni «AI decision audit bank compliance spending»
+  - (no results)
+- giorno 5 00:36 **Irene** web_search «bank spending AI decision audit explainability compliance budget 2025 report»
+  - [How Much Do Banks Spend on Compliance? A Look at 2025 Trends](https://www.fourthline.com/blog/how-much-do-banks-spend-on-compliance)
+  - [AI Compliance Costs in Banking: The Estimation Gap No One Sees](https://galorath.com/blog/ai-compliance-costs-banking-estimation-gap/)
+  - [Exclusive research: Banks were broadly gung ho on AI in 2025](https://www.americanbanker.com/news/exclusive-research-banks-were-broadly-gung-ho-on-ai-in-2025)
+- giorno 5 00:57 **Matteo** web_search «bank spending AI audit automated decisions explainability compliance tool 2025 budget»
+  - [Explainable AI in Finance: Addressing the Needs of Diverse Stakeholders](https://rpc.cfainstitute.org/research/reports/2025/explainable-ai-in-finance)
+  - [AI for Compliance in Banking: 8 Best Tools for Banks and Credit Unions (2026)](https://www.multimodal.dev/post/ai-tools-for-regulatory-compliance-in-banking)
+  - [AI in Lending: AI Credit Regulations Affecting Lending 2025](https://hesfintech.com/blog/all-legislative-trends-regulating-ai-in-lending/)
+- giorno 5 01:02 **Dario** web_search «bank spending AI audit decision automation contract 2025 announced million»
+  - [Best secure AI agents for banking in 2026](https://gradient-labs.ai/guides/new-best-secure-ai-agents-for-banking-in-2026)
+  - [AI in Banking: From Chatbots to Fraud Detection — What Is Actually Live in 2026](https://automely.ai/blogs/rpa-in-banking-ai-fraud-detection-automation)
+  - [Artificial Intelligence Technology Solutions Inc. - Form 8-K - FY2025](https://www.sec.gov/Archives/edgar/data/1498148/000106299325016622/exhibit99-1.htm)
+- giorno 5 01:02 **Irene** web_search «bank announces investment AI model audit governance million dollars contract named bank 2025»
+  - [AI Governance in Finance: The 2026 Compliance Guide](https://www.superblocks.com/blog/ai-governance-in-finance)
+  - [AI Governance for FinTech: Avoiding Model Risk Penalties](https://elevateconsult.com/insights/proven-ways-to-avoid-1m-model-risk-penaltiesai-governance-in-fintech-avoid-1m-risk-penalties/)
+  - [AI governance and risk management from the perspective of banking and financial supervision](https://banking.vision/en/ai-governance-and-risk-management)

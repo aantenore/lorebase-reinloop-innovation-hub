@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Committee independence as policies: `comitato_non_coautore` (committee members cannot propose ideas; an edit of
+  theirs is recorded as a reviewer's contribution, `contributed`, not co-authorship) and
+  `supplenti_comitato_per_anzianita` (below quorum, non-conflicted people of the hub sit as alternates by career
+  step, then esteem; counted in `alternates`).
+- Policy `slot_scadono_a_fine_trimestre`: unused approval slots are lost at the end of the quarter (off: they carry
+  over); perception and the committee brief say how many are left and on which day and hour they expire
+  (`/api/company`: `slotsExpire`, `quarterEndsDay`, `slotsCarried`).
+- Perception of the candidacy requirements: only what the policy requires and whether it is met; human validation
+  only as the alternative path, never as a count among the requirements (also in the refusal of `candida_al_comitato`).
+- Cost: hosted web search quotas down (`ricerche_web_per_persona_al_giorno` 3, `ricerche_web_totali_al_giorno` 10),
+  public signal quotas up (16, 120), research and signal caches kept a day; spend per tool in
+  `reinloop.costUsd.byTool` (`minds`, `web_search`, `intervista_simulata`, `segnali_pubblici`).
+- Live run 4 recorded: `docs/run-report.md` (Run 4), `docs/evidence/run4/`, `docs/portfolio-run4.md`, board mode
+  screenshot.
 - reinloop pinned at 474f0b5 (`vendor/reinloop-474f0b5c.tgz`): `signalTools` and recovery from malformed streamed
   tool arguments (the group plan JSON failures of run 2).
 - Evidence for ideas: Lorebase Kind `Evidence` on the idea branch (`public_signal`, `web_source`,

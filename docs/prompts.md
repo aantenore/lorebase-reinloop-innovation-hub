@@ -24,7 +24,7 @@ Descriptions say what each tool does, never when or why to use it (`rt.tools.ide
 | Tool | Arguments | Effect |
 |------|-----------|--------|
 | `proponi_idea` | `title`, `problem`, `users?`, `solution?`, `differentiation?`, `feasibility?`, `risks?`, `tags?`, `signals?`, `sources?` (`[{title, url}]`, http/https only) | a new idea on its own `idea/<code>` branch, the person as champion; carried items named in `signals` (signals, work artifacts) go into it |
-| `arricchisci_idea` | `code` + any field | adds or rewrites fields of an open idea; the editor becomes a co-author |
+| `arricchisci_idea` | `code` + any field | adds or rewrites fields of an open idea; the editor becomes a co-author, except a committee member under policy `comitato_non_coautore` (recorded as a reviewer's contribution, `rt.act.ideaContributed`) |
 | `valuta_idea` | `code`, `impact`, `feasibility`, `novelty`, `fit`, `risk` (0-10), `comment` | a peer review (never of one's own idea; one per person, a new one replaces the old) |
 | `candida_al_comitato` | `code` | an author submits a complete idea with enough reviews; a Proposal into `main` opens |
 | `leggi_idea` | `code` | the idea in full (fields, authors, reviews, weighted score, history) |
@@ -40,7 +40,9 @@ Descriptions say what each tool does, never when or why to use it (`rt.tools.ide
 Refusals are facts (`rt.evidenceReason.*`): "l'indirizzo non è tra i risultati delle tue ricerche", "hai esaurito
 le tue ricerche di segnali pubblici di oggi", "questa prova è già allegata all'idea". A submission short of the
 candidacy requirements is refused with the numbers (`rt.gate.*`): "requisiti di candidatura non soddisfatti: prove
-reali 1 di 3; fonti distinte 1 di 2; validazioni umane 0 di 1 (in alternativa)".
+reali 1 di 3; fonti distinte 1 di 2; in alternativa, per policy bastano validazioni umane: almeno 1". A committee
+member proposing an idea under `comitato_non_coautore` is refused with "per policy (comitato_non_coautore) i membri
+del comitato investimenti non propongono idee".
 
 Web research refusals are facts too (`rt.researchReason.*`): "hai esaurito le tue ricerche web di oggi",
 "il dominio è escluso dalle policy", "la pagina non è tra i risultati delle tue ricerche web" (`web_fetch` only reads URLs
@@ -55,15 +57,19 @@ slots, quorum) are policies to consult in Lorebase.
 
 Two blocks, facts only:
 
-- `AZIENDA`: quarter, approval slots left this quarter (rule `quarter_idea_slots` minus approvals),
-  freeze on or off, the person's career step.
+- `AZIENDA`: quarter, approval slots left this quarter and when they expire (`rt.observation.slotsExpire`: "slot di
+  approvazione rimasti questo trimestre: 3 su 3, scadono il giorno 1 alle 10:00 (policy
+  slot_scadono_a_fine_trimestre)"; with the policy off, `rt.observation.slotsCarry`: unused slots pass to the next
+  quarter), freeze on or off, the person's career step.
 - `IDEE IN AZIENDA`: up to `ideas.perceiveMax` open ideas (the person's first) and the latest decided
   ones: code, title, stage, champion, authors, number of reviews, whether it is the person's or reviewed
   by it, which fields are missing, and for open ideas the evidence against the candidacy requirements
-  (`rt.observation.ideaEvidence`: "prove reali 1/3, fonti distinte 1/2, ipotesi 1 (peso 0); in alternativa per
-  policy: validazioni umane 0/1", or `rt.observation.ideaEvidenceOk`: "... validazioni umane 0 (facoltative):
-  requisiti di candidatura soddisfatti per policy, l'idea può essere candidata al comitato"; run 3 showed that a
-  bare "validazioni umane 0" next to "soddisfatti" was read as a missing requirement).
+  only as the policy asks them and whether they are met (`rt.observation.ideaEvidence`: "requisiti di candidatura
+  per policy: prove reali 1 di 3, fonti distinte 1 di 2, non ancora soddisfatti; la policy prevede anche una strada
+  alternativa: validazioni umane, almeno 1", or `rt.observation.ideaEvidenceOk`: "requisiti di candidatura
+  soddisfatti per policy (prove reali 4, ne servono 3; fonti distinte 2, ne servono 2): l'idea può essere candidata
+  al comitato"). Human validation appears only as the alternative path, never as a count next to the others: in
+  run 3 "validazioni umane 0" next to "soddisfatti" was read as a missing requirement.
 - New evidence is news for the authors and, for a player's validation, for the people within earshot
   (`rt.why.idea.evidence`).
 
@@ -75,6 +81,8 @@ Lorebase like any policy. The committee brief carries the weighted score of the 
 evaluation policies (`weight_*`, risk counted inverted), the evidence (`rt.committee.evidence`: each piece with
 type, source, metric, weight, who collected it, `[ipotesi]` on interviews), where the idea stands against the
 requirements and the score mixed by `peso_prove_nel_punteggio_comitato`: facts derived from the policies, not advice.
+When alternates sit (policy `supplenti_comitato_per_anzianita`), the brief names them (`rt.committee.alternates`:
+"SUPPLENTI: Giulia, senza conflitto di interessi su questa idea, siedono per policy ... fino al quorum di 2").
 
 ## Rendered example
 
@@ -115,7 +123,7 @@ METODI DI LAVORO CHE CONOSCI:
 - Scrivere una nota di fattibilità (nota_fattibilita): 1 Insight (insight), 1 risultato di ricerca qualsiasi (@research) -> 1 Nota di fattibilità (nota_fattibilita); ti manca: 1 risultato di ricerca qualsiasi (@research)
 - Scrivere un concept (concept): 1 Insight (insight), 1 Nota di fattibilità (nota_fattibilita) -> 1 Concept di prodotto (concept); si fa dove c'è una postazione (shelter); ti manca: 1 Nota di fattibilità (nota_fattibilita)
 
-AZIENDA: Hub Innovazione; trimestre Q1; slot di approvazione rimasti nel trimestre: 3 su 3; nessun freeze in corso. La tua carriera: Senior.
+AZIENDA: Hub Innovazione; trimestre Q1; slot di approvazione rimasti questo trimestre: 3 su 3, scadono il giorno 1 alle 10:00 (policy slot_scadono_a_fine_trimestre); nessun freeze in corso. La tua carriera: Senior.
 
 IDEE IN AZIENDA:
 - ci-senza-test-instabili-70t38: «CI senza test instabili» (concept); champion Livia; autori Livia; valutazioni 0; mancano: differenziazione, fattibilità, rischi

@@ -445,7 +445,7 @@ rules:
     category: ideas
     text: "Ricerche e letture sul web che una persona può fare in un giorno."
   - code: ricerche_web_totali_al_giorno
-    value: 12
+    value: 10
     unit: "ricerche"
     category: ideas
     text: "Ricerche e letture sul web che l'intero hub può fare in un giorno."

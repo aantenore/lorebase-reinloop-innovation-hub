@@ -13,7 +13,8 @@ Derived from [lorebase-reinloop-civilization](https://github.com/aantenore/loreb
 which holds the history of the engine (real-time world, minds, groups, society, economy, god mode).
 
 Live runs (budget-capped, real models, web research on): [docs/run-report.md](docs/run-report.md), evidence in
-[docs/evidence/run1/](docs/evidence/run1/) and [docs/evidence/run2/](docs/evidence/run2/).
+[docs/evidence/run1/](docs/evidence/run1/), [run2/](docs/evidence/run2/), [run3/](docs/evidence/run3/) and
+[run4/](docs/evidence/run4/).
 
 ## Screenshots
 
@@ -30,7 +31,7 @@ Live runs (budget-capped, real models, web research on): [docs/run-report.md](do
 *Le ricerche web di una persona nell'ispettore, con i link ai risultati / A person's web research in the inspector, with links to the results*
 
 ![Board mode](docs/screenshots/board-mode.png)
-*Modalità Board: conversazioni e menti / Board mode: conversations and minds*
+*Modalità Board: conversazioni e menti (run 4: gli slot che scadono sono un fatto della percezione) / Board mode: conversations and minds (run 4: expiring slots are a fact of perception)*
 
 ![Playbook](docs/screenshots/playbook.png)
 *Il playbook dei ruoli, proposto e revisionato dai pari / Role playbooks, proposed and peer-reviewed*
@@ -209,8 +210,10 @@ share one mind (crowd "Stagisti").
   instructions (identity, role, faculties, horizon); the perception of the moment is the message, last. Config
   `promptCache` (`enabled`, `ttl`, `groupTtl`: `5m` or `1h`). `/api/observatory/summary` reports
   `reinloop.cache` (`readTokens`, `writeTokens`, `hitRatio` = read share of all input tokens, `savedUsd` against
-  the same calls uncached, also `byModel` and `byTier`) and the research counters in `reinloop`
-  (`webSearches`, `webFetches`, `webCached`, `webRefused`, `webErrors`).
+  the same calls uncached, also `byModel` and `byTier`), spend per tool in `reinloop.costUsd.byTool` (`minds`,
+  `web_search`, `intervista_simulata`, `segnali_pubblici`: runs, USD, share; public signals are free APIs) and the
+  research counters in `reinloop` (`webSearches`, `webFetches`, `webCached`, `webRefused`, `webErrors`). Research
+  and signal caches keep answers for a day (`cacheTtlMs` 86400000).
 - **Cost profiles.** `GAME_PROFILE=<name>` applies `config/profiles/<name>.json` over the config files (`game`
   into `config/game.json`, `sim` into `config/sim.json`, `rosterTiers` by name, `"*"` for the rest). `economy`:
   every mind on haiku, the committee chair (Livia) included; committee voters and group proposers on haiku, no interns, replan cooldowns x2 (sonnet x3), one Lorebase consultation per haiku decision,
@@ -233,6 +236,7 @@ Seeded from `lorebase/rules.seed.yaml` (Kind `Rule`). The ones about ideas and t
 | Policy | Default | Effect |
 |---|---|---|
 | `quarter_idea_slots` | 3 | approvals per quarter; with none left an approval becomes a deferral |
+| `slot_scadono_a_fine_trimestre` | 1 | unused approval slots are lost at the end of the quarter (0: they carry over); perception and the committee brief say how many are left and on which day and hour they expire |
 | `min_idea_reviewers` | 2 | reviews by non-authors needed to submit |
 | `committee_quorum` | 2 | committee members present for it to decide |
 | `weight_impact`, `weight_feasibility`, `weight_novelty`, `weight_fit`, `weight_risk` | 0.3, 0.2, 0.2, 0.2, 0.1 | the weighted score shown to the committee (risk counted inverted) |
@@ -241,11 +245,13 @@ Seeded from `lorebase/rules.seed.yaml` (Kind `Rule`). The ones about ideas and t
 | `fame_idea_proposed`, `fame_idea_approved`, `fame_review_given` | 0.5, 5, 0.5 | impact of each deed |
 | `promotion_senior_fame`, `promotion_principal_fame`, `promotion_fellow_fame` | 2, 6, 12 | career steps |
 | `risk_appetite` | 6 | read by people; not enforced by the world |
-| `ricerche_web_per_persona_al_giorno` | 12 | web searches and page reads one person may do per game day (a cached answer is free) |
-| `ricerche_web_totali_al_giorno` | 60 | the same for the whole hub |
+| `ricerche_web_per_persona_al_giorno` | 3 | web searches and page reads one person may do per game day (a cached answer is free) |
+| `ricerche_web_totali_al_giorno` | 10 | the same for the whole hub (hosted search was the largest cost of run 3; public signals are free) |
 | `astensione_conflitto_interessi` | 1 | the champion and authors of an idea neither vote nor chair its committee session; a conflicted chair is replaced by the eligible member with the highest career step (then vote weight); quorum counts eligible members (enforced by the server) |
+| `comitato_non_coautore` | 1 | members of the investment committee never become authors: they cannot propose ideas, and an edit of theirs is recorded as a reviewer's contribution (`contributed` in the idea's history), not co-authorship |
+| `supplenti_comitato_per_anzianita` | 1 | when fewer committee members than the quorum may decide on an idea, people of the hub with no conflict on it sit as alternates by career step, then esteem, up to the quorum (0: the idea waits) |
 | `revisioni_indipendenti` | 1 | a non-author reads the other reviews' scores and comments of an idea only after reviewing it (`leggi_idea` and perception filtered by the server); identical five scores to an existing review are noted in the idea's history (`scores_match`), never blocked |
-| `segnali_pubblici_per_persona_al_giorno`, `segnali_pubblici_totali_al_giorno` | 10, 60 | public signal searches per person and for the hub per game day (cached answers are free) |
+| `segnali_pubblici_per_persona_al_giorno`, `segnali_pubblici_totali_al_giorno` | 16, 120 | public signal searches per person and for the hub per game day (cached answers are free) |
 | `interviste_simulate_per_persona_al_giorno`, `interviste_simulate_totali_al_giorno` | 2, 10 | simulated interviews per person and for the hub per game day |
 | `peso_prova_segnale_pubblico`, `peso_prova_fonte_web`, `peso_prova_validazione_umana` | 1, 0.5, 2 | weight of each kind of evidence (simulated interviews always 0) |
 | `requisiti_candidatura_prove_reali`, `requisiti_candidatura_fonti_distinte` | 3, 2 | to submit, an idea needs this much real evidence (weight > 0, interviews excluded) from this many distinct sources... |
@@ -352,12 +358,24 @@ web sources only, but the team held it back waiting for human interviews; no com
   [committee.md](docs/evidence/run3/committee.md), [conversations.md](docs/evidence/run3/conversations.md),
   [research.md](docs/evidence/run3/research.md), [lorebase-log.md](docs/evidence/run3/lorebase-log.md)
 
-- [run-progress.log](docs/run-progress.log) and the screenshots above (the idea detail with its evidence is from run 3) (all live except the idea board, from an
+Live run 4 (2026-10-26, 30 real minutes, $1.93: minds $1.46, hosted web search $0.48 (25%), public signals $0),
+section "Run 4" of [docs/run-report.md](docs/run-report.md): committee kept out of authorship, expiring slots in
+perception; the committee sat twice on one idea that met the requirements and deferred it twice, asking for a
+verified customer spend no policy requires.
+
+- [evidence.md](docs/evidence/run4/evidence.md), [summary.json](docs/evidence/run4/summary.json) (adds
+  `reinloop.costUsd.byTool`, `alternates`), [portfolio.md](docs/evidence/run4/portfolio.md) (also
+  [docs/portfolio-run4.md](docs/portfolio-run4.md)), [committee.md](docs/evidence/run4/committee.md) (votes and
+  reasons), [conversations.md](docs/evidence/run4/conversations.md), [research.md](docs/evidence/run4/research.md),
+  [lorebase-log.md](docs/evidence/run4/lorebase-log.md)
+
+- [run-progress.log](docs/run-progress.log) and the screenshots above (the idea detail with its evidence is from run 3, board mode from run 4) (all live except the idea board, from an
   offline run with more ideas)
 
 ## Known limits
 
-- The committee is the seeded group named in `ideas.committee.groupName`; if it dissolves, submitted ideas wait.
+- The committee is the seeded group named in `ideas.committee.groupName`; if it dissolves, submitted ideas wait
+  (below quorum, alternates sit by policy `supplenti_comitato_per_anzianita`).
 - Ideas are written to Lorebase in the background (retried on 429 and 5xx); an idea created while Keeper is
   down is kept in memory for the run only.
 - Offline, movement follows `mock.habits` (which company roles explore, gather, build or look after colleagues);
