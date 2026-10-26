@@ -24,7 +24,7 @@ Live runs (budget-capped, real models, web research on): [docs/run-report.md](do
 *La bacheca delle idee per fase / The idea board by stage*
 
 ![Idea detail](docs/screenshots/idea-detail.png)
-*Un'idea approvata con valutazioni, decisione del comitato e fonti web / An approved idea with reviews, the committee's decision and web sources*
+*Un'idea con le sue prove per tipo, pesi e requisiti di candidatura (run 3) / An idea with its evidence by type, weights and candidacy requirements (run 3)*
 
 ![Web research](docs/screenshots/research.png)
 *Le ricerche web di una persona nell'ispettore, con i link ai risultati / A person's web research in the inspector, with links to the results*
@@ -147,7 +147,7 @@ every mind pauses), `SIM_MODEL_OVERRIDE=haiku` (every agent on one tier), `SIM_R
 (`SIM_API_TOKEN`, `HERALD_URL`, `MNEMO_URL`, ...).
 
 `npm run world:reset -- --dry-run` shows what a reset would do: policies back to the seed, breakthroughs
-hidden again, newsletter, playbooks, teams, ideas and reviews archived on `archive/<stamp>`, stale
+hidden again, newsletter, playbooks, teams, ideas, reviews and evidence archived on `archive/<stamp>`, stale
 `idea/`, `playbook/`, `policy/`, `breakthrough/` branches closed, private memory wiped.
 
 ### Ports
@@ -194,7 +194,7 @@ share one mind (crowd "Stagisti").
   (`signals.cacheTtlMs`, a cached answer is free); results are untrusted text. `allega_prova {idea, tipo, url,
   titolo?, metrica?, estratto?}` turns a result into an `Evidence` Record on the idea's branch, but only when the URL
   came back from the same person's own signal or web searches (`signals.allowTtlMs`, `allowMax`); source, title and
-  metric are taken from the result, not from the model. `intervista_simulata {idea, persona: cliente|dpo|utente,
+  metric are taken from the result (a `metrica` the model writes is never recorded). `intervista_simulata {idea, persona: cliente|dpo|utente,
   domande}` is one cheap call (`interview.tier`, `maxOutputTokens`) whose answers are stored as `simulated_interview`
   evidence with weight 0 and the label `ipotesi`, prefixed "IPOTESI ...". A player in the hub, within speech range
   of a person, validates an idea from the game's "Valida idea" panel (`POST /api/ideas/:code/validation`, or
@@ -222,9 +222,9 @@ share one mind (crowd "Stagisti").
 - **Language of thoughts.** The Messages API has no setting for the language of thinking summaries, and in run 2
   they came back in English. Plan calls now use `thinking.display: "omitted"` (`decisions.modelParams.plan`): the
   thought shown for a decision is the person's own plan reason, written in Italian; the working-language line is
-  the first line of the instructions. A thought's language is still guessed from marker words
-  (`decisions.thoughtLanguage`) and recorded (`lang` on the `say` event of kind `thought`, `reinloop.thoughtLangs`);
-  nothing is translated.
+  the first line of the instructions. A thought's language is guessed from marker words
+  (`decisions.thoughtLanguage`) and recorded (`lang` on the `say` event of kind `thought`; plan reasons in
+  `reinloop.reasonLangs`, summaries, when turned on, in `reinloop.thoughtLangs`); nothing is translated.
 
 ## Policies
 
@@ -342,7 +342,17 @@ policies on, clock x3), section "Run 2" of [docs/run-report.md](docs/run-report.
 - [conversations.md](docs/evidence/run2/conversations.md), [research.md](docs/evidence/run2/research.md),
   [lorebase-log.md](docs/evidence/run2/lorebase-log.md)
 
-- [run-progress.log](docs/run-progress.log) and the screenshots above (all live except the idea board, from an
+Live run 3 (2026-10-26, 28 real minutes, $2.27, all minds on haiku, evidence and candidacy requirements), section
+"Run 3" of [docs/run-report.md](docs/run-report.md): one idea met the requirements per policy with public signals and
+web sources only, but the team held it back waiting for human interviews; no committee session.
+
+- [evidence.md](docs/evidence/run3/evidence.md): every piece of evidence with its link, source, metric and weight
+- [summary.json](docs/evidence/run3/summary.json) (adds `signalSearches`, `evidenceAttached`, `interviews`, `gateRefusals`, `validations`)
+- [portfolio.md](docs/evidence/run3/portfolio.md) (also [docs/portfolio-run3.md](docs/portfolio-run3.md)),
+  [committee.md](docs/evidence/run3/committee.md), [conversations.md](docs/evidence/run3/conversations.md),
+  [research.md](docs/evidence/run3/research.md), [lorebase-log.md](docs/evidence/run3/lorebase-log.md)
+
+- [run-progress.log](docs/run-progress.log) and the screenshots above (the idea detail with its evidence is from run 3) (all live except the idea board, from an
   offline run with more ideas)
 
 ## Known limits

@@ -1,0 +1,182 @@
+{
+  "lorebase": {
+    "url": "http://127.0.0.1:8280",
+    "domain": "hub",
+    "branch": "main",
+    "revision": "a21dea5949d397dc97717216a5144d43211b40ed6d457012aa185fbfae38a8a6",
+    "counts": {
+      "Signal": 40,
+      "Role": 8,
+      "Recipe": 11,
+      "Resource": 15,
+      "Chronicle": 33,
+      "Insight": 2,
+      "Rule": 113
+    }
+  },
+  "mnemo": {
+    "connected": true,
+    "memories": 3037,
+    "perAgent": [
+      {
+        "agentId": "a1",
+        "name": "Livia",
+        "count": 360,
+        "avgFidelity": 0.957,
+        "gists": 0
+      },
+      {
+        "agentId": "a2",
+        "name": "Matteo",
+        "count": 352,
+        "avgFidelity": 0.954,
+        "gists": 0
+      },
+      {
+        "agentId": "a3",
+        "name": "Giulia",
+        "count": 398,
+        "avgFidelity": 0.961,
+        "gists": 0
+      },
+      {
+        "agentId": "a4",
+        "name": "Enea",
+        "count": 383,
+        "avgFidelity": 0.968,
+        "gists": 0
+      },
+      {
+        "agentId": "a5",
+        "name": "Sara",
+        "count": 387,
+        "avgFidelity": 0.967,
+        "gists": 0
+      },
+      {
+        "agentId": "a6",
+        "name": "Bruno",
+        "count": 393,
+        "avgFidelity": 0.962,
+        "gists": 0
+      },
+      {
+        "agentId": "a7",
+        "name": "Irene",
+        "count": 405,
+        "avgFidelity": 0.964,
+        "gists": 0
+      },
+      {
+        "agentId": "a8",
+        "name": "Dario",
+        "count": 359,
+        "avgFidelity": 0.962,
+        "gists": 0
+      }
+    ],
+    "dbBytes": 22294528,
+    "lastCompaction": null,
+    "embedder": {
+      "name": "transformers:Xenova/multilingual-e5-small:q8",
+      "dim": 384,
+      "fallback": false
+    }
+  },
+  "reinloop": {
+    "decisions": 468,
+    "groupDecisions": 69,
+    "replies": 369,
+    "failures": 7,
+    "thoughts": 462,
+    "failureReasons": {
+      "decide: no plan committed": 6,
+      "reply: stopped: budget:maxToolCalls": 1
+    },
+    "thoughtLangs": {
+      "it": 438
+    },
+    "recusals": 0,
+    "scoreMatches": 0,
+    "gateRefusals": 0,
+    "validations": 0,
+    "running": 4,
+    "signalSearches": 38,
+    "signalCached": 3,
+    "signalRefused": 13,
+    "signalErrors": 0,
+    "evidenceAttached": 12,
+    "interviews": 0,
+    "webSearches": 86,
+    "webFetches": 0,
+    "webCached": 4,
+    "webRefused": 0,
+    "webCapped": 6,
+    "webErrors": 0,
+    "budgetMaxUsd": 3,
+    "budgetPaused": 0,
+    "runs": 1057,
+    "tokens": {
+      "input": 24551451,
+      "output": 1158060
+    },
+    "costUsd": {
+      "total": 2.271868,
+      "byModel": {
+        "anthropic/claude-haiku-5-5": 1.295755,
+        "claude-haiku-5-5": 0.976113
+      },
+      "byTier": {
+        "haiku": 1.15723,
+        "group:orchestrator": 0.138525,
+        "research": 0.976113
+      }
+    },
+    "cache": {
+      "readTokens": 18854829,
+      "writeTokens": 4585100,
+      "write1hTokens": 0,
+      "hitRatio": 0.768,
+      "savedUsd": 1.582307,
+      "byModel": {
+        "anthropic/claude-haiku-5-5": {
+          "readTokens": 18854829,
+          "writeTokens": 4585100,
+          "write1hTokens": 0,
+          "hitRatio": 0.8042,
+          "savedUsd": 1.582307
+        },
+        "claude-haiku-5-5": {
+          "readTokens": 0,
+          "writeTokens": 0,
+          "write1hTokens": 0,
+          "hitRatio": 0,
+          "savedUsd": 0
+        }
+      },
+      "byTier": {
+        "haiku": {
+          "readTokens": 17394082,
+          "writeTokens": 4253228,
+          "write1hTokens": 0,
+          "hitRatio": 0.8033,
+          "savedUsd": 1.459137
+        },
+        "group:orchestrator": {
+          "readTokens": 1460747,
+          "writeTokens": 331872,
+          "write1hTokens": 0,
+          "hitRatio": 0.8147,
+          "savedUsd": 0.12317
+        },
+        "research": {
+          "readTokens": 0,
+          "writeTokens": 0,
+          "write1hTokens": 0,
+          "hitRatio": 0,
+          "savedUsd": 0
+        }
+      }
+    }
+  }
+}

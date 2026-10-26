@@ -60,8 +60,10 @@ Two blocks, facts only:
 - `IDEE IN AZIENDA`: up to `ideas.perceiveMax` open ideas (the person's first) and the latest decided
   ones: code, title, stage, champion, authors, number of reviews, whether it is the person's or reviewed
   by it, which fields are missing, and for open ideas the evidence against the candidacy requirements
-  (`rt.observation.ideaEvidence`: "prove reali 1/3, fonti distinte 1/2, validazioni umane 0/1, ipotesi 1", or
-  "requisiti di candidatura soddisfatti").
+  (`rt.observation.ideaEvidence`: "prove reali 1/3, fonti distinte 1/2, ipotesi 1 (peso 0); in alternativa per
+  policy: validazioni umane 0/1", or `rt.observation.ideaEvidenceOk`: "... validazioni umane 0 (facoltative):
+  requisiti di candidatura soddisfatti per policy, l'idea può essere candidata al comitato"; run 3 showed that a
+  bare "validazioni umane 0" next to "soddisfatti" was read as a missing requirement).
 - New evidence is news for the authors and, for a player's validation, for the people within earshot
   (`rt.why.idea.evidence`).
 

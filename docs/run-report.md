@@ -199,3 +199,105 @@ No idea was submitted, approved or killed. Full text in [portfolio-run2.md](port
 A run with `research.provider: anthropic-native` (now the default, search cost booked in the budget) and a higher
 budget, or Livia on haiku, to see whether a submission happens once the team stops waiting for a pilot; and a reinloop
 fix for strict tool-input parsing, then a re-pin.
+
+# Run 3: evidence, candidacy requirements, Italian thoughts
+
+Date: 2026-10-26, 10:29-10:58 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (now every
+mind on haiku, Livia included; clock x3), `GAME_BUDGET_USD=3`, research `anthropic-native`, public signals through
+reinloop `signalTools` (pinned 474f0b5, which also recovers from malformed streamed tool arguments). New: `Evidence`
+Records, `cerca_discussioni` / `cerca_progetti` / `cerca_domande` / `cerca_paper`, `allega_prova`,
+`intervista_simulata`, human validation from players, candidacy requirements as policies
+(`requisiti_candidatura_prove_reali` 3, `_fonti_distinte` 2, or `_validazioni_umane` 1 instead), evidence in the
+committee's score (`peso_prove_nel_punteggio_comitato` 0.3), plan calls with thinking summaries omitted. No player
+joined. Stop rule: budget, 30 real minutes or five committee decisions: **time came first** (stopped at 28 minutes).
+
+Evidence: [docs/evidence/run3/](evidence/run3/), with [evidence.md](evidence/run3/evidence.md) listing every piece
+of evidence with its link. Progress log: [docs/run-progress.log](run-progress.log) (`run3` lines). Export:
+[docs/portfolio-run3.md](portfolio-run3.md).
+
+## Runs 1 to 3
+
+| | Run 1 | Run 2 | Run 3 |
+|---|---|---|---|
+| Real time, stop | 30 min, time | 19 min, budget | 28 min, time |
+| Game time | day 1 08:00 to day 2 13:47 | day 1 07:00 to day 3 15:30 | day 1 07:00 to day 4 ~21:00 |
+| Model tiers | haiku, Livia sonnet | haiku, Livia sonnet | all haiku |
+| Decisions | 213 + 29 group, 480 runs | 293 + 48 group, 663 runs | 468 + 69 group, 369 replies, 1057 runs |
+| Failures | 8 (6 `maxTurns`) | 6 (2 group JSON) | 7 (6 no plan committed, 1 reply at `maxToolCalls`), **0 group JSON** |
+| Cost | $2.33 | $3.01 | **$2.27** (minds $1.30, hosted web search $0.98) |
+| Tokens in / out | 10.78 M / 0.43 M | 15.03 M / 0.63 M | 24.55 M / 1.16 M |
+| Prompt cache | hit 0.785, saved $3.04 | hit 0.781, saved $4.06 | hit 0.768, saved $1.58 |
+| Web searches | 29 (+7 reads), 22 refused | 10 | 86 (4 cached, 6 over the per-decision cap) |
+| Public signal searches | - | - | 38: Hacker News 23, arXiv 9, Stack Overflow 3, GitHub 3 (3 cached, 13 refused: quota, per-decision cap or attachment refusals, one counter) |
+| Evidence | - | - | 12: web source 11, public signal 1 (Hacker News); human validation 0; simulated interview 0 |
+| Ideas | 2 proposal | 3 proposal | 2 proposal (1 meeting the requirements, 1 created on day 4) |
+| Reviews | 7 | 11 | 3 |
+| Candidacy gate | - | - | 1 idea passed (3 real pieces from 2 sources by day 1 18:18); 0 submissions, 0 refusals |
+| Committee | 1 decision (defer) | 0 | 0 |
+| Thoughts language | not counted | en 293, it 1 (summaries) | **it 438** (plan reasons; summaries omitted) |
+
+## Portfolio
+
+Nothing approved, killed or submitted. Full text in [portfolio-run3.md](portfolio-run3.md).
+
+- **Assistente AI per la sicurezza nei team IT piccoli** (champion Livia, authors Livia and Irene; reviews by Dario,
+  Matteo, Irene: impact 6, feasibility 6.3, novelty 3.7, fit 6.3, risk 6.7). 12 pieces of evidence, all kept as
+  `Evidence` Records on its branch: [Launch HN: Traceforce (44 points)](https://news.ycombinator.com/item?id=48937020),
+  [NIST AI 100-2e2025](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-2e2025.pdf),
+  [Microsoft Security Copilot triage agent](https://learn.microsoft.com/en-us/defender-xdr/security-alert-triage-agent),
+  [The Price of Progress (arXiv 2511.23455)](https://arxiv.org/html/2511.23455v2), [OWASP prompt injection cheat
+  sheet](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html) and seven
+  more ([evidence.md](evidence/run3/evidence.md)). Met the requirements from day 1 18:18 and had two reviews from 19:18:
+  submittable for three game days, never submitted.
+- **Audit on-premise delle decisioni AI per settori regolati** (Matteo, created day 4 20:20): no reviews, no evidence.
+
+## Why nothing reached the committee
+
+Tooling worked: 38 signal searches and 86 web searches ran, 12 attachments were accepted and written to Lorebase,
+the gate computed the requirements and the perception showed them. The stall was social:
+
+- **A bar above the policy.** From day 4 the champion and the reviewers agreed that the idea would not go to the
+  committee without verified human interviews ("nome, ruolo, data e frase esatta"); the policy makes human
+  validation an alternative path, not a requirement. In the last 500 conversation lines (day 3 23:56 to day 4 22:29)
+  177 mention validations or interviews (Livia 55, Dario 45, Irene 36, Matteo 33) and 59 explicitly keep an idea out
+  of the committee. Dario called the requirements «un falso verde: 11 prove, ma quasi tutte fonti web a peso 0.5 e
+  0 validazioni umane».
+- **The perception invited it.** The evidence line showed "validazioni umane 0" next to "requisiti di candidatura
+  soddisfatti", and before the pass "validazioni umane 0/1" in the same list as the other counts: read as a missing
+  requirement. Fixed after the run: the line now says "requisiti di candidatura soddisfatti per policy, l'idea può
+  essere candidata al comitato", marks human validations as optional and lists them as the alternative path.
+- **Signals were searched but rarely attached.** 1 of 12 attachments came from the signal tools; the authors preferred
+  web pages (11) and themselves discounted vendor pages, which made the evidence look weak to them.
+- **No one could validate.** No player joined, and nobody ran `intervista_simulata` (0 calls); several said a
+  generated interview is not a validation (`ipotesi`, weight 0, as designed).
+- **The committee was never seated,** so the conflict-of-interest seating and the evidence-weighted score were not
+  exercised live (the offline run passed the gate and submitted; that pitch waited for quorum because all three
+  committee members had become co-authors).
+
+## What changed, what it showed
+
+- **Italian thoughts.** Root cause: the provider's thinking summaries follow the model, not the system prompt, and
+  no API parameter sets their language. Plan calls now use `thinking.display: "omitted"`; the visible thought is the
+  plan reason, Italian in 438 of 438 runs. A live haiku check with the working-language line first in the
+  instructions also gave an Italian summary, but omitted summaries keep the guarantee.
+- **Group plan JSON fixed upstream.** 0 failures from malformed tool arguments (2 in run 2) with reinloop 474f0b5.
+- **Cost.** All-haiku minds cost $1.30 for 1057 runs; the hosted web search ($0.98 for 86 searches at about $0.01
+  plus tokens) became the largest single line. Public signal APIs cost nothing.
+- **Honest evidence.** Excerpts written by the authors say what each source does not prove («prezzo di listino di
+  un concorrente, non un prezzo accettato da clienti»), and the team refused to pass simulated or web material off as
+  validation.
+
+## Problems seen
+
+- The thought of a decision appeared twice in the inspector (once from the decision, once from the committed plan):
+  fixed after the run; plan reasons are counted in `reinloop.reasonLangs`, summaries (when on) in `thoughtLangs`.
+- `allega_prova` accepted a metric the author wrote for a web page ("10" on a price list): fixed after the run, only
+  the source's metric is recorded.
+- Signal refusals are one counter for quota, per-decision cap and attachment refusals; the run cannot tell them apart.
+- Irene reviewed the idea and later became its co-author (as in run 2): her review still counts.
+
+## Next useful step
+
+A run with the new perception line ("soddisfatti per policy ... può essere candidata"), a player in the hub giving one
+or two validations from the "Valida idea" panel, and the committee members kept out of authorship (or a larger
+committee), to see whether a submission happens and how the committee weighs evidence in its vote.

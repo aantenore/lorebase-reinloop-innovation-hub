@@ -1,0 +1,426 @@
+# Research (run 3)
+
+Web provider: anthropic-native (hosted search, no page reads). Web searches 86, cache hits 4, refused by the per-decision cap 6, errors 0. Public signal tools through reinloop `signalTools` (counters in summary.json: `signalSearches`, `signalCached`, `signalRefused`).
+
+Titles and links only (no page content).
+
+- giorno 1 11:08 **Matteo** web_search «AI decision audit trail banking compliance demand 2025»
+  - [AI Banking Compliance Frameworks: What Banks Need in 2026](https://www.backbase.com/blog/ai-banking-compliance-frameworks)
+  - [AI Audit Trail Requirements: A 2026 Checklist for Finance, Healthcare, and Banking](https://www.kognitos.com/blog/ai-audit-trail-requirements-2026-checklist/)
+  - [Audit Trails and Explainability for Compliance: Building the Transparency Layer Financial Services Cannot Ignore](https://lawrence-emenike.medium.com/audit-trails-and-explainability-for-compliance-building-the-transparency-layer-financial-services-d24961bad987)
+- giorno 1 12:05 **Dario** web_search «AI decision audit tool banks compliance competitors 2025»
+  - [AI for Compliance in Banking: 8 Best Tools for Banks and Credit Unions 2026](https://www.multimodal.dev/post/ai-tools-for-regulatory-compliance-in-banking)
+  - [Best AI Governance Tools for Financial Services in 2026](https://mitratech.com/resource-hub/blog/best-ai-governance-tools-for-financial-services/)
+  - [AI Compliance Tools for Banks & Financial Firms (2026)](https://grep.ai/blog/ai-compliance-tools-banks-financial-institutions)
+- giorno 1 12:27 **Dario** web_search «insurance claims unstructured documents AI platform market incumbents»
+  - [The 10 Best Insurance Claims Software & AI Tools in 2026](https://www.kognitos.com/blog/ai-tools-for-insurance-claims-processing/)
+  - [Top Insurance Claim Management AI Solutions](https://www.llamaindex.ai/insights/top-insurance-claim-management-ocr-solutions)
+  - [8 AI Tools to Process Unstructured Claim Docs & Photos](https://www.furtherai.com/blog/ai-tools-unstructured-claim-documents-photos)
+- giorno 1 12:32 **Matteo** web_search «banca audit decisioni automatiche AI Act compliance team budget 2025»
+  - [Le tre fratture dell’intelligenza artificiale in banca - DB](https://www.dirittobancario.it/art/le-tre-fratture-dellintelligenza-artificiale-in-banca/)
+  - [L'Intelligenza Artificiale in Banca dopo l'AI Act: Tra Compliance e Innovazione - Giovani Universitari In Parlamento](https://www.giovaniuniversitariparlamento.it/lintelligenza-artificiale-in-banca-dopo-lai-act-tra-compliance-e-innovazione/)
+  - [Intelligenza artificiale nelle banche: casi d'uso e AI Act](https://www.tommasomariaricci.com/blog/intelligenza-artificiale-banche)
+- giorno 1 13:36 **Livia** web_search «AI assistant security small IT teams»
+  - [AI for Small IT Teams: How to Give People AI Without Losing Control of Your Data](https://www.mrc-productivity.com/blog/2026/06/ai-for-small-it-teams-how-to-give-people-ai-without-losing-control-of-your-data/)
+  - [How Can AI Agents Support Lean Security Teams?](https://biztechmagazine.com/article/2026/05/how-can-ai-agents-support-lean-security-teams)
+  - [Best AI security tools for small and mid-sized businesses in 2026](https://www.acronis.com/en/blog/posts/best-ai-security-tools-smb/)
+- giorno 1 13:38 **Livia** cerca_discussioni «AI security assistant small IT team»
+  - [Show HN: BlacksmithAI – AI‑Assisted Penetration Testing Framework (Beta, Free)](https://bs.kahanlabs.com)
+  - [Launch HN: Traceforce (YC S26) – Company-wide security monitoring for AI apps](https://news.ycombinator.com/item?id=48937020)
+  - [Show HN: CKB – Code intelligence for AI assistants (impact, dead code, security)](https://www.codeknowledge.dev)
+- giorno 1 13:59 **Matteo** web_search «bank AI decision audit trail buyer model risk management AI Act 2025»
+  - [AI Banking Compliance Frameworks: What Banks Need in 2026](https://www.backbase.com/blog/ai-banking-compliance-frameworks)
+  - [AI Audit Trail Requirements: A 2026 Checklist for Finance, Healthcare, and Banking](https://www.kognitos.com/blog/ai-audit-trail-requirements-2026-checklist/)
+  - [Bank AI Agents' Audit Trail: Goldman's $110M Bet](https://blog.pebblous.ai/blog/bank-ai-agent-audit-trail/en/)
+- giorno 1 17:33 **Giulia** cerca_discussioni «AI security assistant small IT teams»
+  - [Show HN: BlacksmithAI – AI‑Assisted Penetration Testing Framework (Beta, Free)](https://bs.kahanlabs.com)
+  - [Launch HN: Traceforce (YC S26) – Company-wide security monitoring for AI apps](https://news.ycombinator.com/item?id=48937020)
+  - [Show HN: CKB – Code intelligence for AI assistants (impact, dead code, security)](https://www.codeknowledge.dev)
+- giorno 1 17:40 **Livia** cerca_discussioni «security assistant small IT teams»
+  - [Show HN: BlacksmithAI – AI‑Assisted Penetration Testing Framework (Beta, Free)](https://bs.kahanlabs.com)
+  - [Launch HN: Traceforce (YC S26) – Company-wide security monitoring for AI apps](https://news.ycombinator.com/item?id=48937020)
+  - [Show HN: CKB – Code intelligence for AI assistants (impact, dead code, security)](https://www.codeknowledge.dev)
+- giorno 1 18:03 **Livia** web_search «AI security assistant small IT teams pricing per seat»
+  - [AI Agent Pricing Models 2026: Per-Resolution vs Per-Seat Compared](https://quickchat.ai/post/ai-agent-pricing-models)
+  - [AI Software Pricing 2026: 18 Tools Compared (Real Costs)](https://thecrunch.io/ai-software-price/)
+  - [AI Security Pricing for AI Agents From $24 a Month - AgentShield](https://agentshield.ai/pricing)
+- giorno 1 23:34 **Matteo** cerca_discussioni «AI decision audit bank regulation explainability»
+- giorno 2 00:02 **Matteo** cerca_discussioni «AI decision audit banks regulation explainability»
+- giorno 2 00:31 **Matteo** web_search «banca audit delle decisioni automatiche AI obbligo tracciabilità 2025»
+  - [Le tre fratture dell’intelligenza artificiale in banca - DB](https://www.dirittobancario.it/art/le-tre-fratture-dellintelligenza-artificiale-in-banca/)
+  - [Valutazione del merito creditizio, dati vietati e scoring automatizzato dopo il D.Lgs. n. 212/2025](https://www.tidona.com/valutazione-del-merito-creditizio-dati-vietati-e-scoring-automatizzato-dopo-il-d-lgs-n-212-2025/)
+  - [Antiriciclaggio e IA: le novità per le banche](https://data4biz.com/articles/antiriciclaggio-e-ia-le-novita-per-le-banche-2025-12-17)
+- giorno 2 00:53 **Matteo** cerca_discussioni «auditing automated decisions bank AI explainability»
+- giorno 2 00:54 **Matteo** cerca_paper «auditing automated decision systems banking»
+  - [Explainable Artificial Intelligence for Anomaly Detection in Banking Transactions: An Internal Audit Perspective](https://arxiv.org/abs/2607.13469v1)
+  - [Fairness under uncertainty in sequential decisions](https://arxiv.org/abs/2604.21711v1)
+  - [Structured Agentic Workflows for Financial Time-Series Modeling with LLMs and Reflective Feedback](https://arxiv.org/abs/2508.13915v1)
+- giorno 2 01:32 **Giulia** web_search «AI security assistant small IT teams incident triage survey»
+  - [AI-Enabled Incident Triage: Implementation Playbook](https://underdefense.com/blog/ai-enabled-incident-triage/)
+  - [AI Agents for Incident Triage & Prioritization](https://panther.com/blog/ai-agents-incident-triage-prioritization)
+  - [Microsoft Security Copilot Security Alert Triage Agent in Microsoft Defender (Preview) - Microsoft Defender XDR](https://learn.microsoft.com/en-us/defender-xdr/security-alert-triage-agent)
+- giorno 2 01:34 **Giulia** cerca_discussioni «AI assistant security small IT team»
+  - [Show HN: BlacksmithAI – AI‑Assisted Penetration Testing Framework (Beta, Free)](https://bs.kahanlabs.com)
+  - [Launch HN: Traceforce (YC S26) – Company-wide security monitoring for AI apps](https://news.ycombinator.com/item?id=48937020)
+  - [Show HN: CKB – Code intelligence for AI assistants (impact, dead code, security)](https://www.codeknowledge.dev)
+- giorno 2 02:02 **Enea** cerca_paper «insurance claims unstructured documents LLM extraction»
+  - [Leveraging LLMs for Unstructured Claims Data Analysis](https://arxiv.org/abs/2606.06089v1)
+- giorno 2 02:19 **Enea** web_search «insurance claims processing unstructured documents automation report»
+  - [Automated Claims Processing for Insurance - Indico Data](https://indicodata.ai/claims-pillar/)
+  - [Insurance Document Automation:Cutting Manual Work and Errors](https://www.altexsoft.com/blog/insurance-document-automation/)
+  - [Automated Claims Processing: Implementation Guide for Insurance Operations](https://www.v7labs.com/blog/automated-claims-processing)
+- giorno 2 02:25 **Matteo** web_search «bank AI decision audit explainability regulation case study»
+  - [(PDF) Explainable AI in Credit Decisioning: Balancing Accuracy and Transparency](https://www.researchgate.net/publication/396621336_Explainable_AI_in_Credit_Decisioning_Balancing_Accuracy_and_Transparency)
+  - [Financial Explainable AI for Credit Card Scoring: Fairness Challenges and Case Study](https://link.springer.com/chapter/10.1007/978-3-031-97007-8_3)
+  - [AI in Lending: AI Credit Regulations Affecting Lending 2025](https://hesfintech.com/blog/all-legislative-trends-regulating-ai-in-lending/)
+- giorno 2 02:27 **Matteo** cerca_discussioni «bank AI decision audit explainability»
+- giorno 2 03:01 **Irene** cerca_discussioni «legacy system integration pain points»
+  - [Launch HN: Didit (YC W26) – Stripe for Identity Verification](https://news.ycombinator.com/item?id=47324296)
+  - [Show HN: Corporate Hierarchy API – Map the corporate family tree](https://savvyiq.ai/products/entity-hierarchy)
+- giorno 2 03:02 **Irene** cerca_domande «legacy system integration API mismatch»
+- giorno 2 03:33 **Enea** web_search «insurance claims unstructured documents AI industry report 2024»
+  - [State of AI Adoption in Insurance 2025 Uncover the trends shaping AI adoption](https://www.roots.ai/hubfs/Reports%20and%20Whitepapers/Roots%20-%20State%20of%20AI%20Adoption%20in%20Insurance%202025.pdf)
+  - [AI in Insurance Claims Processing: The FNOL Revolution (2026 Update)](https://www.decerto.com/us/post/ai-in-insurance-claims-processing-the-revolution)
+  - [The future of AI for the insurance industry](https://www.mckinsey.com/industries/financial-services/our-insights/the-future-of-ai-in-the-insurance-industry)
+- giorno 2 04:05 **Irene** cerca_discussioni «legacy system integration pain»
+  - [Show HN: Superglue – OSS integration tool that understands your legacy systems](https://superglue.ai)
+  - [Launch HN: Didit (YC W26) – Stripe for Identity Verification](https://news.ycombinator.com/item?id=47324296)
+  - [Launch HN: hotglue (YC S21) – Easy user-facing SaaS integrations](https://news.ycombinator.com/item?id=27918900)
+- giorno 2 04:05 **Irene** cerca_domande «legacy system integration API mismatch» (cache)
+- giorno 2 04:42 **Irene** cerca_discussioni «legacy system integration pain points» (cache)
+  - [Launch HN: Didit (YC W26) – Stripe for Identity Verification](https://news.ycombinator.com/item?id=47324296)
+  - [Show HN: Corporate Hierarchy API – Map the corporate family tree](https://savvyiq.ai/products/entity-hierarchy)
+- giorno 2 04:43 **Irene** cerca_domande «legacy system integration API mainframe friction»
+- giorno 2 06:35 **Enea** web_search «insurance claims unstructured documents processing LLM»
+  - [Leveraging LLMs for Unstructured Claims Data Analysis](https://arxiv.org/pdf/2606.06089)
+  - [2606.06089 Leveraging LLMs for Unstructured Claims Data Analysis](https://arxiv.org/abs/2606.06089)
+  - [Use Cases of Large Language Models in the Insurance Industry](https://medium.com/aidetic/use-cases-of-large-language-models-in-the-insurance-industry-709a126ba93c)
+- giorno 2 07:38 **Irene** web_search «EU AI Act banking automated credit decisions audit requirements high-risk Article 14 human oversight»
+  - [How the EU AI Act will change mobile banking apps on your phone](https://speednetsoftware.com/how-the-eu-ai-act-will-change-mobile-banking-apps-on-your-phone/)
+  - [EU AI Act & Credit Scoring (2027) — high-risk rules, checklist & free check · Sovereign AI Act](https://www.regulatoryai.eu/ai-credit-scoring/)
+  - [EU AI Act for Financial Services: What Banks & Insurers Must Do](https://alicelabs.ai/en/insights/eu-ai-act-for-financial-services)
+- giorno 2 07:40 **Irene** cerca_paper «auditing automated decision making banking explainability»
+  - [ExecRubrics: Executable Tool-Augmented Rubrics for Verifiable and Efficient Long-Form Evaluation](https://arxiv.org/abs/2608.22559v3)
+- giorno 2 07:47 **Matteo** cerca_discussioni «AI assistant security small IT teams»
+  - [Show HN: BlacksmithAI – AI‑Assisted Penetration Testing Framework (Beta, Free)](https://bs.kahanlabs.com)
+  - [Launch HN: Traceforce (YC S26) – Company-wide security monitoring for AI apps](https://news.ycombinator.com/item?id=48937020)
+  - [Show HN: CKB – Code intelligence for AI assistants (impact, dead code, security)](https://www.codeknowledge.dev)
+- giorno 2 11:35 **Livia** web_search «small IT security teams willingness to pay AI security assistant survey 2026»
+  - [AI Security Statistics 2026: Latest Data, Trends & Research Report - Practical DevSecOps](https://www.practical-devsecops.com/ai-security-statistics-2026-research-report/)
+  - [AI Is the Second-Biggest Human Risk in the Workplace, SANS Institute's 2026 Security Awareness & Culture Report Finds](https://www.sans.org/press/announcements/ai-second-biggest-human-risk-workplace-sans-institutes-2026-security-awareness-culture-report-finds)
+  - [2026](https://rhisac.org/wp-content/uploads/CISO-Benchmark-2026_CLEAR.pdf)
+- giorno 2 11:37 **Livia** cerca_discussioni «AI security triage small team alert fatigue»
+- giorno 2 12:54 **Matteo** web_search «AI assistant IT security small teams pricing per user per month 2025»
+  - [Help Scout Pricing 2026: Every Plan and the $0.75 AI Fee](https://resolve247.ai/blog/help-scout-pricing/)
+  - [CISO Assistant pricing: Community and Pro plans — intuitem](https://intuitem.com/pricing)
+  - [Business & Teams Pricing & Plans](https://1password.com/pricing/business)
+- giorno 2 13:24 **Livia** web_search «AI security assistant small IT teams willingness to pay pricing per seat»
+  - [AI Agent Pricing Models 2026: Per-Resolution vs Per-Seat Compared](https://quickchat.ai/post/ai-agent-pricing-models)
+  - [AI Security Pricing for AI Agents From $24 a Month - AgentShield](https://agentshield.ai/pricing)
+  - [AI Software Pricing 2026: 18 Tools Compared (Real Costs)](https://thecrunch.io/ai-software-price/)
+- giorno 2 13:30 **Matteo** web_search «AI SOC pricing guide 2026 cost per analyst per month triage»
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+  - [How to Calculate AI SOC ROI for Under-10-Analyst Teams in 2026](https://underdefense.com/blog/how-to-calculate-ai-soc-roi-for-under-10-analyst-teams/)
+  - [AI SOC Trends 2026: Benchmarks, Maturity Levels, and What Separates Early Adopters](https://underdefense.com/blog/ai-soc-trends-2026/)
+- giorno 2 14:49 **Livia** web_search «AI security assistant small IT teams price per user per month»
+  - [How Much Does AI Cost in 2026? Pricing & Budgets](https://zylo.com/blog/ai-cost)
+  - ["Best AI Tools for Cybersecurity in 2026: 15 Tools Ranked by Security Function"](https://resources.rework.com/tools/ai-tools/best-ai-tools-for-cybersecurity-2026)
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+- giorno 2 14:55 **Matteo** web_search «AI security assistant small IT teams price per user per month pricing page»
+  - [How Much Does AI Cost in 2026? Pricing & Budgets](https://zylo.com/blog/ai-cost)
+  - ["Best AI Tools for Cybersecurity in 2026: 15 Tools Ranked by Security Function"](https://resources.rework.com/tools/ai-tools/best-ai-tools-for-cybersecurity-2026)
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+- giorno 2 15:09 **Giulia** web_search «AI security assistant pricing small IT teams per user per month»
+  - [How Much Do AI Assistants Cost? Pricing Analysis and ROI](https://gmelius.com/blog/ai-assistant-costs)
+  - [AI Security Pricing for AI Agents From $24 a Month - AgentShield](https://agentshield.ai/pricing)
+  - [How Much Does AI Cost in 2026? Pricing & Budgets](https://zylo.com/blog/ai-cost)
+- giorno 2 15:44 **Enea** web_search «legacy system integration logistics companies survey cost of legacy systems»
+  - [Top 8 Legacy System Modernization Companies for Logistics and Transportation](https://phptravels.com/blog/top-8-legacy-system-modernization-companies-for-logistics-and-transportation)
+  - [Legacy Systems Cost On Average Nearly $40,000 Annually - ServiceNow](https://www.servicenow.com/products/it-operations-management/legacy-systems-cost.html)
+  - [Legacy System Modernization: Strategy, Cost & ROI in 2026](https://mobisoftinfotech.com/resources/blog/transportation-logistics/legacy-system-modernization-cost-strategy-roi)
+- giorno 2 15:53 **Enea** cerca_paper «legacy system integration logistics supply chain»
+- giorno 2 16:14 **Matteo** web_search «aisecurityplatform.ai pricing Standard 10 USD per user per month»
+  - [Pricing](https://www.aisecurityplatform.ai/pricing)
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+  - [AI Security Pricing Transparency Benchmark (2026)](https://aisecurityplatform.com/research/ai-security-pricing-transparency-2026/)
+- giorno 2 17:33 **Matteo** web_search «small IT team security budget survey AI assistant spend per user per month»
+  - [AI Pricing in 2026: Costs by Industry, Size & Use Case](https://www.designrush.com/agency/ai-companies/trends/how-much-does-ai-cost)
+  - [How Much Does AI Cost in 2026? Pricing & Budgets](https://zylo.com/blog/ai-cost)
+  - [AI Budget Planning for Teams: How to Set, Track, and Defend Your AI Spend](https://rize.io/blog/ai-budget-planning-teams)
+- giorno 2 17:35 **Matteo** cerca_discussioni «AI security assistant small IT team pricing»
+  - [Launch HN: Needl (YC S22) – Simple search across all your apps](https://news.ycombinator.com/item?id=34598406)
+- giorno 2 17:58 **Livia** web_search «AI security assistant small IT team pricing per user per month 2025»
+  - [Security Scanner AI Software Pricing, Alternatives & More 2026](https://www.capterra.com/p/10037458/Security-Scanner-AI/)
+  - [Aikido Security Pricing 2026: Costs Beyond the Free Plan](https://codeant.ai/blogs/aikido-security-pricing)
+  - [Aikido Security Pricing 2026](https://www.g2.com/products/aikido-security/pricing)
+- giorno 2 18:03 **Enea** cerca_discussioni «legacy system integration logistics API wrapper»
+- giorno 2 18:04 **Enea** cerca_progetti «legacy system integration middleware»
+  - [chaminda360/UPSMiddlewarePOC](https://github.com/chaminda360/UPSMiddlewarePOC)
+  - [bhumi-28/rest-soap-integration-bridge](https://github.com/bhumi-28/rest-soap-integration-bridge)
+  - [UmeshMadhusankha/swifttrack-middleware](https://github.com/UmeshMadhusankha/swifttrack-middleware)
+- giorno 2 19:27 **Enea** web_search «insurance claims unstructured documents AI processing case study»
+  - [AI in Action: Harnessing unstructured data in insurance claims](https://www.shift-technology.com/resources/case-studies/ai-in-action-property-unstructured-data)
+  - [AI in Insurance Claims Processing Workflow Transformation](https://hexaware.com/case-study/ai-in-insurance-claims-processing-for-end-to-end-transformation/)
+  - [Case study: How AI automated insurance claims](https://www.ey.com/en_gl/insights/financial-services/emeia/how-a-nordic-insurance-company-automated-claims-processing)
+- giorno 2 19:34 **Enea** web_search «logistics legacy system integration modernization case study»
+  - [Legacy System Modernization for a Logistics Company │ Case Study](https://qarea.com/projects/legacy-system-modernization-for-a-logistics-company)
+  - [Legacy Interface Modernization for Logistics Leader](https://www.hcltech.com/en-us/case-study/global-customers-benefit-from-faster-deliveries-and-real-time-tracking)
+  - [Overcoming legacy database challenges in logistics](https://www.hcltech.com/en-us/case-study/overcoming-legacy-database-challenges-in-logistics-modernization)
+- giorno 2 20:19 **Matteo** web_search «AI security assistant small IT teams pricing per user per month»
+  - [How Much Do AI Assistants Cost? Pricing Analysis and ROI](https://gmelius.com/blog/ai-assistant-costs)
+  - [AI Security Pricing for AI Agents From $24 a Month - AgentShield](https://agentshield.ai/pricing)
+  - [How Much Does AI Cost in 2026? Pricing & Budgets](https://zylo.com/blog/ai-cost)
+- giorno 2 21:00 **Matteo** web_search «AI security assistant small IT teams pricing per user per month» (cache)
+  - [How Much Do AI Assistants Cost? Pricing Analysis and ROI](https://gmelius.com/blog/ai-assistant-costs)
+  - [AI Security Pricing for AI Agents From $24 a Month - AgentShield](https://agentshield.ai/pricing)
+  - [How Much Does AI Cost in 2026? Pricing & Budgets](https://zylo.com/blog/ai-cost)
+- giorno 2 21:24 **Matteo** web_search «small IT team security tool budget survey price per seat»
+  - [16 best survey software tools tested in 2026 - Guideflow Blog](https://www.guideflow.com/blog/survey-software-tools)
+  - [System Surveyor Pricing, Features & Alternatives](https://xtenav.com/blog/system-surveyor-pricing/)
+  - [How Much Does SOC 2 Compliance Really Cost?](https://www.zipsec.com/blog/how-much-does-soc-2-compliance-really-cost-a-clear-guide)
+- giorno 2 21:25 **Irene** web_search «AI security assistant alert triage pricing per user per month small IT team 2026»
+  - [Best AI Tools for Security Alert Triage (2026)](https://panther.com/blog/ai-tools-security-alert-triage)
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+  - [Pricing](https://www.ilert.com/pricing)
+- giorno 2 21:49 **Enea** web_search «hospital on-premise AI data residency requirement healthcare»
+  - [Managing Healthcare Data Residency: Step-by-Step Guide](https://ones.com/blog/managing-healthcare-data-residency-a-step-by-step-guide/)
+  - [HIPAA & GDPR Compliant AI Agents for Healthcare in 2026](https://fin.ai/learn/hipaa-gdpr-compliant-ai-agents)
+  - [Data residency for healthcare AI: what the regulations actually require - Aptible](https://www.aptible.com/hipaa-ai-security/data-residency)
+- giorno 2 21:57 **Enea** web_search «insurance claims unstructured documents automation AI case study»
+  - [Case study: How AI automated insurance claims](https://www.ey.com/en_gl/insights/financial-services/emeia/how-a-nordic-insurance-company-automated-claims-processing)
+  - [AI-Enhanced Business Process Automation:A Case Study in the Insurance Domain Using Object-Centric Process Mining](https://arxiv.org/html/2504.17295v1)
+  - [AI in Action: Harnessing unstructured data in insurance claims](https://www.shift-technology.com/resources/case-studies/ai-in-action-property-unstructured-data)
+- giorno 2 22:12 **Livia** web_search «AI security assistant small IT teams pricing per user per month» (cache)
+  - [How Much Do AI Assistants Cost? Pricing Analysis and ROI](https://gmelius.com/blog/ai-assistant-costs)
+  - [AI Security Pricing for AI Agents From $24 a Month - AgentShield](https://agentshield.ai/pricing)
+  - [How Much Does AI Cost in 2026? Pricing & Budgets](https://zylo.com/blog/ai-cost)
+- giorno 2 22:39 **Livia** web_search «AI security assistant small IT teams pricing per user per month» (cache)
+  - [How Much Do AI Assistants Cost? Pricing Analysis and ROI](https://gmelius.com/blog/ai-assistant-costs)
+  - [AI Security Pricing for AI Agents From $24 a Month - AgentShield](https://agentshield.ai/pricing)
+  - [How Much Does AI Cost in 2026? Pricing & Budgets](https://zylo.com/blog/ai-cost)
+- giorno 2 22:58 **Irene** web_search «small IT team security AI assistant customer case study price paid per year»
+  - [AI Customer Support Implementation Cost (2026): Every Route](https://www.getmacha.com/blog/ai-customer-support-implementation-cost)
+  - [How Much Does AI Customer Support Cost for a Small Agency?](https://blog.magicteams.ai/blog/how-much-does-ai-customer-support-cost/)
+  - [Zendesk Pricing Plans](https://www.zendesk.com/pricing/)
+- giorno 2 23:36 **Dario** web_search «EY claims automation case study insurance unstructured documents»
+  - [Case study: How AI automated insurance claims](https://www.ey.com/en_gl/insights/financial-services/emeia/how-a-nordic-insurance-company-automated-claims-processing)
+  - [Case Studies: Successful Implementation of AI Document Processing in Various Industries - Zenphi](https://zenphi.com/ai-document-processing-case-studies/)
+  - [AI-Enhanced Business Process Automation:A Case Study in the Insurance Domain Using Object-Centric Process Mining](https://arxiv.org/html/2504.17295v1)
+- giorno 2 23:39 **Dario** cerca_paper «arXiv 2504.17295»
+- giorno 3 00:02 **Irene** web_search «EY insurance claims automation case study ey.com»
+  - [Case study: How AI automated insurance claims](https://www.ey.com/en_gl/insights/financial-services/emeia/how-a-nordic-insurance-company-automated-claims-processing)
+  - [Case study: How AI automated insurance claims](https://www.ey.com/en_fi/insights/financial-services/emeia/how-a-nordic-insurance-company-automated-claims-processing)
+  - [Case study: How AI automated insurance claims](https://www.ey.com/en_se/insights/financial-services/emeia/how-a-nordic-insurance-company-automated-claims-processing)
+- giorno 3 00:09 **Enea** cerca_paper «2504.17295»
+  - [AI-Enhanced Business Process Automation: A Case Study in the Insurance Domain Using Object-Centric Process Mining](https://arxiv.org/abs/2504.17295v1)
+- giorno 3 00:23 **Enea** web_search «EY insurance claims unstructured documents AI automation»
+  - [Case study: How AI automated insurance claims](https://www.ey.com/en_gl/insights/financial-services/emeia/how-a-nordic-insurance-company-automated-claims-processing)
+  - [AI-Powered Automated Claims Processing Insurance: Complete Guide](https://www.abbyy.com/blog/automated-claims-processing-insurance/)
+  - [10 Best Insurance Claims Automation Tools Compared (2026)](https://www.kognitos.com/blog/ai-tools-for-insurance-claims-processing/)
+- giorno 3 00:40 **Livia** web_search «AI security assistant small IT teams price per user per month» (cache)
+  - [How Much Does AI Cost in 2026? Pricing & Budgets](https://zylo.com/blog/ai-cost)
+  - ["Best AI Tools for Cybersecurity in 2026: 15 Tools Ranked by Security Function"](https://resources.rework.com/tools/ai-tools/best-ai-tools-for-cybersecurity-2026)
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+- giorno 3 00:43 **Dario** web_search «AI security assistant small IT teams paid subscription price pricing»
+  - [Setapp](https://en.wikipedia.org/wiki/Setapp)
+  - [Microsoft Copilot Plans and Pricing—AI for Business](https://www.microsoft.com/en-us/microsoft-365-copilot/pricing)
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+- giorno 3 01:32 **Irene** web_search «AI security assistant small IT team purchase price customer case study 2025»
+  - [Best AI Tools for Security Professionals in 2025](https://learnprompting.org/blog/ai-tools-for-security-professionals)
+  - [Abnormal Security Pricing Guide 2026: Actual Costs, Modules, and What Enterprises Really Pay](https://underdefense.com/blog/abnormal-security-pricing-guide/)
+  - [Best AI SOC for SMBs: 6 Vendors Scored With Real Pricing (2026)](https://underdefense.com/blog/ai-soc-for-smb/)
+- giorno 3 02:16 **Irene** web_search «AI security assistant small IT team customer case study purchase contract signed price per user 2024 2025»
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+  - [Best AI SOC for Mid-Market: 8 Providers Scored, Priced, Ranked](https://underdefense.com/blog/ai-soc-for-mid-market/)
+  - [Enterprise AI Pricing Compared (2026)](https://coworker.ai/blog/enterprise-ai-pricing-comparison-2026)
+- giorno 3 02:18 **Irene** cerca_discussioni «AI assistant security operations small IT team paid customer pricing»
+- giorno 3 02:20 **Dario** web_search «EY how a Nordic insurance company automated claims processing»
+  - [Case study: How AI automated insurance claims](https://www.ey.com/en_gl/insights/financial-services/emeia/how-a-nordic-insurance-company-automated-claims-processing)
+  - [Case study: How AI automated insurance claims](https://www.ey.com/en_dk/insights/financial-services/emeia/how-a-nordic-insurance-company-automated-claims-processing)
+  - [Case study: How AI automated insurance claims](https://www.ey.com/en_se/insights/financial-services/emeia/how-a-nordic-insurance-company-automated-claims-processing)
+- giorno 3 02:21 **Dario** cerca_paper «arXiv 2504.17295 insurance claims unstructured documents»
+- giorno 3 02:30 **Matteo** web_search «AI security assistant per utente contratto acquisto prezzo per utente al mese gara appalto 2025»
+  - [DISCIPLINARE DI GARA A PROCEDURA APERTA SUDDIVISA IN 8 LOTTI PER L’APPALTO DI](https://www.mef.gov.it/export/sites/MEF/bandi/bandi-di-gara/2025/documenti/ID_2878/002-ID-2878-Disciplinare-E.C.1.pdf)
+  - [Gara a procedura aperta per l’appalto di fornitura di sistemi di videosorveglianza e servizi connessi per le Pubbliche Amministrazioni ai sensi dell’art. 26 Legge n. 488/1999 e s.m.i. e dell’art. 58 Legge n. 388/2000 - Edizione 3 - ID 2697 CIG: Lotto 1 B65B2589FD; Lotto 2 B65B259AD0; Lotto 3 B65B25ABA3; Lotto 4 B65B25BC76; Lotto 5 B65B25CD49; Lotto 6 B65B25DE1C](https://www.mef.gov.it/bandi/bandi-di-gara/2025/Gara-a-procedura-aperta-per-lappalto-di-fornitura-di-sistemi-di-videosorveglianza-e-servizi-connessi-per-le-Pubbliche-Amministrazioni-ai-sensi-dellart.-26-Legge-n.-488-1999-e-s.m.i.-e-dellart.-58-Legge-n.-388-2000-Edizione-3-ID-2697-CIG-Lotto-1-B65B2/)
+  - [Quanto costa un sistema AI per una PMI: tre fasce • Itria](https://itria.io/quanto-costa-sistema-ai-pmi)
+- giorno 3 03:21 **Livia** web_search «aisecurityplatform.ai pricing per user per month AI agent security»
+  - [Pricing](https://www.aisecurityplatform.ai/pricing)
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+  - [AI Pricing Guide: Models, Provider Costs, Hidden Fees](https://www.nops.io/blog/pricing-for-ai/)
+- giorno 3 06:12 **Livia** web_search «AI security assistant small IT teams purchase price per user contract 2025»
+  - [Aikido Security Pricing 2026](https://www.g2.com/products/aikido-security/pricing)
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+  - [How Much Does AI Cost in 2026? Pricing & Budgets](https://zylo.com/blog/ai-cost)
+- giorno 3 06:43 **Enea** cerca_discussioni «on-premise LLM hospital data sovereignty»
+- giorno 3 07:02 **Enea** web_search «insurance claims unstructured documents LLM extraction claims processing 2025»
+  - [Leveraging LLMs in Unstructured Claims Data: The CAS Issues a Research RFP for an Actuarial Solution](https://www.casact.org/article/leveraging-llms-unstructured-claims-data-cas-issues-research-rfp-actuarial-solution)
+  - [Best OCR for Insurance Document Processing in 2026](https://unstract.com/blog/best-ocr-for-insurance-document-processing-automation/)
+  - [Best Document Processing Software For Insurance Claims In 2026](https://www.infrrd.ai/blog/best-document-processing-software-for-insurance-claims-2026)
+- giorno 3 08:11 **Livia** web_search «contratto aggiudicato piattaforma sicurezza AI assistente SOC prezzo per utente aggiudicazione 2025»
+  - [Firmato il Contratto Sicurezza 2025-2027: aumenti e arretrati, ecco tutte le novità](https://www.infodivise.it/firmato-il-contratto-sicurezza-2025-2027-aumenti-e-arretrati-ecco-tutte-le-novita/)
+  - [FIRMATO IL CONTRATTO SICUREZZA-DIFESA 2025-2027 - SIULP](https://siulp.it/articolo/firmato-il-contratto-sicurezza-difesa-2025-2027/)
+  - [Contratto Sicurezza 2025-2027, aumenti e arretrati: ecco le cifre e gli impegni del Governo - INFODIFESA](https://infodifesa.it/contratto-polizia-2025-2027-aumenti-arretrati-straordinari/)
+- giorno 3 08:35 **Livia** web_search «AI security assistant purchase order signed per seat price customer announcement 2025 SOC analyst copilot contract»
+  - [Microsoft Security Copilot](https://www.microsoft.com/en-us/security/business/ai-machine-learning/microsoft-security-copilot)
+  - [Microsoft Copilot Enterprise Pricing 2026](https://coworker.ai/blog/microsoft-copilot-enterprise-pricing)
+  - [With The New Copilot, Microsoft Starts Selling Work, Not Just Seats - Moor Insights & Strategy](https://moorinsightsstrategy.com/field-notes/with-the-new-copilot-microsoft-starts-selling-work-not-just-seats/)
+- giorno 3 08:38 **Enea** cerca_paper «hospital on-premise LLM deployment data sovereignty clinical»
+- giorno 3 08:59 **Enea** web_search «insurance claims unstructured documents AI extraction survey 2025 study»
+  - [How to Use AI to Extract Data from Claim Submissions at Scale](https://reducto.ai/blog/extract-api-health-insurance-claims)
+  - [AI in Insurance Claims Processing: The FNOL Revolution (2026 Update)](https://www.decerto.com/us/post/ai-in-insurance-claims-processing-the-revolution)
+  - [(PDF) AI-driven intelligent document processing for healthcare and insurance](https://www.researchgate.net/publication/388353638_AI-driven_intelligent_document_processing_for_healthcare_and_insurance)
+- giorno 3 09:04 **Irene** web_search «prompt injection AI security agent alerts logs risk study 2025 2026»
+  - [AI SOC Security: Prompt Injection Risks](https://neuraltrust.ai/blog/ai-soc-prompt-injection)
+  - [AI Agent Security Risks in 2026: Testing Against Prompt Injection and Tool Abuse](https://futureagi.com/blog/ai-agent-security-risks/)
+  - [Prompt injection still drives most agentic AI security failures in production - Help Net Security](https://www.helpnetsecurity.com/2026/06/11/owasp-prompt-injection-ai-security-failures/)
+- giorno 3 09:11 **Irene** cerca_paper «Karanjai log-borne prompt injection SOC LLM agents attack success rate»
+- giorno 3 10:59 **Giulia** web_search «NeuralTrust AI SOC Security Prompt Injection Risks attack success rate»
+  - [AI SOC Security: Prompt Injection Risks](https://neuraltrust.ai/blog/ai-soc-prompt-injection)
+  - [Securing AI Agents Against Prompt Injection Attacks](https://arxiv.org/pdf/2511.15759)
+  - [I found 100% prompt injection success rate against AI SOC assistants - here is the detection layer I built - DEV Community](https://dev.to/krishnakaanth_reddyyedug/i-found-100-prompt-injection-success-rate-against-ai-soc-assistants-here-is-the-detection-layer-45bl)
+- giorno 3 11:34 **Irene** web_search «NeuralTrust AI SOC Security Prompt Injection Risks attack success rate 83.4%»
+  - [AI SOC Security: Prompt Injection Risks](https://neuraltrust.ai/blog/ai-soc-prompt-injection)
+  - [Securing AI Agents Against Prompt Injection Attacks](https://arxiv.org/pdf/2511.15759)
+  - [Prompt injection: types, real-world CVEs, and enterprise defenses](https://www.vectra.ai/topics/prompt-injection)
+- giorno 3 12:56 **Enea** web_search «insurance claims unstructured documents AI extraction independent study»
+  - [(PDF) AI in Insurance Claims Processing: Balancing Innovation with Implementation Challenges](https://www.researchgate.net/publication/392076626_AI_in_Insurance_Claims_Processing_Balancing_Innovation_with_Implementation_Challenges)
+  - [AI in Action: Harnessing unstructured data in insurance claims](https://www.shift-technology.com/resources/case-studies/ai-in-action-property-unstructured-data)
+  - [Advanced Applications of Generative AI in Actuarial Science: Case Studies Beyond ChatGPT](https://arxiv.org/pdf/2506.18942)
+- giorno 3 13:19 **Irene** web_search «NIST AI 100-2 adversarial machine learning prompt injection taxonomy»
+  - [Adversarial Machine Learning: A Taxonomy and Terminology of Attacks and Mitigations (NIST AI 100-2e2025) - OECD.AI](https://oecd.ai/en/dashboards/policy-initiatives/adversarial-machine-learning-a-taxonomy-and-terminology-of-attacks-and-mitigations-nist-ai-100-2e2025)
+  - [NIST Trustworthy and Responsible AI NIST AI 100-2e2023](https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=957080)
+  - [Adversarial Machine Learning: A Taxonomy and Terminology ...](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-2e2023.pdf)
+- giorno 3 13:53 **Giulia** web_search «Gartner 2025 AI budget shift enterprise IT spending survey»
+  - [Enterprise AI spending is maturing fast, and the hidden costs are catching teams off guard](https://www.marketscale.com/industries/software-and-technology/enterprise-ai-spending-is-maturing-fast-and-the-hidden-costs-are-catching-teams-off-guard)
+  - [Gartner Survey Reveals 52% of Government CIOs Outside of the U.S. Expect IT Budgets to Increase in 2026](https://www.gartner.com/en/newsroom/press-releases/2025-11-26-gartner-survey-reveals-52-percent-of-government-cios-expect-it-budgets-to-increase-in-2026)
+  - [Gartner Forecasts Worldwide IT Spending to Grow 7.9% in 2025](https://www.gartner.com/en/newsroom/press-releases/2025-07-15-gartner-forecasts-worldwide-it-spending-to-grow-7-point-9-percent-in-2025)
+- giorno 3 14:31 **Livia** web_search «AI security assistant small IT teams pricing per seat purchase 2025»
+  - [AI Agent Pricing Models 2026: Per-Resolution vs Per-Seat Compared](https://quickchat.ai/post/ai-agent-pricing-models)
+  - [11 Most Affordable AI SOC Platforms in 2026: What Each Pricing Tier Actually Covers for Small and Mid-Market Teams](https://underdefense.com/blog/most-affordable-ai-soc-platforms/)
+  - [28 Best Agentic AI Products & Pricing Models for 2025](https://www.getmonetizely.com/blogs/28-new-agentic-products-that-use-ai)
+- giorno 3 16:25 **Livia** web_search «small IT team security assistant AI purchase price per seat 2025»
+  - [11 Most Affordable AI SOC Platforms in 2026: What Each Pricing Tier Actually Covers for Small and Mid-Market Teams](https://underdefense.com/blog/most-affordable-ai-soc-platforms/)
+  - [AI SOC Pricing Guide 2026: Complete Cost Breakdown](https://underdefense.com/blog/ai-soc-pricing-guide/)
+  - [Best AI SOC for SMBs: 6 Vendors Scored With Real Pricing (2026)](https://underdefense.com/blog/ai-soc-for-smb/)
+- giorno 3 18:28 **Livia** web_search «AI security assistant small IT team purchase price per seat 2025 pricing»
+  - [11 Best AI Cybersecurity Tools for Enterprises in 2026](https://www.sentinelone.com/cybersecurity-101/cybersecurity/ai-cybersecurity-tools/)
+  - [11 Most Affordable AI SOC Platforms in 2026: What Each Pricing Tier Actually Covers for Small and Mid-Market Teams](https://underdefense.com/blog/most-affordable-ai-soc-platforms/)
+  - [Best AI SOC for SMBs: 6 Vendors Scored With Real Pricing (2026)](https://underdefense.com/blog/ai-soc-for-smb/)
+- giorno 3 19:30 **Giulia** web_search «insurance claims unstructured documents AI automation independent report 2024»
+  - [AI in Insurance Claims Processing: The FNOL Revolution (2026 Update)](https://www.decerto.com/us/post/ai-in-insurance-claims-processing-the-revolution)
+  - [10 Best Insurance Claims Automation Tools Compared (2026)](https://www.kognitos.com/blog/ai-tools-for-insurance-claims-processing/)
+  - [Leveraging LLMs for Unstructured Claims Data Analysis](https://arxiv.org/pdf/2606.06089)
+- giorno 3 19:39 **Enea** web_search «insurance claims unstructured documents AI validation independent study»
+  - [Unstructured Data in Healthcare: AI Compliance Case Study](https://unstructured.io/blog/streamlining-healthcare-compliance-with-ai)
+  - [(PDF) AI in Insurance Claims Processing: Balancing Innovation with Implementation Challenges](https://www.researchgate.net/publication/392076626_AI_in_Insurance_Claims_Processing_Balancing_Innovation_with_Implementation_Challenges)
+  - [LLMs for unstructured claims data Rob Lieberthal, PhD](https://content.naic.org/sites/default/files/call_materials/leveraging-llms-for-unstructured-claims-data-analysi-castf-book-club-july-2026.pdf)
+- giorno 3 22:05 **Dario** web_search «NAIC Lieberthal leveraging LLMs for unstructured claims data»
+  - [LLMs for unstructured claims data Rob Lieberthal, PhD](https://content.naic.org/sites/default/files/call_materials/leveraging-llms-for-unstructured-claims-data-analysi-castf-book-club-july-2026.pdf)
+  - [Leveraging LLMs for Unstructured Claims Data Analysis](https://ideas.repec.org/p/arx/papers/2606.06089.html)
+  - [2606.06089 Leveraging LLMs for Unstructured Claims Data Analysis](https://arxiv.org/abs/2606.06089)
+- giorno 3 22:46 **Enea** web_search «insurance claims unstructured documents AI automation report 2025»
+  - [10 Best Insurance Claims Automation Tools Compared (2026)](https://www.kognitos.com/blog/ai-tools-for-insurance-claims-processing/)
+  - [Best Automated Claims Processing Software 2025](https://www.v7labs.com/blog/automated-insurance-claims-processing-software)
+  - [Automate Insurance Claims: Step-by-Step Agency Guide](https://www.sonant.ai/blog/automating-insurance-claims-step-by-step)
+- giorno 3 22:56 **Enea** web_search «logistics legacy systems integration AI survey statistics 2025»
+  - [AI Adoption Runs Into Data Gaps in 2027 3PL Study](https://www.aftermarketnews.com/ai-adoption-data-gaps-in-2027-3pl-study/)
+  - [ORTEC Survey Finds 42% of Logistics Leaders Holding Back on Agentic AI](https://ortec.com/resources/news/logistics-leaders-agentic-ai-2026)
+  - [Logistics Tech 2025–2026: From Legacy Systems to AI‑Driven Supply Chains](https://devoxsoftware.com/blog/logistics-tech-2025-2026-from-legacy-systems-to-ai-driven-supply-chains/)
+- giorno 3 23:09 **Dario** web_search «leveraging LLMs for unstructured claims data analysis NAIC CASTF»
+  - [Leveraging Large Language Models for Unstructured Claims Data Analysis](https://www.casact.org/sites/default/files/2026-03/Appendix-C-Technical-Architecture.pdf)
+  - [Leveraging LLMs for Unstructured Claims Data Analysis](https://arxiv.org/pdf/2606.06089)
+  - [2606.06089 Leveraging LLMs for Unstructured Claims Data Analysis](https://arxiv.org/abs/2606.06089)
+- giorno 4 03:17 **Bruno** web_search «ospedale AI on-premise dati sanitari requisito inferenza locale studio»
+  - [On-premise medical AI agents for reliable clinical decision-making](https://www.nature.com/articles/s41591-026-04609-x)
+  - [On-premise medical AI nears cloud model performance](https://www.icthealth.org/on-premise-medical-ai-clinical-decisions)
+  - [Production AI for a Regulated Hospital, With Full Data Sovereignty](https://intechhouse.com/case-studies/production-ai-for-a-regulated-hospital-with-full-data-sovereignty)
+- giorno 4 04:54 **Giulia** web_search «audit decisioni automatiche AI banche requisiti normativi 2025»
+  - [L’evoluzione del credit scoring nei CONFIDI italiani](https://www.to.camcom.it/sites/default/files/promozione-territorio/Confidi%202025%20Nicotra.pdf)
+  - [Credit scoring AI, obblighi UE al 2027 e tutele in vigore](https://www.pmi.it/finanza/investimenti-pmi/497999/intelligenza-artificiale-valutazione-merito-creditizio.html)
+  - [AI Act banca e sanità obblighi di trasparenza e auditabilità](https://www.bollettinoufficiale.it/ai-act-banca-e-sanita-obblighi-di-trasparenza-auditabilita/)
+- giorno 4 06:11 **Giulia** web_search «LLM inference price decline per token trend 2025 report»
+  - [Inference Unit Economics: The True Cost Per Million Tokens](https://introl.com/blog/inference-unit-economics-true-cost-per-million-tokens-guide)
+  - [The Price of Progress Price Performance and the Future of AI](https://arxiv.org/html/2511.23455v2)
+  - [Low-Cost LLMs: An API Price & Performance Comparison](https://intuitionlabs.ai/articles/low-cost-llm-comparison)
+- giorno 4 10:11 **Enea** web_search «LLM inference price decline per token independent analysis Epoch AI»
+  - [Inference Unit Economics: The True Cost Per Million Tokens](https://introl.com/blog/inference-unit-economics-true-cost-per-million-tokens-guide)
+  - [Epoch AI on X: "How has the cost to use LLMs changed over time? Our analysis shows that the price to reach a given benchmark score has fallen dramatically—between 9x and 900x per year, depending on the benchmark and score. 🧵" / X](https://x.com/EpochAIResearch/status/1900264630473417006)
+  - [Epoch AI says AI prices fall 47% a quarter at the same performance level](https://pasqualepillitteri.it/en/news/21044/epoch-ai-ai-prices-fall-47-percent-quarter)
+- giorno 4 10:14 **Giulia** cerca_discussioni «on-premise LLM healthcare data residency»
+- giorno 4 10:31 **Giulia** web_search «hospitals on-premise AI deployment data sovereignty independent report»
+  - [NHS AI Sovereignty Is Really a Version-Control Problem](https://ibl.ai/blog/uk-nhs-foreign-controlled-ai-hospitals-sovereignty-risk)
+  - [Production AI for a Regulated Hospital, With Full Data Sovereignty](https://intechhouse.com/case-studies/production-ai-for-a-regulated-hospital-with-full-data-sovereignty)
+  - [Why European Hospitals Need Local Deployment and EU Data Residency](https://www.nomtek.com/blog/healthcare-backend-for-ai-data)
+- giorno 4 11:09 **Livia** cerca_discussioni «AI security assistant small IT teams»
+  - [Show HN: BlacksmithAI – AI‑Assisted Penetration Testing Framework (Beta, Free)](https://bs.kahanlabs.com)
+  - [Launch HN: Traceforce (YC S26) – Company-wide security monitoring for AI apps](https://news.ycombinator.com/item?id=48937020)
+  - [Show HN: CKB – Code intelligence for AI assistants (impact, dead code, security)](https://www.codeknowledge.dev)
+- giorno 4 11:11 **Livia** cerca_progetti «LLM security assistant small team incident triage»
+- giorno 4 11:19 **Irene** web_search «healthcare on-premise data residency requirement regulation hospital AI tools»
+  - [Data residency for healthcare AI: what the regulations actually require - Aptible](https://www.aptible.com/hipaa-ai-security/data-residency)
+  - [HIPAA & GDPR Compliant AI Agents for Healthcare in 2026](https://fin.ai/learn/hipaa-gdpr-compliant-ai-agents)
+  - [Healthcare On-Prem AI: HIPAA, Patient Data, and Clinical Models](https://oxmaint.com/sap-integration/on-prem-ai/healthcare-on-prem-ai-deployment)
+- giorno 4 11:58 **Enea** web_search «Epoch AI data hub notable AI models training compute dataset»
+  - [Announcing Epoch AI’s data hub](https://epoch.ai/latest/announcing-epoch-ai-data-hub)
+  - [Epoch Data on AI Models](https://datahub.io/ai/epoch-data-on-ai-models)
+  - [AI models documentation](https://epoch.ai/data/ai-models-documentation/estimation)
+- giorno 4 11:59 **Enea** web_search «hospital on-premise AI data residency requirement independent study healthcare»
+  - [Managing Healthcare Data Residency: Step-by-Step Guide](https://ones.com/blog/managing-healthcare-data-residency-a-step-by-step-guide/)
+  - [HIPAA & GDPR Compliant AI Agents for Healthcare in 2026](https://fin.ai/learn/hipaa-gdpr-compliant-ai-agents)
+  - [Data residency for healthcare AI: what the regulations actually require - Aptible](https://www.aptible.com/hipaa-ai-security/data-residency)
+- giorno 4 12:10 **Giulia** web_search «Epoch AI LLM inference price trends data page»
+  - [LLM inference prices have fallen rapidly but unequally across tasks](https://epoch.ai/data-insights/llm-inference-price-trends)
+  - [LLM Inference Prices Fell 280x. Your Bill Did Not: How to Find the Efficient Frontier - DEV Community](https://dev.to/jamilxt/llm-inference-prices-fell-280x-your-bill-did-not-how-to-find-the-efficient-frontier-20n5)
+  - [Inference Unit Economics: The True Cost Per Million Tokens](https://introl.com/blog/inference-unit-economics-true-cost-per-million-tokens-guide)
+- giorno 4 12:12 **Matteo** cerca_discussioni «AI assistant security small IT teams» (cache)
+  - [Show HN: BlacksmithAI – AI‑Assisted Penetration Testing Framework (Beta, Free)](https://bs.kahanlabs.com)
+  - [Launch HN: Traceforce (YC S26) – Company-wide security monitoring for AI apps](https://news.ycombinator.com/item?id=48937020)
+  - [Show HN: CKB – Code intelligence for AI assistants (impact, dead code, security)](https://www.codeknowledge.dev)
+- giorno 4 12:33 **Matteo** web_search «small IT team security AI assistant survey with named author and date»
+  - [ISC2 Survey: 30% of Cyber Pros Using AI Security Tools](https://www.isc2.org/Insights/2025/07/2025-isc2-ai-pulse-survey)
+  - [Shadow IT](https://en.wikipedia.org/wiki/Shadow_IT)
+  - [Security Questionnaire Automation Software](https://www.conveyor.com/products/security-questionnaire-automation)
+- giorno 4 12:49 **Irene** web_search «healthcare hospital data on-premise vs cloud security independent report»
+  - [Security Showdown: Cloud vs. On-Premise Healthcare Data Protection](https://www.sprypt.com/blog/comparing-data-protection-in-cloud-vs-on-premise-healthcare-systems)
+  - [Cloud vs On-Premise Healthcare CMMS: Security, Cost, and Compliance Compared](https://oxmaint.com/industries/healthcare/cloud-vs-onpremise-healthcare-cmms-security-cost-compliance)
+  - [Cloud vs. On-Premises: Rethinking Security in Hospital Informatics](https://blog.lgcclinicaldiagnostics.com/cloud-vs.-on-premises-rethinking-security-in-hospital-informatics)
+- giorno 4 13:19 **Giulia** web_search «Epoch AI inference price decline LLM data»
+  - [LLM inference prices have fallen rapidly but unequally across tasks](https://epoch.ai/data-insights/llm-inference-price-trends)
+  - [The plunging price of thought](https://epoch.ai/publications/the-plunging-price-of-thought)
+  - [Epoch AI on X: "How has the cost to use LLMs changed over time? Our analysis shows that the price to reach a given benchmark score has fallen dramatically—between 9x and 900x per year, depending on the benchmark and score. 🧵" / X](https://x.com/EpochAIResearch/status/1900264630473417006)
+- giorno 4 13:34 **Livia** cerca_discussioni «small IT team security alert triage fatigue»
+- giorno 4 14:07 **Irene** web_search «Epoch AI LLM inference price decline per year data»
+  - [LLM inference prices have fallen rapidly but unequally across tasks](https://epoch.ai/data-insights/llm-inference-price-trends)
+  - [AI Inference Costs Plummeting 5-10x Yearly: Jean-Stanislas Denain](https://www.linkedin.com/posts/markbeccue_lets-deflate-the-current-market-worry-about-activity-7429902795081916416-T1A4)
+  - [Epoch AI on X: "Thanks to @ArtificialAnlys for providing some of the data for this analysis. You can learn more about this data insight on our website! https://t.co/vFyMUqAJ5J" / X](https://x.com/EpochAIResearch/status/1900264645132431682)
+- giorno 4 15:53 **Livia** web_search «prompt injection LLM security alert triage guidance OWASP»
+  - [LLM Prompt Injection Prevention - OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html)
+  - [LLM01: Prompt Injection - OWASP Gen AI Security Project](https://genai.owasp.org/llmrisk2023-24/llm01-24-prompt-injection/)
+  - [Evaluating Prompt Injection Defenses for Educational LLM Tutors: Security-Usability-Latency Trade-offs](https://arxiv.org/pdf/2605.06669)
+- giorno 4 16:55 **Irene** web_search «Epoch AI LLM inference price trends benchmark 9x 900x per year»
+  - [LLM inference prices have fallen rapidly but unequally across tasks](https://epoch.ai/data-insights/llm-inference-price-trends)
+  - [LLM Inference Prices Fell 280x. Your Bill Did Not: How to Find the Efficient Frontier - DEV Community](https://dev.to/jamilxt/llm-inference-prices-fell-280x-your-bill-did-not-how-to-find-the-efficient-frontier-20n5)
+  - [Epoch AI on X: "How has the cost to use LLMs changed over time? Our analysis shows that the price to reach a given benchmark score has fallen dramatically—between 9x and 900x per year, depending on the benchmark and score. 🧵" / X](https://x.com/EpochAIResearch/status/1900264630473417006)
+- giorno 4 18:43 **Giulia** web_search «Epoch AI LLM inference price decline median per year benchmark»
+  - [LLM inference prices have fallen rapidly but unequally across tasks](https://epoch.ai/data-insights/llm-inference-price-trends)
+  - [AI Inference Costs Plummeting 5-10x Yearly: Jean-Stanislas Denain](https://www.linkedin.com/posts/markbeccue_lets-deflate-the-current-market-worry-about-activity-7429902795081916416-T1A4)
+  - [Epoch AI on X: "Thanks to @ArtificialAnlys for providing some of the data for this analysis. You can learn more about this data insight on our website! https://t.co/vFyMUqAJ5J" / X](https://x.com/EpochAIResearch/status/1900264645132431682)
+- giorno 4 19:33 **Enea** web_search «Epoch AI LLM inference price trends 50x 200x per year»
+  - [LLM inference prices have fallen rapidly but unequally across tasks](https://epoch.ai/data-insights/llm-inference-price-trends)
+  - [LLM Inference Prices Fell 280x. Your Bill Did Not: How to Find the Efficient Frontier - DEV Community](https://dev.to/jamilxt/llm-inference-prices-fell-280x-your-bill-did-not-how-to-find-the-efficient-frontier-20n5)
+  - [Epoch AI on X: "How has the cost to use LLMs changed over time? Our analysis shows that the price to reach a given benchmark score has fallen dramatically—between 9x and 900x per year, depending on the benchmark and score. 🧵" / X](https://x.com/EpochAIResearch/status/1900264630473417006)
+- giorno 4 19:56 **Matteo** cerca_discussioni «on-premise LLM audit logging regulated industries»
+- giorno 4 19:58 **Matteo** cerca_progetti «on-premise LLM audit trail explainability»
+- giorno 4 20:01 **Giulia** web_search «LLM inference price decline per year Epoch AI data insight»
+  - [LLM inference prices have fallen rapidly but unequally across tasks](https://epoch.ai/data-insights/llm-inference-price-trends)
+  - [AI Inference Costs Plummeting 5-10x Yearly: Jean-Stanislas Denain](https://www.linkedin.com/posts/markbeccue_lets-deflate-the-current-market-worry-about-activity-7429902795081916416-T1A4)
+  - [Epoch AI on X: "Thanks to @ArtificialAnlys for providing some of the data for this analysis. You can learn more about this data insight on our website! https://t.co/vFyMUqAJ5J" / X](https://x.com/EpochAIResearch/status/1900264645132431682)
+- giorno 4 21:11 **Irene** web_search «Epoch AI LLM inference price trends median decline per year benchmark»
+  - [LLM inference prices have fallen rapidly but unequally across tasks](https://epoch.ai/data-insights/llm-inference-price-trends)
+  - [LLM Inference Prices Fell 280x. Your Bill Did Not: How to Find the Efficient Frontier - DEV Community](https://dev.to/jamilxt/llm-inference-prices-fell-280x-your-bill-did-not-how-to-find-the-efficient-frontier-20n5)
+  - [The plunging price of thought](https://epoch.ai/publications/the-plunging-price-of-thought)
+- giorno 4 21:15 **Giulia** web_search «AI decision audit logs regulated banks requirement survey 2025»
+  - [Compliant AI Infrastructure for Regulated Finance: A tiered multi-agent framework with DLT audit trails for financial operations in DACH](https://arxiv.org/pdf/2609.27632)
+  - [Generative AI in Financial Institution: A Global Survey of Opportunities, Threats, and Regulation](https://arxiv.org/pdf/2504.21574)
+  - [US bank regulators ask whether lenders can stop their AI agents](https://complexdiscovery.com/us-bank-regulators-ask-whether-lenders-can-stop-their-ai-agents/)
+- giorno 4 21:16 **Giulia** cerca_discussioni «on-premise AI hospital data regulated audit»

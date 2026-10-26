@@ -13,6 +13,10 @@
   `interviste_simulate_*`); the submit tool says what is missing; perception and the committee brief show evidence.
 - Plan calls use `thinking.display: "omitted"`; the thought shown is the person's Italian plan reason; the working
   language is the first line of the instructions.
+- Perception states when an idea meets the candidacy requirements per policy and that human validations are
+  optional (the alternative path); plan reasons counted by language in `reinloop.reasonLangs`; a decision's
+  thought is no longer shown twice; `allega_prova` records only the source's metric.
+- Live run 3 recorded (`docs/run-report.md`, `docs/evidence/run3/`, `docs/portfolio-run3.md`).
 - `economy` profile: Livia on haiku too (run 2: sonnet was 76% of the cost).
 - Game client: evidence in the idea drawer grouped by type with weights and the `ipotesi` badge, requirements
   bar, evidence badge and pulse on cards, "Valida idea" panel.
