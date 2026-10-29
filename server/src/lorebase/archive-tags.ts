@@ -1,23 +1,21 @@
 // Plan for moving `archive/*` branches to tags (a tag does not count against the materialized-branch cap).
-import type { TagInfo } from './client.ts';
-
+// Branches and tags share one namespace: the branch is deleted first, then the tag takes its name at the
+// recorded head Revision.
 export const ARCHIVE_PREFIX = 'archive/';
 
 export interface ArchiveStep {
   name: string;
   head: string;
-  /** The tag still has to be created (false: it already exists at this head, only the branch is left). */
-  createTag: boolean;
-  /** The branch cannot be removed: a tag of the same name points to another Revision. */
-  conflict: boolean;
+  /** Why the branch is left alone (none: it is moved). */
+  skip?: 'protected' | 'tagged';
 }
 
-export function planArchiveToTags(branches: Array<{ name: string; head: string }>, tags: TagInfo[]): ArchiveStep[] {
-  const tagged = new Map(tags.map((t) => [t.name, t.revision]));
+export function planArchiveToTags(branches: Array<{ name: string; head: string; protected?: boolean }>, tags: Array<{ name: string }>): ArchiveStep[] {
+  const tagged = new Set(tags.map((t) => t.name));
   return branches
     .filter((b) => b.name.startsWith(ARCHIVE_PREFIX))
     .map((b) => {
-      const at = tagged.get(b.name);
-      return { name: b.name, head: b.head, createTag: at === undefined, conflict: at !== undefined && at !== b.head };
+      const skip = b.protected ? 'protected' : tagged.has(b.name) ? 'tagged' : undefined;
+      return { name: b.name, head: b.head, ...(skip ? { skip } : {}) } as ArchiveStep;
     });
 }

@@ -124,9 +124,12 @@ export class LorebaseClient {
     return this.request('DELETE', `${this.base}/branches/${encodeURIComponent(name)}`);
   }
 
-  /** Immutable tag at the head of a branch (tags do not count against the materialized-branch cap). */
-  createTag(name: string, source: string): Promise<TagInfo> {
-    return this.request('POST', `${this.base}/tags`, { name, source }, { 'Idempotency-Key': randomUUID() });
+  /**
+   * Immutable tag at the head of a branch (`{ source }`) or at a Revision id (`{ revision }`); tags do not count
+   * against the materialized-branch cap. Branches and tags share one namespace.
+   */
+  createTag(name: string, at: { source: string } | { revision: string }): Promise<TagInfo> {
+    return this.request('POST', `${this.base}/tags`, { name, ...at }, { 'Idempotency-Key': randomUUID() });
   }
 
   /** Every tag of the Domain (follows cursors). */

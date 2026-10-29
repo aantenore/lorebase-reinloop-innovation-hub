@@ -133,7 +133,7 @@ for (const p of open) await client.closeProposal(p.id).catch((err) => console.wa
 for (const b of stale) await client.deleteBranch(b.name).catch((err) => console.warn(`  delete ${b.name}: ${err.message}`));
 const changes = actions.length + removals.length;
 if (changes) {
-  if (Object.values(archived).some((n) => n > 0)) await client.createTag(`archive/${stamp}`, main);
+  if (Object.values(archived).some((n) => n > 0)) await client.createTag(`archive/${stamp}`, { source: main });
   const work = `reset/${stamp}`;
   await client.createBranch(work, main);
   for (const a of actions) await client.execute(a.op, a.params, { branch: work, message: `World reset: ${a.what}` });

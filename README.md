@@ -153,8 +153,8 @@ hidden again, newsletter, playbooks, teams, ideas, reviews and evidence archived
 `idea/`, `playbook/`, `policy/`, `breakthrough/` branches closed, private memory wiped.
 Archives are Lorebase tags (read-only history, not counted against the Keeper's materialized-branch cap
 `keeper.branches.max_materialized_per_domain`); read one with the tag name as ref. Older resets left `archive/*`
-branches: `npm run lorebase:archive-to-tags` lists them (dry run), `-- --apply` tags each at its head and deletes the
-branch (idempotent).
+branches: `npm run lorebase:archive-to-tags` lists them (dry run), `-- --apply` deletes each branch and tags its head
+Revision under the same name (branches and tags share one namespace; idempotent, protected branches skipped).
 
 ### Ports
 

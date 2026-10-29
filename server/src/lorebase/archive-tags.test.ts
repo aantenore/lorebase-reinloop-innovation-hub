@@ -3,21 +3,17 @@ import assert from 'node:assert/strict';
 import { planArchiveToTags } from './archive-tags.ts';
 import { LorebaseClient } from './client.ts';
 
-test('plans only archive/ branches, skips existing tags, flags conflicts', () => {
+test('plans archive/ branches, skipping protected ones and names that are already tags', () => {
   const branches = [
-    { name: 'main', head: 'r0' },
-    { name: 'archive/a', head: 'r1' },
+    { name: 'main', head: 'r0', protected: true },
+    { name: 'archive/a', head: 'r1', protected: false },
     { name: 'archive/b', head: 'r2' },
-    { name: 'archive/c', head: 'r3' },
+    { name: 'archive/p', head: 'r3', protected: true },
   ];
-  const tags = [
-    { name: 'archive/b', revision: 'r2' },
-    { name: 'archive/c', revision: 'other' },
-  ];
-  assert.deepEqual(planArchiveToTags(branches, tags), [
-    { name: 'archive/a', head: 'r1', createTag: true, conflict: false },
-    { name: 'archive/b', head: 'r2', createTag: false, conflict: false },
-    { name: 'archive/c', head: 'r3', createTag: false, conflict: true },
+  assert.deepEqual(planArchiveToTags(branches, [{ name: 'archive/b' }]), [
+    { name: 'archive/a', head: 'r1' },
+    { name: 'archive/b', head: 'r2', skip: 'tagged' },
+    { name: 'archive/p', head: 'r3', skip: 'protected' },
   ]);
 });
 
@@ -31,9 +27,9 @@ test('client creates a tag at a branch head and lists tags across pages', async 
   }) as typeof fetch;
   try {
     const c = new LorebaseClient('http://k', 'hub');
-    await c.createTag('archive/x', 'main');
+    await c.createTag('archive/x', { revision: 'r9' });
     assert.equal(calls[0]?.url, 'http://k/api/v1/domains/hub/tags');
-    assert.deepEqual(JSON.parse(calls[0]?.body ?? ''), { name: 'archive/x', source: 'main' });
+    assert.deepEqual(JSON.parse(calls[0]?.body ?? ''), { name: 'archive/x', revision: 'r9' });
     assert.deepEqual((await c.listTags()).map((t) => t.name), ['a', 'b']);
   } finally {
     globalThis.fetch = real;
