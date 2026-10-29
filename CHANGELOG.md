@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `world:reset` archives on a Lorebase tag `archive/<stamp>` instead of a branch, so resets no longer fill the Keeper's
+  materialized-branch cap. `npm run lorebase:archive-to-tags` (dry run; `-- --apply`) converts existing `archive/*`
+  branches to tags.
 - Live run 6 recorded: `docs/run-report.md` (Run 6 and "Findings across runs 1-6" at the top), `docs/evidence/run6/`,
   `docs/portfolio-run6.md`; idea board, idea detail and board mode screenshots from run 6.
 - While a committee session is convened or deciding, perception says so (`rt.observation.ideaSessionNow`) instead of

@@ -149,8 +149,12 @@ every mind pauses), `SIM_MODEL_OVERRIDE=haiku` (every agent on one tier), `SIM_R
 (`SIM_API_TOKEN`, `HERALD_URL`, `MNEMO_URL`, ...).
 
 `npm run world:reset -- --dry-run` shows what a reset would do: policies back to the seed, breakthroughs
-hidden again, newsletter, playbooks, teams, ideas, reviews and evidence archived on `archive/<stamp>`, stale
+hidden again, newsletter, playbooks, teams, ideas, reviews and evidence archived on the tag `archive/<stamp>`, stale
 `idea/`, `playbook/`, `policy/`, `breakthrough/` branches closed, private memory wiped.
+Archives are Lorebase tags (read-only history, not counted against the Keeper's materialized-branch cap
+`keeper.branches.max_materialized_per_domain`); read one with the tag name as ref. Older resets left `archive/*`
+branches: `npm run lorebase:archive-to-tags` lists them (dry run), `-- --apply` tags each at its head and deletes the
+branch (idempotent).
 
 ### Ports
 

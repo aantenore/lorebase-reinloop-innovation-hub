@@ -24,6 +24,7 @@
     "mnemo": "node services/mnemo/src/main.ts",
     "reinloop:pin": "bash scripts/reinloop-pin.sh",
     "world:reset": "node scripts/world-reset.ts",
+    "lorebase:archive-to-tags": "node scripts/archive-to-tags.ts",
     "idea:validate": "node scripts/validate-idea.ts"
   },
   "dependencies": {

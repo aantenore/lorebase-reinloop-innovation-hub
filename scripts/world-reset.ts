@@ -6,7 +6,8 @@
 //     (missing ones are re-created), roles get their seed values back;
 //   - breakthroughs made and their methods leave main (back to the hidden branch, rebuilt by the seed);
 //   - Chronicle (newsletter), Insight (playbooks), Team, Idea, Review and Evidence records are archived on
-//     `archive/<timestamp>` and removed from main (the portfolio starts empty again);
+//     tagged `archive/<timestamp>` (a read-only tag, not a branch: tags do not count against the Keeper's
+//     materialized-branch cap) and removed from main (the portfolio starts empty again);
 //   - stale branches (playbook/, policy/, breakthrough/, idea/, seed/, reset/, probe/) and their open
 //     Proposals are closed.
 // Then the private memory database of mnemo (config/mnemo.json db.path, MNEMO_DB) is deleted
@@ -113,7 +114,7 @@ for (const prefix of ['repeal law', 'restore law', 're-create law', 'restore rol
   const list = byKind(prefix);
   if (list.length) console.log(`  ${prefix}: ${list.map((a) => a.what.slice(prefix.length + 1)).join('; ')}`);
 }
-for (const [kind, n] of Object.entries(archived)) console.log(`  archive ${kind}: ${n} record(s) -> archive/${stamp}, removed from ${main}`);
+for (const [kind, n] of Object.entries(archived)) console.log(`  archive ${kind}: ${n} record(s) -> tag archive/${stamp}, removed from ${main}`);
 if (batches.length) console.log(`  ${lb.bulkDeleteOperation}: ${batches.map((b) => `${b.kind} ${b.keys.length}`).join(', ')} (${batches.length} call(s), at most ${batchSize} keys each)`);
 console.log(`  close ${open.length} open Proposal(s) and delete ${stale.length} stale branch(es)${stale.length ? `: ${stale.map((b) => b.name).join(', ')}` : ''}`);
 const mnemoDb = resolve(ROOT, process.env.MNEMO_DB || (JSON.parse(readFileSync(resolve(ROOT, process.env.MNEMO_CONFIG ?? 'config/mnemo.json'), 'utf8')) as { db: { path: string } }).db.path);
@@ -132,14 +133,14 @@ for (const p of open) await client.closeProposal(p.id).catch((err) => console.wa
 for (const b of stale) await client.deleteBranch(b.name).catch((err) => console.warn(`  delete ${b.name}: ${err.message}`));
 const changes = actions.length + removals.length;
 if (changes) {
-  if (Object.values(archived).some((n) => n > 0)) await client.createBranch(`archive/${stamp}`, main);
+  if (Object.values(archived).some((n) => n > 0)) await client.createTag(`archive/${stamp}`, main);
   const work = `reset/${stamp}`;
   await client.createBranch(work, main);
   for (const a of actions) await client.execute(a.op, a.params, { branch: work, message: `World reset: ${a.what}` });
   for (const b of batches) {
     await client.execute(lb.bulkDeleteOperation, { kind: b.kind, keys: b.keys, skip_missing: true }, { branch: work, message: `World reset: remove ${b.keys.length} ${b.kind} record(s)` });
   }
-  const pr = await client.createProposal(work, main, 'World reset', `Back to the seed state: ${changes} change(s) in ${actions.length + batches.length} Operation(s). History archived on archive/${stamp}.`);
+  const pr = await client.createProposal(work, main, 'World reset', `Back to the seed state: ${changes} change(s) in ${actions.length + batches.length} Operation(s). History archived on tag archive/${stamp}.`);
   await client.review(pr.id, 'approve', 'World reset');
   const merged = await client.merge(pr.id, 'World reset');
   await client.deleteBranch(work).catch(() => undefined);
