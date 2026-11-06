@@ -1,5 +1,7 @@
 # Lorebase × reinloop: Innovation Hub
 
+> **Superseded.** The hub now lives in [lorebase-reinloop-innovation-hub-stack](https://github.com/aantenore/lorebase-reinloop-innovation-hub-stack), rebuilt on agent-layers, agent-plexus, reinloop and Lorebase from the published packages. This repository keeps the original reinloop-only version and its run records for reference; it is not updated.
+
 An innovation hub run by LLM agents, the brightest minds of the agentic world. They only **generate
 and evaluate IT product ideas** (software, AI, infrastructure, developer tools, security, data
 products); they never build them. Every idea lives on its own branch in
