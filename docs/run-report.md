@@ -30,7 +30,7 @@ Six live runs of 19 to 30 real minutes each, eight haiku/sonnet minds, $13.24 in
 
 # Run report: live run 1 (web research, prompt caching, economy profile)
 
-Date: 2026-10-26, 09:04-09:34 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy`
+Date: 2026-10-26, 30 min. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy`
 (every mind on haiku, Livia on sonnet as committee chair; committee voters and group proposers on haiku, no
 interns), `GAME_BUDGET_USD=3`, `--seconds 1800`, web research through Tavily. Stop rule: budget, 30 real minutes or
 five committee decisions, whichever first: the 30 minutes came first.
@@ -148,7 +148,7 @@ A second run with a faster clock (`GAME_TIME_SCALE`) or a higher `ricerche_web_p
 
 # Run 2: committee policies, independent reviews, faster clock
 
-Date: 2026-10-26, 09:52-10:11 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (now
+Date: 2026-10-26, 19 min. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (now
 also clock x3, 8 turns and a web-call cap per decision), `GAME_BUDGET_USD=3`, `--seconds 1800`, web research through
 Tavily (the run started before the default moved to `anthropic-native`). New policies on: `astensione_conflitto_interessi`,
 `revisioni_indipendenti`; working hours 7-21, freeze of one period, web quota 12 per person and 60 in total. Stop
@@ -232,7 +232,7 @@ fix for strict tool-input parsing, then a re-pin.
 
 # Run 3: evidence, candidacy requirements, Italian thoughts
 
-Date: 2026-10-26, 10:29-10:58 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (now every
+Date: 2026-10-26, 29 min. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (now every
 mind on haiku, Livia included; clock x3), `GAME_BUDGET_USD=3`, research `anthropic-native`, public signals through
 reinloop `signalTools` (pinned 474f0b5, which also recovers from malformed streamed tool arguments). New: `Evidence`
 Records, `cerca_discussioni` / `cerca_progetti` / `cerca_domande` / `cerca_paper`, `allega_prova`,
@@ -334,7 +334,7 @@ committee), to see whether a submission happens and how the committee weighs evi
 
 # Run 4: an independent committee, expiring slots, cheaper search
 
-Date: 2026-10-26, 11:13-11:44 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (all
+Date: 2026-10-26, 31 min. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (all
 haiku, clock x3), `GAME_BUDGET_USD=3`, reinloop 474f0b5. New policies on: `comitato_non_coautore` (committee
 members never become authors), `supplenti_comitato_per_anzianita` (alternates up to quorum),
 `slot_scadono_a_fine_trimestre` (perception: "slot di approvazione rimasti questo trimestre: N, scadono il giorno X
@@ -442,7 +442,7 @@ committee approves or kills on evidence the policy accepts.
 
 # Run 5: a committee voting on policy criteria, closing runs, Hacker News that answers
 
-Date: 2026-10-26, 12:04-12:34 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (all
+Date: 2026-10-26, 30 min. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (all
 haiku, clock x3), `GAME_BUDGET_USD=3`, reinloop 474f0b5. New since run 4: every seated committee member votes
 (`ideas.committee.maxVoters` 0 = all; `groups.maxProposers` capped the ballots before); policy `criteri_comitato`
 with five criteria (`criterio_comitato_prove_del_problema`, `_concorrenza`, `_fattibilita`, `_rischio`,
@@ -536,7 +536,7 @@ committee votes on the criteria once an idea is in front of it.
 
 # Run 6: reads apart from searches, a committee on a schedule, official sources on signals
 
-Date: 2026-10-26, 13:46-14:17 UTC. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (all
+Date: 2026-10-26, 31 min. Fresh world (`npm run world:reset`), real models, `GAME_PROFILE=economy` (all
 haiku, clock x3), `GAME_BUDGET_USD=2.5`, commit 1a3ca61, reinloop 474f0b5. New since run 5: page reads have their own
 daily quotas (`letture_web_per_persona_al_giorno` 12, `letture_web_totali_al_giorno` 60; searches stay at 3 and 10)
 and, with `anthropic-native`, actually exist (hosted `web_fetch`, one small call per page restricted to its host; run 5
